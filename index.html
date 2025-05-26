@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fitness Setup</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 1rem;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 2rem;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .image-boxes {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .image-box {
+      flex: 1;
+      min-width: 60px;
+      aspect-ratio: 1 / 1;
+      border: 2px dashed #bbb;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafafa;
+      position: relative;
+    }
+
+    .image-box span {
+      font-size: 0.75rem;
+      color: #999;
+      text-align: center;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: 1rem;
+      max-width: 90%;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .modal-grid div {
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .modal-grid img {
+      width: 100%;
+      border-radius: 0.5rem;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .modal-grid span {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="image-boxes">
+      <div class="image-box"><span>Image 1</span></div>
+      <div class="image-box"><span>Image 2</span></div>
+      <div class="image-box"><span>Image 3</span></div>
+      <div class="image-box"><span>Image 4</span></div>
+      <div class="image-box"><span>Image 5</span></div>
+      <div class="image-box"><span>Image 6</span></div>
+    </div>
+
+    <h1>Let's Set You Up</h1>
+
+    <label for="units">Units</label>
+    <select id="units">
+      <option value="imperial" selected>Imperial (lbs, inches)</option>
+      <option value="metric">Metric (kg, cm)</option>
+    </select>
+
+    <label for="age">Age</label>
+    <input type="number" id="age" placeholder="e.g. 25" />
+
+    <label for="sex">Sex</label>
+    <select id="sex">
+      <option value="">Select</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+
+    <label for="height" id="heightLabel">Height (inches)</label>
+    <input type="number" id="height" placeholder="e.g. 70" />
+
+    <label for="weight" id="weightLabel">Current Weight (lbs)</label>
+    <input type="number" id="weight" placeholder="e.g. 180" />
+
+    <label for="currentBf">Current Body Fat %</label>
+    <input type="number" id="currentBf" placeholder="e.g. 20" step="0.1" />
+
+    <label for="goalType">Goal</label>
+    <select id="goalType">
+      <option value="cut" selected>Cut (Lose Fat)</option>
+      <option value="bulk">Bulk (Gain Muscle)</option>
+    </select>
+
+    <div id="cutFields">
+      <label for="goalBf">Goal Body Fat %</label>
+      <input type="number" id="goalBf" readonly placeholder="Click to select" />
+    </div>
+
+    <div id="bulkFields" style="display: none;">
+      <label for="goalWeight">Goal Weight</label>
+      <input type="number" id="goalWeight" readonly placeholder="Click to select" />
+    </div>
+
+    <button id="submitBtn">Continue</button>
+    <div class="result" id="results"></div>
+  </div>
+
+  <!-- Cut Modal -->
+  <div class="modal" id="cutModal">
+    <div class="modal-content">
+      <h3>Select Goal Body Fat %</h3>
+      <div class="modal-grid">
+        <div onclick="selectGoalBF(8)"><img src="" alt="8%"><span>8%</span></div>
+        <div onclick="selectGoalBF(10)"><img src="" alt="10%"><span>10%</span></div>
+        <div onclick="selectGoalBF(12)"><img src="" alt="12%"><span>12%</span></div>
+        <div onclick="selectGoalBF(15)"><img src="" alt="15%"><span>15%</span></div>
+        <div onclick="selectGoalBF(18)"><img src="" alt="18%"><span>18%</span></div>
+        <div onclick="selectGoalBF(20)"><img src="" alt="20%"><span>20%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Modal -->
+  <div class="modal" id="bulkModal">
+    <div class="modal-content">
+      <h3>Select Goal Physique</h3>
+      <div class="modal-grid">
+        <div onclick="selectGoalWeight(170)"><img src="" alt="Athletic"><span>Athletic</span></div>
+        <div onclick="selectGoalWeight(180)"><img src="" alt="Greek God"><span>Greek God</span></div>
+        <div onclick="selectGoalWeight(200)"><img src="" alt="Bodybuilder"><span>Bodybuilder</span></div>
+        <div onclick="selectGoalWeight(220)"><img src="" alt="Bear Mode"><span>Bear Mode</span></div>
+        <div onclick="selectGoalWeight(165)"><img src="" alt="Lean Bulk"><span>Lean Bulk</span></div>
+        <div onclick="selectGoalWeight(210)"><img src="" alt="Powerlifter"><span>Powerlifter</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const goalType = document.getElementById("goalType");
+    const cutFields = document.getElementById("cutFields");
+    const bulkFields = document.getElementById("bulkFields");
+    const goalBfInput = document.getElementById("goalBf");
+    const goalWeightInput = document.getElementById("goalWeight");
+    const unitsSelect = document.getElementById("units");
+    const heightLabel = document.getElementById("heightLabel");
+    const weightLabel = document.getElementById("weightLabel");
+
+    const cutModal = document.getElementById("cutModal");
+    const bulkModal = document.getElementById("bulkModal");
+
+    function selectGoalBF(value) {
+      document.getElementById("goalBf").value = value;
+      cutModal.style.display = "none";
+    }
+
+    function selectGoalWeight(value) {
+      document.getElementById("goalWeight").value = value;
+      bulkModal.style.display = "none";
+    }
+
+    goalType.addEventListener("change", () => {
+      if (goalType.value === "cut") {
+        cutFields.style.display = "block";
+        bulkFields.style.display = "none";
+        cutModal.style.display = "flex";
+      } else {
+        cutFields.style.display = "none";
+        bulkFields.style.display = "block";
+        bulkModal.style.display = "flex";
+      }
+    });
+
+    goalBfInput.addEventListener("click", () => cutModal.style.display = "flex");
+    goalWeightInput.addEventListener("click", () => bulkModal.style.display = "flex");
+
+    window.onclick = function(e) {
+      if (e.target === cutModal) cutModal.style.display = "none";
+      if (e.target === bulkModal) bulkModal.style.display = "none";
+    }
+
+    unitsSelect.addEventListener("change", () => {
+      const isImp = unitsSelect.value === "imperial";
+      heightLabel.textContent = isImp ? "Height (inches)" : "Height (cm)";
+      weightLabel.textContent = isImp ? "Current Weight (lbs)" : "Current Weight (kg)";
+    });
+
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const age = parseInt(document.getElementById("age").value);
+      const sex = document.getElementById("sex").value;
+      let height = parseFloat(document.getElementById("height").value);
+      let weight = parseFloat(document.getElementById("weight").value);
+      const currentBf = parseFloat(document.getElementById("currentBf").value) / 100;
+      const goalTypeVal = goalType.value;
+      const units = unitsSelect.value;
+
+      if (!age || !sex || !height || !weight || isNaN(currentBf)) {
+        alert("Please fill out all required fields.");
+        return;
+      }
+
+      if (units === "imperial") {
+        height *= 2.54;
+        weight *= 0.453592;
+      }
+
+      let goalWeightMetric;
+
+      if (goalTypeVal === "cut") {
+        const goalBf = parseFloat(goalBfInput.value) / 100;
+        if (isNaN(goalBf)) {
+          alert("Select a goal body fat %.");
+          return;
+        }
+        const leanMass = weight * (1 - currentBf);
+        goalWeightMetric = leanMass / (1 - goalBf);
+      } else {
+        goalWeightMetric = parseFloat(goalWeightInput.value);
+        if (units === "imperial") goalWeightMetric *= 0.453592;
+      }
+
+      const bmr = sex === "male"
+        ? 10 * weight + 6.25 * height - 5 * age + 5
+        : 10 * weight + 6.25 * height - 5 * age - 161;
+
+      const bmi = weight / ((height / 100) ** 2);
+      const goalWeight = units === "imperial"
+        ? goalWeightMetric / 0.453592
+        : goalWeightMetric;
+
+      document.getElementById("results").innerHTML = `
+        Goal Weight: <strong>${goalWeight.toFixed(1)} ${units === "imperial" ? "lbs" : "kg"}</strong><br>
+        BMI: <strong>${bmi.toFixed(1)}</strong><br>
+        BMR: <strong>${Math.round(bmr)} calories/day</strong>
+      `;
+    });
+  </script>
+</body>
+</html>
