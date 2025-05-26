@@ -58,32 +58,6 @@
       text-align: center;
     }
 
-    .image-boxes {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      overflow-x: auto;
-    }
-
-    .image-box {
-      flex: 1;
-      min-width: 60px;
-      aspect-ratio: 1 / 1;
-      border: 2px dashed #bbb;
-      border-radius: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fafafa;
-      position: relative;
-    }
-
-    .image-box span {
-      font-size: 0.75rem;
-      color: #999;
-      text-align: center;
-    }
-
     .modal {
       display: none;
       position: fixed;
@@ -131,15 +105,6 @@
 </head>
 <body>
   <div class="container">
-    <div class="image-boxes">
-      <div class="image-box"><span>Image 1</span></div>
-      <div class="image-box"><span>Image 2</span></div>
-      <div class="image-box"><span>Image 3</span></div>
-      <div class="image-box"><span>Image 4</span></div>
-      <div class="image-box"><span>Image 5</span></div>
-      <div class="image-box"><span>Image 6</span></div>
-    </div>
-
     <h1>Let's Set You Up</h1>
 
     <label for="units">Units</label>
@@ -231,12 +196,12 @@
     const bulkModal = document.getElementById("bulkModal");
 
     function selectGoalBF(value) {
-      document.getElementById("goalBf").value = value;
+      goalBfInput.value = value;
       cutModal.style.display = "none";
     }
 
     function selectGoalWeight(value) {
-      document.getElementById("goalWeight").value = value;
+      goalWeightInput.value = value;
       bulkModal.style.display = "none";
     }
 
@@ -318,3 +283,4 @@
   </script>
 </body>
 </html>
+
