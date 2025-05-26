@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Activity Calculator</title>
+<title>Activity Tracker</title>
 <style>
   body {
     background: #000;
@@ -22,16 +22,14 @@
     text-align: center;
     margin-bottom: 1rem;
   }
-  label {
+  label, select, input {
     display: block;
+    width: 100%;
     margin-top: 1rem;
-    font-weight: 600;
+    font-size: 1rem;
   }
   select, input {
-    width: 100%;
     padding: 0.5rem;
-    margin-top: 0.25rem;
-    font-size: 1rem;
     border-radius: 0.3rem;
     background: #222;
     color: white;
@@ -39,7 +37,7 @@
     box-sizing: border-box;
   }
   button {
-    margin-top: 2rem;
+    margin-top: 1rem;
     width: 100%;
     padding: 0.75rem;
     background: white;
@@ -52,11 +50,24 @@
   button:hover {
     background: #ddd;
   }
-  #caloriesBurned {
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 1rem;
+  }
+  li {
+    background: #222;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  #totalCalories {
     margin-top: 1.5rem;
-    text-align: center;
-    font-size: 1.25rem;
     font-weight: 700;
+    font-size: 1.2rem;
+    text-align: center;
   }
   #error {
     color: #f44;
@@ -68,7 +79,7 @@
 <body>
 
 <div class="container">
-  <h1>Activity Calculator</h1>
+  <h1>Activity Tracker</h1>
 
   <label for="activity">Select Activity</label>
   <select id="activity">
@@ -84,14 +95,15 @@
   <label for="minutes">Duration (minutes)</label>
   <input type="number" id="minutes" min="1" max="600" placeholder="e.g. 45" />
 
-  <button id="calcBtn">Calculate Calories Burned</button>
+  <button id="addActivityBtn">Add Activity</button>
 
-  <div id="caloriesBurned"></div>
+  <ul id="activitiesList"></ul>
+
+  <div id="totalCalories">Total Calories Burned: 0 kcal</div>
   <div id="error"></div>
 </div>
 
 <script>
-  // MET values for activities (approximate)
   const METS = {
     lifting: 6,
     running: 9,
@@ -101,44 +113,87 @@
     swimming: 8
   };
 
-  // Load BMR from localStorage
   const bmr = parseFloat(localStorage.getItem('userBMR'));
   const errorDiv = document.getElementById('error');
-  const resultDiv = document.getElementById('caloriesBurned');
+  const totalCaloriesDiv = document.getElementById('totalCalories');
+  const activitiesList = document.getElementById('activitiesList');
 
   if (!bmr) {
     errorDiv.textContent = "Error: BMR not found. Please complete the setup page first.";
   }
 
-  document.getElementById('calcBtn').addEventListener('click', () => {
-    errorDiv.textContent = '';
-    resultDiv.textContent = '';
+  let activities = [];
+  let totalActivityCalories = 0;
 
+  document.getElementById('addActivityBtn').addEventListener('click', () => {
+    errorDiv.textContent = '';
     const activity = document.getElementById('activity').value;
     const minutes = parseInt(document.getElementById('minutes').value);
 
     if (!activity) {
-      return (errorDiv.textContent = 'Please select an activity.');
+      return errorDiv.textContent = 'Please select an activity.';
     }
     if (!minutes || minutes < 1 || minutes > 600) {
-      return (errorDiv.textContent = 'Please enter a valid duration (1-600 minutes).');
+      return errorDiv.textContent = 'Please enter a valid duration (1-600 minutes).';
     }
     if (!bmr) {
-      return (errorDiv.textContent = 'BMR not found. Please go back and complete the setup.');
+      return errorDiv.textContent = 'BMR not found. Please go back and complete the setup.';
     }
 
-    // Calories burned formula:
-    // Calories burned per minute = (MET * BMR) / 24 / 60
-    // Total calories = calories per minute * minutes
-
     const met = METS[activity];
+    // Calories burned per minute = (MET * BMR) / 24 / 60
     const caloriesPerMinute = (met * bmr) / 24 / 60;
-    const totalCalories = caloriesPerMinute * minutes;
+    const caloriesBurned = caloriesPerMinute * minutes;
 
-    resultDiv.textContent = `Calories burned: ${totalCalories.toFixed(1)} kcal`;
+    // Add activity to list and update totals
+    activities.push({ activity, minutes, caloriesBurned });
+    totalActivityCalories += caloriesBurned;
+
+    renderActivities();
+    updateTotalCalories();
+
+    // Clear inputs
+    document.getElementById('activity').value = '';
+    document.getElementById('minutes').value = '';
   });
+
+  function renderActivities() {
+    activitiesList.innerHTML = '';
+    activities.forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.textContent = `${capitalize(item.activity)} - ${item.minutes} min - ${item.caloriesBurned.toFixed(1)} kcal`;
+      
+      // Add delete button
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'X';
+      delBtn.style.background = '#f44';
+      delBtn.style.color = 'white';
+      delBtn.style.border = 'none';
+      delBtn.style.borderRadius = '0.3rem';
+      delBtn.style.cursor = 'pointer';
+      delBtn.style.marginLeft = '1rem';
+      delBtn.onclick = () => {
+        totalActivityCalories -= activities[idx].caloriesBurned;
+        activities.splice(idx, 1);
+        renderActivities();
+        updateTotalCalories();
+      };
+      li.appendChild(delBtn);
+      activitiesList.appendChild(li);
+    });
+  }
+
+  function updateTotalCalories() {
+    const total = bmr + totalActivityCalories;
+    totalCaloriesDiv.textContent = `Total Calories Burned (BMR + Activities): ${total.toFixed(1)} kcal`;
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
 </script>
 
 </body>
 </html>
+
 
