@@ -7,17 +7,18 @@
 <style>
   body {
     font-family: system-ui, sans-serif;
-    background: #f5f5f5;
+    background: #000;
     margin: 0;
     padding: 1rem;
+    color: white;
   }
   .container {
     max-width: 500px;
     margin: auto;
-    background: white;
+    background: #121212;
     padding: 2rem;
     border-radius: 1rem;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
   }
   h1 {
     text-align: center;
@@ -28,6 +29,7 @@
     display: block;
     margin-top: 1rem;
     font-weight: 600;
+    color: white;
   }
   input, select {
     width: 100%;
@@ -35,17 +37,29 @@
     margin-top: 0.25rem;
     font-size: 1rem;
     box-sizing: border-box;
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 0.25rem;
+  }
+  input::placeholder {
+    color: #bbb;
   }
   button {
     margin-top: 2rem;
     width: 100%;
     padding: 0.75rem;
     font-size: 1rem;
-    background: black;
-    color: white;
+    background: white;
+    color: black;
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #ddd;
   }
   .modal {
     display: none;
@@ -53,7 +67,7 @@
     z-index: 999;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.85);
     justify-content: center;
     align-items: center;
   }
@@ -61,12 +75,17 @@
     display: flex;
   }
   .modal-content {
-    background: white;
+    background: #222;
     padding: 1rem;
     border-radius: 1rem;
     max-width: 90%;
     max-height: 90%;
     overflow-y: auto;
+    color: white;
+  }
+  .modal-content h2 {
+    margin-top: 0;
+    color: white;
   }
   .modal-grid {
     display: grid;
@@ -82,11 +101,30 @@
     border-radius: 0.5rem;
     aspect-ratio: 1 / 1;
     object-fit: cover;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+  .modal-grid div:hover img {
+    border-color: white;
   }
   .modal-grid span {
     display: block;
     margin-top: 0.25rem;
     font-size: 0.8rem;
+    color: white;
+  }
+  .modal-content button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .modal-content button:hover {
+    background: #ddd;
   }
 </style>
 </head>
@@ -137,7 +175,7 @@
   <div class="modal-content">
     <h2>Choose your Current Body Fat Level</h2>
     <div class="modal-grid" id="cutImages">
-      <!-- Placeholder images, add your URLs below -->
+      <!-- Placeholder images -->
       <div><img src="https://via.placeholder.com/100?text=BF+5%" alt="5% BF" /><span>5%</span></div>
       <div><img src="https://via.placeholder.com/100?text=BF+10%" alt="10% BF" /><span>10%</span></div>
       <div><img src="https://via.placeholder.com/100?text=BF+15%" alt="15% BF" /><span>15%</span></div>
@@ -154,7 +192,7 @@
   <div class="modal-content">
     <h2>Choose Your Physique Type</h2>
     <div class="modal-grid" id="bulkImages">
-      <!-- Placeholder images, add your URLs below -->
+      <!-- Placeholder images -->
       <div><img src="https://via.placeholder.com/100?text=Athletic" alt="Athletic" /><span>Athletic</span></div>
       <div><img src="https://via.placeholder.com/100?text=Bodybuilder" alt="Bodybuilder" /><span>Bodybuilder</span></div>
       <div><img src="https://via.placeholder.com/100?text=Greek+God" alt="Greek God" /><span>Greek God</span></div>
@@ -190,8 +228,10 @@
   goalTypeSelect.addEventListener('change', () => {
     if(goalTypeSelect.value === 'cut'){
       cutModal.classList.add('active');
+      bulkModal.classList.remove('active');
     } else {
       bulkModal.classList.add('active');
+      cutModal.classList.remove('active');
     }
   });
 
@@ -207,4 +247,5 @@
 
 </body>
 </html>
+
 
