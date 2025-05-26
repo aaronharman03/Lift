@@ -1,80 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Activity Tracker</title>
-<style>
-  body {
-    background: #000;
-    color: white;
-    font-family: system-ui, sans-serif;
-    padding: 1rem;
-  }
-  .container {
-    max-width: 400px;
-    margin: auto;
-    background: #121212;
-    padding: 1.5rem;
-    border-radius: 1rem;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  label, select, input {
-    display: block;
-    width: 100%;
-    margin-top: 1rem;
-    font-size: 1rem;
-  }
-  select, input {
-    padding: 0.5rem;
-    border-radius: 0.3rem;
-    background: #222;
-    color: white;
-    border: 1px solid #444;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 1rem;
-    width: 100%;
-    padding: 0.75rem;
-    background: white;
-    color: black;
-    font-weight: 700;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #ddd;
-  }
-  ul {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 1rem;
-  }
-  li {
-    background: #222;
-    margin-bottom: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    display: flex;
-    justify-content: space-between;
-  }
-  #totalCalories {
-    margin-top: 1.5rem;
-    font-weight: 700;
-    font-size: 1.2rem;
-    text-align: center;
-  }
-  #error {
-    color: #f44;
-    margin-top: 0.5rem;
-    text-align: center;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activity Tracker</title>
+  <style>
+    body {
+      background: #000;
+      color: white;
+      font-family: system-ui, sans-serif;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #121212;
+      padding: 1.5rem;
+      border-radius: 1rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    label, select, input {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+    select, input {
+      padding: 0.5rem;
+      border-radius: 0.3rem;
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.75rem;
+      background: white;
+      color: black;
+      font-weight: 700;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ddd;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 1rem;
+    }
+    li {
+      background: #222;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    #totalCalories {
+      margin-top: 1.5rem;
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    #error {
+      color: #f44;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
@@ -114,6 +114,8 @@
   };
 
   const bmr = parseFloat(localStorage.getItem('userBMR'));
+  const goalType = localStorage.getItem('goalType') || "cut"; // fallback
+
   const errorDiv = document.getElementById('error');
   const totalCaloriesDiv = document.getElementById('totalCalories');
   const activitiesList = document.getElementById('activitiesList');
@@ -141,18 +143,15 @@
     }
 
     const met = METS[activity];
-    // Calories burned per minute = (MET * BMR) / 24 / 60
     const caloriesPerMinute = (met * bmr) / 24 / 60;
     const caloriesBurned = caloriesPerMinute * minutes;
 
-    // Add activity to list and update totals
     activities.push({ activity, minutes, caloriesBurned });
     totalActivityCalories += caloriesBurned;
 
     renderActivities();
     updateTotalCalories();
 
-    // Clear inputs
     document.getElementById('activity').value = '';
     document.getElementById('minutes').value = '';
   });
@@ -162,8 +161,6 @@
     activities.forEach((item, idx) => {
       const li = document.createElement('li');
       li.textContent = `${capitalize(item.activity)} - ${item.minutes} min - ${item.caloriesBurned.toFixed(1)} kcal`;
-      
-      // Add delete button
       const delBtn = document.createElement('button');
       delBtn.textContent = 'X';
       delBtn.style.background = '#f44';
@@ -184,8 +181,18 @@
   }
 
   function updateTotalCalories() {
-    const total = bmr + totalActivityCalories;
-    totalCaloriesDiv.textContent = `Total Calories Burned (BMR + Activities): ${total.toFixed(1)} kcal`;
+    const base = bmr + totalActivityCalories;
+    const tef = base * 0.10;
+    let adjusted = base + tef;
+
+    if (goalType === "bulk") {
+      adjusted += 500;
+    } else if (goalType === "cut") {
+      adjusted -= 500;
+    }
+
+    totalCaloriesDiv.textContent = 
+      `Total Calories (BMR + Activity + TEF ${goalType === "bulk" ? "+ 500 kcal" : "- 500 kcal"}): ${adjusted.toFixed(1)} kcal`;
   }
 
   function capitalize(str) {
@@ -195,5 +202,6 @@
 
 </body>
 </html>
+
 
 
