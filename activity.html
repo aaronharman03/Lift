@@ -114,7 +114,11 @@
   };
 
   const bmr = parseFloat(localStorage.getItem('userBMR'));
-  const goalType = localStorage.getItem('goalType') || "cut"; // fallback
+  let goalType = localStorage.getItem('goalType');
+
+  if (goalType !== "bulk" && goalType !== "cut") {
+    goalType = "cut"; // fallback default
+  }
 
   const errorDiv = document.getElementById('error');
   const totalCaloriesDiv = document.getElementById('totalCalories');
@@ -192,7 +196,7 @@
     }
 
     totalCaloriesDiv.textContent = 
-      `Total Calories (BMR + Activity + TEF ${goalType === "bulk" ? "+ 500 kcal" : "- 500 kcal"}): ${adjusted.toFixed(1)} kcal`;
+      `Total Calories (BMR + Activity + TEF, goal: ${goalType.toUpperCase()}): ${adjusted.toFixed(1)} kcal`;
   }
 
   function capitalize(str) {
@@ -202,6 +206,7 @@
 
 </body>
 </html>
+
 
 
 
