@@ -119,6 +119,9 @@
 </div>
 
 <script>
+  const goalType = document.querySelector('input[name="goalType"]:checked').value;
+localStorage.setItem("goalType", goalType);
+
   const unitsSelect = document.getElementById('units');
   const heightMetricDiv = document.getElementById('heightMetric');
   const heightImperialDiv = document.getElementById('heightImperial');
