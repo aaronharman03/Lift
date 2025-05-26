@@ -3,246 +3,234 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Fitness Setup</title>
+<title>Lifting App Setup</title>
 <style>
   body {
-    font-family: system-ui, sans-serif;
     background: #000;
-    margin: 0;
-    padding: 1rem;
     color: white;
+    font-family: system-ui, sans-serif;
+    padding: 1rem;
   }
   .container {
-    max-width: 500px;
+    max-width: 400px;
     margin: auto;
     background: #121212;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 1rem;
-    box-shadow: 0 0 15px rgba(255,255,255,0.1);
   }
   h1 {
     text-align: center;
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
   label {
     display: block;
     margin-top: 1rem;
     font-weight: 600;
-    color: white;
   }
   input, select {
     width: 100%;
     padding: 0.5rem;
     margin-top: 0.25rem;
     font-size: 1rem;
-    box-sizing: border-box;
+    border-radius: 0.3rem;
     background: #222;
     color: white;
     border: 1px solid #444;
-    border-radius: 0.25rem;
-  }
-  input::placeholder {
-    color: #bbb;
+    box-sizing: border-box;
   }
   button {
     margin-top: 2rem;
     width: 100%;
     padding: 0.75rem;
-    font-size: 1rem;
     background: white;
     color: black;
+    font-weight: 700;
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
-    font-weight: 700;
-    transition: background-color 0.3s ease;
   }
   button:hover {
     background: #ddd;
   }
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    justify-content: center;
-    align-items: center;
-  }
-  .modal.active {
-    display: flex;
-  }
-  .modal-content {
-    background: #222;
-    padding: 1rem;
-    border-radius: 1rem;
-    max-width: 90%;
-    max-height: 90%;
-    overflow-y: auto;
-    color: white;
-  }
-  .modal-content h2 {
-    margin-top: 0;
-    color: white;
-  }
-  .modal-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 0.5rem;
-  }
-  .modal-grid div {
-    cursor: pointer;
+  #error {
+    color: #f44;
+    margin-top: 0.5rem;
     text-align: center;
-  }
-  .modal-grid img {
-    width: 100%;
-    border-radius: 0.5rem;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border: 2px solid transparent;
-    transition: border-color 0.3s ease;
-  }
-  .modal-grid div:hover img {
-    border-color: white;
-  }
-  .modal-grid span {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    color: white;
-  }
-  .modal-content button {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background: white;
-    color: black;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-weight: 700;
-  }
-  .modal-content button:hover {
-    background: #ddd;
   }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Let's Set You Up</h1>
+  <h1>Setup Your Profile</h1>
 
   <label for="units">Units</label>
   <select id="units">
-    <option value="imperial" selected>Imperial (lbs, inches)</option>
-    <option value="metric">Metric (kg, cm)</option>
+    <option value="metric">Metric (cm, kg)</option>
+    <option value="imperial">Imperial (ft/in, lbs)</option>
   </select>
 
-  <label for="age">Age</label>
-  <input type="number" id="age" placeholder="e.g. 25" min="1" />
+  <label for="age">Age (years)</label>
+  <input type="number" id="age" min="10" max="120" placeholder="e.g. 30" />
 
   <label for="sex">Sex</label>
   <select id="sex">
-    <option value="">Select</option>
+    <option value="">-- Select --</option>
     <option value="male">Male</option>
     <option value="female">Female</option>
   </select>
 
-  <label for="height" id="heightLabel">Height (inches)</label>
-  <input type="number" id="height" placeholder="e.g. 70" min="1" />
+  <div id="heightMetric">
+    <label for="heightCm">Height (cm)</label>
+    <input type="number" id="heightCm" min="50" max="250" placeholder="e.g. 175" />
+  </div>
+  <div id="heightImperial" style="display:none;">
+    <label for="heightFt">Height (ft)</label>
+    <input type="number" id="heightFt" min="3" max="8" placeholder="e.g. 5" />
+    <label for="heightIn">Height (in)</label>
+    <input type="number" id="heightIn" min="0" max="11" placeholder="e.g. 9" />
+  </div>
 
-  <label for="weight" id="weightLabel">Current Weight (lbs)</label>
-  <input type="number" id="weight" placeholder="e.g. 180" min="1" />
+  <div id="weightMetric">
+    <label for="weightKg">Weight (kg)</label>
+    <input type="number" id="weightKg" min="30" max="300" placeholder="e.g. 70" />
+  </div>
+  <div id="weightImperial" style="display:none;">
+    <label for="weightLbs">Weight (lbs)</label>
+    <input type="number" id="weightLbs" min="66" max="660" placeholder="e.g. 154" />
+  </div>
 
-  <label for="currentBf">Current Body Fat %</label>
-  <input type="number" id="currentBf" placeholder="e.g. 20" step="0.1" min="0" max="100" />
+  <label for="currentBF">Current Body Fat %</label>
+  <input type="number" id="currentBF" min="3" max="70" placeholder="e.g. 18" />
 
-  <label for="goalType">Goal</label>
+  <label for="goalBF">Goal Body Fat %</label>
+  <input type="number" id="goalBF" min="3" max="70" placeholder="e.g. 12" />
+
+  <label for="goalType">Goal Type</label>
   <select id="goalType">
-    <option value="cut" selected>Cut (Lose Fat)</option>
+    <option value="">-- Select --</option>
+    <option value="cut">Cut (Lose Fat)</option>
     <option value="bulk">Bulk (Gain Muscle)</option>
   </select>
 
-  <label for="goalBf">Goal Body Fat %</label>
-  <input type="number" id="goalBf" placeholder="e.g. 15" step="0.1" min="0" max="100" />
+  <div id="error"></div>
 
   <button id="continueBtn">Continue</button>
 </div>
 
-<!-- Cut Modal -->
-<div id="cutModal" class="modal">
-  <div class="modal-content">
-    <h2>Choose your Current Body Fat Level</h2>
-    <div class="modal-grid" id="cutImages">
-      <!-- Placeholder images -->
-      <div><img src="https://via.placeholder.com/100?text=BF+5%" alt="5% BF" /><span>5%</span></div>
-      <div><img src="https://via.placeholder.com/100?text=BF+10%" alt="10% BF" /><span>10%</span></div>
-      <div><img src="https://via.placeholder.com/100?text=BF+15%" alt="15% BF" /><span>15%</span></div>
-      <div><img src="https://via.placeholder.com/100?text=BF+20%" alt="20% BF" /><span>20%</span></div>
-      <div><img src="https://via.placeholder.com/100?text=BF+25%" alt="25% BF" /><span>25%</span></div>
-      <div><img src="https://via.placeholder.com/100?text=BF+30%" alt="30% BF" /><span>30%</span></div>
-    </div>
-    <button onclick="closeModal('cutModal')">Close</button>
-  </div>
-</div>
-
-<!-- Bulk Modal -->
-<div id="bulkModal" class="modal">
-  <div class="modal-content">
-    <h2>Choose Your Physique Type</h2>
-    <div class="modal-grid" id="bulkImages">
-      <!-- Placeholder images -->
-      <div><img src="https://via.placeholder.com/100?text=Athletic" alt="Athletic" /><span>Athletic</span></div>
-      <div><img src="https://via.placeholder.com/100?text=Bodybuilder" alt="Bodybuilder" /><span>Bodybuilder</span></div>
-      <div><img src="https://via.placeholder.com/100?text=Greek+God" alt="Greek God" /><span>Greek God</span></div>
-      <div><img src="https://via.placeholder.com/100?text=Bear+Mode" alt="Bear Mode" /><span>Bear Mode</span></div>
-      <div><img src="https://via.placeholder.com/100?text=Lean+Bulk" alt="Lean Bulk" /><span>Lean Bulk</span></div>
-      <div><img src="https://via.placeholder.com/100?text=Powerlifter" alt="Powerlifter" /><span>Powerlifter</span></div>
-    </div>
-    <button onclick="closeModal('bulkModal')">Close</button>
-  </div>
-</div>
-
 <script>
   const unitsSelect = document.getElementById('units');
-  const heightLabel = document.getElementById('heightLabel');
-  const weightLabel = document.getElementById('weightLabel');
-  const goalTypeSelect = document.getElementById('goalType');
-  const cutModal = document.getElementById('cutModal');
-  const bulkModal = document.getElementById('bulkModal');
-  const continueBtn = document.getElementById('continueBtn');
+  const heightMetricDiv = document.getElementById('heightMetric');
+  const heightImperialDiv = document.getElementById('heightImperial');
+  const weightMetricDiv = document.getElementById('weightMetric');
+  const weightImperialDiv = document.getElementById('weightImperial');
 
-  // Update units labels dynamically
   unitsSelect.addEventListener('change', () => {
-    if(unitsSelect.value === 'imperial'){
-      heightLabel.textContent = 'Height (inches)';
-      weightLabel.textContent = 'Current Weight (lbs)';
+    if (unitsSelect.value === 'imperial') {
+      heightMetricDiv.style.display = 'none';
+      weightMetricDiv.style.display = 'none';
+      heightImperialDiv.style.display = 'block';
+      weightImperialDiv.style.display = 'block';
     } else {
-      heightLabel.textContent = 'Height (cm)';
-      weightLabel.textContent = 'Current Weight (kg)';
+      heightMetricDiv.style.display = 'block';
+      weightMetricDiv.style.display = 'block';
+      heightImperialDiv.style.display = 'none';
+      weightImperialDiv.style.display = 'none';
     }
   });
 
-  // Show modal on goalType change
-  goalTypeSelect.addEventListener('change', () => {
-    if(goalTypeSelect.value === 'cut'){
-      cutModal.classList.add('active');
-      bulkModal.classList.remove('active');
-    } else {
-      bulkModal.classList.add('active');
-      cutModal.classList.remove('active');
+  document.getElementById('continueBtn').addEventListener('click', () => {
+    const age = parseInt(document.getElementById('age').value);
+    const sex = document.getElementById('sex').value;
+    const units = unitsSelect.value;
+    let heightCm, weightKg;
+
+    if (!age || age < 10 || age > 120) {
+      return showError('Please enter a valid age between 10 and 120.');
     }
+    if (sex !== 'male' && sex !== 'female') {
+      return showError('Please select your sex.');
+    }
+
+    if (units === 'metric') {
+      heightCm = parseFloat(document.getElementById('heightCm').value);
+      weightKg = parseFloat(document.getElementById('weightKg').value);
+      if (!heightCm || heightCm < 50 || heightCm > 250) {
+        return showError('Please enter a valid height in cm (50-250).');
+      }
+      if (!weightKg || weightKg < 30 || weightKg > 300) {
+        return showError('Please enter a valid weight in kg (30-300).');
+      }
+    } else {
+      const heightFt = parseInt(document.getElementById('heightFt').value);
+      const heightIn = parseInt(document.getElementById('heightIn').value);
+      weightKg = null; // will calculate below
+      if (
+        !heightFt ||
+        heightFt < 3 ||
+        heightFt > 8 ||
+        heightIn === undefined ||
+        heightIn < 0 ||
+        heightIn > 11
+      ) {
+        return showError('Please enter a valid height in feet and inches.');
+      }
+      heightCm = heightFt * 30.48 + heightIn * 2.54;
+
+      const weightLbs = parseFloat(document.getElementById('weightLbs').value);
+      if (!weightLbs || weightLbs < 66 || weightLbs > 660) {
+        return showError('Please enter a valid weight in lbs (66-660).');
+      }
+      weightKg = weightLbs * 0.453592;
+    }
+
+    const currentBF = parseFloat(document.getElementById('currentBF').value);
+    const goalBF = parseFloat(document.getElementById('goalBF').value);
+    if (
+      !currentBF ||
+      currentBF < 3 ||
+      currentBF > 70 ||
+      !goalBF ||
+      goalBF < 3 ||
+      goalBF > 70
+    ) {
+      return showError('Please enter valid body fat percentages (3-70%).');
+    }
+
+    const goalType = document.getElementById('goalType').value;
+    if (goalType !== 'cut' && goalType !== 'bulk') {
+      return showError('Please select your goal type.');
+    }
+
+    clearError();
+
+    // Calculate BMR using Mifflin-St Jeor Equation
+    // BMR = 10 * weight(kg) + 6.25 * height(cm) - 5 * age + s
+    // s = +5 if male, -161 if female
+    const s = sex === 'male' ? 5 : -161;
+    const bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + s;
+
+    // Save needed data to localStorage for next pages
+    localStorage.setItem('userBMR', bmr.toFixed(1));
+    localStorage.setItem('userWeightKg', weightKg.toFixed(1));
+    localStorage.setItem('userHeightCm', heightCm.toFixed(1));
+    localStorage.setItem('userAge', age);
+    localStorage.setItem('userSex', sex);
+    localStorage.setItem('userCurrentBF', currentBF.toFixed(1));
+    localStorage.setItem('userGoalBF', goalBF.toFixed(1));
+    localStorage.setItem('userGoalType', goalType);
+    localStorage.setItem('userUnits', units);
+
+    // Redirect to activity.html
+    window.location.href = 'activity.html';
   });
 
-  function closeModal(modalId){
-    document.getElementById(modalId).classList.remove('active');
+  function showError(msg) {
+    document.getElementById('error').textContent = msg;
   }
-
-  continueBtn.addEventListener('click', () => {
-    // You can add validation here if you want before moving on
-    window.location.href = 'next.html';
-  });
+  function clearError() {
+    document.getElementById('error').textContent = '';
+  }
 </script>
 
 </body>
