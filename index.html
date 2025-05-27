@@ -1,241 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lifting App Setup</title>
-<style>
-  body {
-    background: #000;
-    color: white;
-    font-family: system-ui, sans-serif;
-    padding: 1rem;
-  }
-  .container {
-    max-width: 400px;
-    margin: auto;
-    background: #121212;
-    padding: 1.5rem;
-    border-radius: 1rem;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  label {
-    display: block;
-    margin-top: 1rem;
-    font-weight: 600;
-  }
-  input, select {
-    width: 100%;
-    padding: 0.5rem;
-    margin-top: 0.25rem;
-    font-size: 1rem;
-    border-radius: 0.3rem;
-    background: #222;
-    color: white;
-    border: 1px solid #444;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 2rem;
-    width: 100%;
-    padding: 0.75rem;
-    background: white;
-    color: black;
-    font-weight: 700;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #ddd;
-  }
-  #error {
-    color: #f44;
-    margin-top: 0.5rem;
-    text-align: center;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitness Survey</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    input, select, button {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 300px;
+    }
+    label {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <h1>Fitness Setup</h1>
 
-<div class="container">
-  <h1>Setup Your Profile</h1>
+  <form id="form">
+    <label>Unit System:</label>
+    <label><input type="radio" name="unit" value="metric" checked> Metric (kg, cm)</label>
+    <label><input type="radio" name="unit" value="imperial"> Imperial (lbs, in)</label>
 
-  <label for="units">Units</label>
-  <select id="units">
-    <option value="metric">Metric (cm, kg)</option>
-    <option value="imperial">Imperial (ft/in, lbs)</option>
-  </select>
+    <label>Age:</label>
+    <input type="number" id="age" required>
 
-  <label for="age">Age (years)</label>
-  <input type="number" id="age" min="10" max="120" placeholder="e.g. 30" />
+    <label>Sex:</label>
+    <select id="sex" required>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
 
-  <label for="sex">Sex</label>
-  <select id="sex">
-    <option value="">-- Select --</option>
-    <option value="male">Male</option>
-    <option value="female">Female</option>
-  </select>
+    <label>Height:</label>
+    <input type="number" id="height" placeholder="Height (cm)" required>
 
-  <div id="heightMetric">
-    <label for="heightCm">Height (cm)</label>
-    <input type="number" id="heightCm" min="50" max="250" placeholder="e.g. 175" />
-  </div>
-  <div id="heightImperial" style="display:none;">
-    <label for="heightFt">Height (ft)</label>
-    <input type="number" id="heightFt" min="3" max="8" placeholder="e.g. 5" />
-    <label for="heightIn">Height (in)</label>
-    <input type="number" id="heightIn" min="0" max="11" placeholder="e.g. 9" />
-  </div>
+    <label>Weight:</label>
+    <input type="number" id="weight" placeholder="Weight (kg)" required>
 
-  <div id="weightMetric">
-    <label for="weightKg">Weight (kg)</label>
-    <input type="number" id="weightKg" min="30" max="300" placeholder="e.g. 70" />
-  </div>
-  <div id="weightImperial" style="display:none;">
-    <label for="weightLbs">Weight (lbs)</label>
-    <input type="number" id="weightLbs" min="66" max="660" placeholder="e.g. 154" />
-  </div>
+    <label>Current Body Fat %:</label>
+    <input type="number" id="currentBf" required>
 
-  <label for="currentBF">Current Body Fat %</label>
-  <input type="number" id="currentBF" min="3" max="70" placeholder="e.g. 18" />
+    <label>Goal Body Fat %:</label>
+    <input type="number" id="goalBf" required>
 
-  <label for="goalBF">Goal Body Fat %</label>
-  <input type="number" id="goalBF" min="3" max="70" placeholder="e.g. 12" />
+    <label>Goal:</label>
+    <label><input type="radio" name="goalType" value="bulk" required> Bulk</label>
+    <label><input type="radio" name="goalType" value="cut"> Cut</label>
 
-  <label for="goalType">Goal Type</label>
-  <select id="goalType">
-    <option value="">-- Select --</option>
-    <option value="cut">Cut (Lose Fat)</option>
-    <option value="bulk">Bulk (Gain Muscle)</option>
-  </select>
+    <button type="submit">Continue</button>
+  </form>
 
-  <div id="error"></div>
+  <script>
+    // Placeholder switching
+    const unitRadios = document.querySelectorAll('input[name="unit"]');
+    const weightInput = document.getElementById('weight');
+    const heightInput = document.getElementById('height');
 
-  <button id="continueBtn">Continue</button>
-</div>
+    unitRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.value === 'imperial') {
+          weightInput.placeholder = "Weight (lbs)";
+          heightInput.placeholder = "Height (in)";
+        } else {
+          weightInput.placeholder = "Weight (kg)";
+          heightInput.placeholder = "Height (cm)";
+        }
+      });
+    });
 
-<script>
-  const goalType = document.querySelector('input[name="goalType"]:checked').value;
-localStorage.setItem("goalType", goalType);
+    // Form submission
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
 
-  const unitsSelect = document.getElementById('units');
-  const heightMetricDiv = document.getElementById('heightMetric');
-  const heightImperialDiv = document.getElementById('heightImperial');
-  const weightMetricDiv = document.getElementById('weightMetric');
-  const weightImperialDiv = document.getElementById('weightImperial');
+      const unit = document.querySelector('input[name="unit"]:checked').value;
+      const age = parseInt(document.getElementById('age').value);
+      const sex = document.getElementById('sex').value;
+      let height = parseFloat(document.getElementById('height').value);
+      let weight = parseFloat(document.getElementById('weight').value);
+      const currentBf = parseFloat(document.getElementById('currentBf').value);
+      const goalBf = parseFloat(document.getElementById('goalBf').value);
+      const goalType = document.querySelector('input[name="goalType"]:checked').value;
 
-  unitsSelect.addEventListener('change', () => {
-    if (unitsSelect.value === 'imperial') {
-      heightMetricDiv.style.display = 'none';
-      weightMetricDiv.style.display = 'none';
-      heightImperialDiv.style.display = 'block';
-      weightImperialDiv.style.display = 'block';
-    } else {
-      heightMetricDiv.style.display = 'block';
-      weightMetricDiv.style.display = 'block';
-      heightImperialDiv.style.display = 'none';
-      weightImperialDiv.style.display = 'none';
-    }
-  });
-
-  document.getElementById('continueBtn').addEventListener('click', () => {
-    const age = parseInt(document.getElementById('age').value);
-    const sex = document.getElementById('sex').value;
-    const units = unitsSelect.value;
-    let heightCm, weightKg;
-
-    if (!age || age < 10 || age > 120) {
-      return showError('Please enter a valid age between 10 and 120.');
-    }
-    if (sex !== 'male' && sex !== 'female') {
-      return showError('Please select your sex.');
-    }
-
-    if (units === 'metric') {
-      heightCm = parseFloat(document.getElementById('heightCm').value);
-      weightKg = parseFloat(document.getElementById('weightKg').value);
-      if (!heightCm || heightCm < 50 || heightCm > 250) {
-        return showError('Please enter a valid height in cm (50-250).');
+      // Convert imperial to metric if needed
+      if (unit === "imperial") {
+        weight = weight * 0.453592;
+        height = height * 2.54;
       }
-      if (!weightKg || weightKg < 30 || weightKg > 300) {
-        return showError('Please enter a valid weight in kg (30-300).');
+
+      // BMR Calculation (Mifflin-St Jeor, no activity factor)
+      let bmr;
+      if (sex === "male") {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
       }
-    } else {
-      const heightFt = parseInt(document.getElementById('heightFt').value);
-      const heightIn = parseInt(document.getElementById('heightIn').value);
-      weightKg = null; // will calculate below
-      if (
-        !heightFt ||
-        heightFt < 3 ||
-        heightFt > 8 ||
-        heightIn === undefined ||
-        heightIn < 0 ||
-        heightIn > 11
-      ) {
-        return showError('Please enter a valid height in feet and inches.');
-      }
-      heightCm = heightFt * 30.48 + heightIn * 2.54;
 
-      const weightLbs = parseFloat(document.getElementById('weightLbs').value);
-      if (!weightLbs || weightLbs < 66 || weightLbs > 660) {
-        return showError('Please enter a valid weight in lbs (66-660).');
-      }
-      weightKg = weightLbs * 0.453592;
-    }
+      // Add Thermic Effect of Food (TEF) ~10%
+      bmr = bmr * 1.1;
 
-    const currentBF = parseFloat(document.getElementById('currentBF').value);
-    const goalBF = parseFloat(document.getElementById('goalBF').value);
-    if (
-      !currentBF ||
-      currentBF < 3 ||
-      currentBF > 70 ||
-      !goalBF ||
-      goalBF < 3 ||
-      goalBF > 70
-    ) {
-      return showError('Please enter valid body fat percentages (3-70%).');
-    }
+      // Store values in localStorage
+      localStorage.setItem("unit", unit);
+      localStorage.setItem("age", age);
+      localStorage.setItem("sex", sex);
+      localStorage.setItem("height", height);
+      localStorage.setItem("weight", weight);
+      localStorage.setItem("currentBf", currentBf);
+      localStorage.setItem("goalBf", goalBf);
+      localStorage.setItem("goalType", goalType);
+      localStorage.setItem("bmr", bmr.toFixed(0));
 
-    const goalType = document.getElementById('goalType').value;
-    if (goalType !== 'cut' && goalType !== 'bulk') {
-      return showError('Please select your goal type.');
-    }
-
-    clearError();
-
-    // Calculate BMR using Mifflin-St Jeor Equation
-    // BMR = 10 * weight(kg) + 6.25 * height(cm) - 5 * age + s
-    // s = +5 if male, -161 if female
-    const s = sex === 'male' ? 5 : -161;
-    const bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + s;
-
-    // Save needed data to localStorage for next pages
-    localStorage.setItem('userBMR', bmr.toFixed(1));
-    localStorage.setItem('userWeightKg', weightKg.toFixed(1));
-    localStorage.setItem('userHeightCm', heightCm.toFixed(1));
-    localStorage.setItem('userAge', age);
-    localStorage.setItem('userSex', sex);
-    localStorage.setItem('userCurrentBF', currentBF.toFixed(1));
-    localStorage.setItem('userGoalBF', goalBF.toFixed(1));
-    localStorage.setItem('userGoalType', goalType);
-    localStorage.setItem('userUnits', units);
-
-    // Redirect to activity.html
-    window.location.href = 'activity.html';
-  });
-
-  function showError(msg) {
-    document.getElementById('error').textContent = msg;
-  }
-  function clearError() {
-    document.getElementById('error').textContent = '';
-  }
-</script>
-
+      window.location.href = "activity.html";
+    });
+  </script>
 </body>
 </html>
 
