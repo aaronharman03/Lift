@@ -82,12 +82,6 @@
     <label>Age:</label>
     <input type="number" id="age" required />
 
-    <label>Unit:</label>
-    <select id="unit" required>
-      <option value="metric">Metric (cm, kg)</option>
-      <option value="imperial">Imperial (in, lb)</option>
-    </select>
-
     <label>Height:</label>
     <div class="inline-group">
       <input type="number" id="height" placeholder="Height" required />
@@ -139,19 +133,8 @@
     const popup = document.getElementById("goalImagePopup");
     const images = popup.querySelectorAll("img");
     const popupTitle = document.getElementById("popupTitle");
-    const unitSelect = document.getElementById("unit");
     const heightUnit = document.getElementById("heightUnit");
     const weightUnit = document.getElementById("weightUnit");
-
-    unitSelect.addEventListener("change", () => {
-      if (unitSelect.value === "metric") {
-        heightUnit.value = "cm";
-        weightUnit.value = "kg";
-      } else {
-        heightUnit.value = "in";
-        weightUnit.value = "lb";
-      }
-    });
 
     goalTypeSelect.addEventListener("change", () => {
       if (goalTypeSelect.value === "bulk") {
@@ -190,7 +173,6 @@
       e.preventDefault();
       const age = document.getElementById("age").value;
       const sex = document.getElementById("sex").value;
-      const unit = unitSelect.value;
       const height = document.getElementById("height").value;
       const weight = document.getElementById("weight").value;
       const bodyfat = document.getElementById("bodyfat").value;
@@ -198,7 +180,6 @@
 
       localStorage.setItem("age", age);
       localStorage.setItem("sex", sex);
-      localStorage.setItem("unit", unit);
       localStorage.setItem("height", height);
       localStorage.setItem("heightUnit", heightUnit.value);
       localStorage.setItem("weight", weight);
