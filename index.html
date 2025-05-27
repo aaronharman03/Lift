@@ -17,16 +17,22 @@
       border: none;
       padding: 10px;
       margin-bottom: 15px;
+      display: block;
       width: 100%;
       max-width: 300px;
-      display: block;
-      font-size: 16px;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      border-radius: 4px;
-      height: 44px;
-      box-sizing: border-box;
+    }
+    .inline-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      max-width: 300px;
+      margin-bottom: 15px;
+    }
+    .inline-group input {
+      flex: 2;
+    }
+    .inline-group select {
+      flex: 1;
     }
     label {
       margin-top: 10px;
@@ -83,10 +89,22 @@
     </select>
 
     <label>Height:</label>
-    <input type="number" id="height" placeholder="Height" required />
+    <div class="inline-group">
+      <input type="number" id="height" placeholder="Height" required />
+      <select id="heightUnit">
+        <option value="cm">cm</option>
+        <option value="in">in</option>
+      </select>
+    </div>
 
     <label>Weight:</label>
-    <input type="number" id="weight" placeholder="Weight" required />
+    <div class="inline-group">
+      <input type="number" id="weight" placeholder="Weight" required />
+      <select id="weightUnit">
+        <option value="kg">kg</option>
+        <option value="lb">lb</option>
+      </select>
+    </div>
 
     <label>Current Body Fat %:</label>
     <input type="number" id="bodyfat" required />
@@ -121,7 +139,19 @@
     const popup = document.getElementById("goalImagePopup");
     const images = popup.querySelectorAll("img");
     const popupTitle = document.getElementById("popupTitle");
-    let selectedImageId = null;
+    const unitSelect = document.getElementById("unit");
+    const heightUnit = document.getElementById("heightUnit");
+    const weightUnit = document.getElementById("weightUnit");
+
+    unitSelect.addEventListener("change", () => {
+      if (unitSelect.value === "metric") {
+        heightUnit.value = "cm";
+        weightUnit.value = "kg";
+      } else {
+        heightUnit.value = "in";
+        weightUnit.value = "lb";
+      }
+    });
 
     goalTypeSelect.addEventListener("change", () => {
       if (goalTypeSelect.value === "bulk") {
@@ -151,8 +181,7 @@
       img.addEventListener("click", () => {
         images.forEach(i => i.classList.remove("selected"));
         img.classList.add("selected");
-        selectedImageId = img.dataset.id;
-        localStorage.setItem("goalImage", selectedImageId);
+        localStorage.setItem("goalImage", img.dataset.id);
         hidePopup();
       });
     });
@@ -161,17 +190,19 @@
       e.preventDefault();
       const age = document.getElementById("age").value;
       const sex = document.getElementById("sex").value;
-      const unit = document.getElementById("unit").value;
+      const unit = unitSelect.value;
       const height = document.getElementById("height").value;
       const weight = document.getElementById("weight").value;
       const bodyfat = document.getElementById("bodyfat").value;
-      const goalType = document.getElementById("goalType").value;
+      const goalType = goalTypeSelect.value;
 
       localStorage.setItem("age", age);
       localStorage.setItem("sex", sex);
       localStorage.setItem("unit", unit);
       localStorage.setItem("height", height);
+      localStorage.setItem("heightUnit", heightUnit.value);
       localStorage.setItem("weight", weight);
+      localStorage.setItem("weightUnit", weightUnit.value);
       localStorage.setItem("bodyfat", bodyfat);
       localStorage.setItem("goalType", goalType);
 
@@ -180,4 +211,3 @@
   </script>
 </body>
 </html>
-
