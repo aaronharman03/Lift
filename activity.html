@@ -2,210 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Activity Tracker</title>
   <style>
     body {
       background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, select, button {
+      background: #333;
       color: white;
-      font-family: system-ui, sans-serif;
-      padding: 1rem;
-    }
-    .container {
-      max-width: 400px;
-      margin: auto;
-      background: #121212;
-      padding: 1.5rem;
-      border-radius: 1rem;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    label, select, input {
-      display: block;
-      width: 100%;
-      margin-top: 1rem;
-      font-size: 1rem;
-    }
-    select, input {
-      padding: 0.5rem;
-      border-radius: 0.3rem;
-      background: #222;
-      color: white;
-      border: 1px solid #444;
-      box-sizing: border-box;
-    }
-    button {
-      margin-top: 1rem;
-      width: 100%;
-      padding: 0.75rem;
-      background: white;
-      color: black;
-      font-weight: 700;
       border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
+      padding: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 300px;
     }
-    button:hover {
-      background: #ddd;
-    }
-    ul {
-      list-style: none;
-      padding-left: 0;
-      margin-top: 1rem;
-    }
-    li {
-      background: #222;
-      margin-bottom: 0.5rem;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-    }
-    #totalCalories {
-      margin-top: 1.5rem;
-      font-weight: 700;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    #error {
-      color: #f44;
-      margin-top: 0.5rem;
-      text-align: center;
+    .activity-entry {
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
+  <h1>Daily Activity Tracker</h1>
+  <div id="activityList"></div>
 
-<div class="container">
-  <h1>Activity Tracker</h1>
+  <div class="activity-entry">
+    <select id="activityType">
+      <option value="">-- Choose Activity --</option>
+      <option value="running">Running</option>
+      <option value="lifting">Lifting</option>
+      <option value="walking">Walking</option>
+      <option value="standing">Standing</option>
+    </select>
+    <input type="number" id="activityMinutes" placeholder="Minutes" />
+    <button onclick="addActivity()">Add Activity</button>
+  </div>
 
-  <label for="activity">Select Activity</label>
-  <select id="activity">
-    <option value="">-- Select an activity --</option>
-    <option value="lifting">Lifting (weight training)</option>
-    <option value="running">Running</option>
-    <option value="walking">Walking</option>
-    <option value="standing">Standing</option>
-    <option value="cycling">Cycling</option>
-    <option value="swimming">Swimming</option>
-  </select>
+  <button onclick="calculateTotal()">Calculate Total Calories</button>
 
-  <label for="minutes">Duration (minutes)</label>
-  <input type="number" id="minutes" min="1" max="600" placeholder="e.g. 45" />
+  <h3 id="result"></h3>
 
-  <button id="addActivityBtn">Add Activity</button>
+  <script>
+    const activityList = [];
+    const activityListDiv = document.getElementById("activityList");
 
-  <ul id="activitiesList"></ul>
+    const calorieRates = {
+      running: 10,     // kcal/min
+      lifting: 6,
+      walking: 4,
+      standing: 1.5
+    };
 
-  <div id="totalCalories">Total Calories Burned: 0 kcal</div>
-  <div id="error"></div>
-</div>
+    function addActivity() {
+      const type = document.getElementById("activityType").value;
+      const minutes = parseInt(document.getElementById("activityMinutes").value);
 
-<script>
-  const METS = {
-    lifting: 6,
-    running: 9,
-    walking: 3.5,
-    standing: 1.5,
-    cycling: 7,
-    swimming: 8
-  };
+      if (!type || isNaN(minutes)) {
+        alert("Please select an activity and enter time.");
+        return;
+      }
 
-  const bmr = parseFloat(localStorage.getItem('userBMR'));
-  let goalType = localStorage.getItem('goalType');
-
-  if (goalType !== "bulk" && goalType !== "cut") {
-    goalType = "cut"; // fallback default
-  }
-
-  const errorDiv = document.getElementById('error');
-  const totalCaloriesDiv = document.getElementById('totalCalories');
-  const activitiesList = document.getElementById('activitiesList');
-
-  if (!bmr) {
-    errorDiv.textContent = "Error: BMR not found. Please complete the setup page first.";
-  }
-
-  let activities = [];
-  let totalActivityCalories = 0;
-
-  document.getElementById('addActivityBtn').addEventListener('click', () => {
-    errorDiv.textContent = '';
-    const activity = document.getElementById('activity').value;
-    const minutes = parseInt(document.getElementById('minutes').value);
-
-    if (!activity) {
-      return errorDiv.textContent = 'Please select an activity.';
-    }
-    if (!minutes || minutes < 1 || minutes > 600) {
-      return errorDiv.textContent = 'Please enter a valid duration (1-600 minutes).';
-    }
-    if (!bmr) {
-      return errorDiv.textContent = 'BMR not found. Please go back and complete the setup.';
+      activityList.push({ type, minutes });
+      renderActivities();
     }
 
-    const met = METS[activity];
-    const caloriesPerMinute = (met * bmr) / 24 / 60;
-    const caloriesBurned = caloriesPerMinute * minutes;
-
-    activities.push({ activity, minutes, caloriesBurned });
-    totalActivityCalories += caloriesBurned;
-
-    renderActivities();
-    updateTotalCalories();
-
-    document.getElementById('activity').value = '';
-    document.getElementById('minutes').value = '';
-  });
-
-  function renderActivities() {
-    activitiesList.innerHTML = '';
-    activities.forEach((item, idx) => {
-      const li = document.createElement('li');
-      li.textContent = `${capitalize(item.activity)} - ${item.minutes} min - ${item.caloriesBurned.toFixed(1)} kcal`;
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'X';
-      delBtn.style.background = '#f44';
-      delBtn.style.color = 'white';
-      delBtn.style.border = 'none';
-      delBtn.style.borderRadius = '0.3rem';
-      delBtn.style.cursor = 'pointer';
-      delBtn.style.marginLeft = '1rem';
-      delBtn.onclick = () => {
-        totalActivityCalories -= activities[idx].caloriesBurned;
-        activities.splice(idx, 1);
-        renderActivities();
-        updateTotalCalories();
-      };
-      li.appendChild(delBtn);
-      activitiesList.appendChild(li);
-    });
-  }
-
-  function updateTotalCalories() {
-    const base = bmr + totalActivityCalories;
-    const tef = base * 0.10;
-    let adjusted = base + tef;
-
-    if (goalType === "bulk") {
-      adjusted += 500;
-    } else if (goalType === "cut") {
-      adjusted -= 500;
+    function renderActivities() {
+      activityListDiv.innerHTML = "";
+      activityList.forEach((act, index) => {
+        const div = document.createElement("div");
+        div.textContent = `${act.type} - ${act.minutes} min`;
+        activityListDiv.appendChild(div);
+      });
     }
 
-    totalCaloriesDiv.textContent = 
-      `Total Calories (BMR + Activity + TEF, goal: ${goalType.toUpperCase()}): ${adjusted.toFixed(1)} kcal`;
-  }
+    function calculateTotal() {
+      const bmr = parseFloat(localStorage.getItem("bmr"));
+      const goalType = localStorage.getItem("goalType");
 
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-</script>
+      if (!bmr || isNaN(bmr)) {
+        alert("BMR not found. Please go back and complete the setup.");
+        return;
+      }
 
+      let activityCalories = 0;
+      for (const act of activityList) {
+        const rate = calorieRates[act.type] || 0;
+        activityCalories += rate * act.minutes;
+      }
+
+      // Add or subtract 500 kcal depending on goal
+      const goalAdjustment = goalType === "bulk" ? 500 : goalType === "cut" ? -500 : 0;
+
+      const total = Math.round(bmr + activityCalories + goalAdjustment);
+
+      document.getElementById("result").textContent = `Estimated Daily Calories: ${total} kcal`;
+    }
+  </script>
 </body>
 </html>
+
 
 
 
