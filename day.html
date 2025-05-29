@@ -85,10 +85,7 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     transform: translate(-50%, -50%);
     z-index: 1001;
-
-    max-height: 80vh;
-    overflow-y: auto;
-    padding-bottom: 60px;
+    display: none;
   }
   #modal h2 {
     margin-top: 0;
@@ -402,18 +399,11 @@
   });
 
   function goBack() {
+    // You can customize this to your needs or adjust the back navigation
     window.history.back();
   }
 
   renderExercises();
-
-  // Optional: improve modal max-height on iOS keyboard open using visualViewport API
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-      const vh = window.visualViewport.height;
-      modal.style.maxHeight = vh * 0.8 + 'px';
-    });
-  }
 </script>
 
 </body>
