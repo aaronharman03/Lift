@@ -16,7 +16,7 @@
     margin-bottom: 20px;
   }
   form {
-    margin-bottom: 30px;
+    margin-top: 30px;
   }
   input, select {
     padding: 8px;
@@ -103,6 +103,8 @@
 <button class="btn-back" onclick="goBack()">← Back to Days</button>
 <h1 id="dayTitle">Workout Day</h1>
 
+<div id="exercisesList"></div>
+
 <form id="exerciseForm">
   <input type="text" id="exerciseName" placeholder="Exercise Name" required />
   <input type="number" id="weight" placeholder="Weight (kg)" min="0" />
@@ -119,8 +121,6 @@
   <button type="submit" id="formSubmitBtn">Add Exercise</button>
   <button type="button" id="cancelEditBtn" style="display:none; margin-left:10px;">Cancel Edit</button>
 </form>
-
-<div id="exercisesList"></div>
 
 <script>
   const params = new URLSearchParams(location.search);
@@ -324,6 +324,3 @@
 
 </body>
 </html>
-
-
-
