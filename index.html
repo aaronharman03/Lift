@@ -1,137 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Workout Tracker</title>
-  <style>
-    :root {
-      --navy: #001f3f;
-      --white: #fff;
-    }
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--navy);
-      color: var(--white);
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      margin-bottom: 1rem;
-      font-weight: 400;
-    }
-    form {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-    input, select, button {
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--white);
-      color: var(--white);
-      font-size: 1rem;
-      padding: 0.25rem 0.25rem 0.5rem 0;
-      outline-offset: 2px;
-    }
-    input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
-    input[type="date"] {
-      flex: 1 1 100%;
-    }
-    select {
-      flex: 1 1 100%;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      cursor: pointer;
-    }
-    /* Exercise + Weight on one line */
-    #exercise {
-      flex: 2 1 60%;
-    }
-    #weight {
-      flex: 1 1 35%;
-      text-align: right;
-    }
-    /* Reps inputs in a row */
-    #reps-group {
-      flex: 1 1 100%;
-      display: flex;
-      gap: 0.5rem;
-    }
-    #reps-group input {
-      flex: 1 1 30px;
-      text-align: center;
-      border-bottom: 1px solid var(--white);
-      padding: 0.25rem 0;
-      font-size: 1rem;
-    }
-    #add-rep-btn {
-      background: none;
-      border: none;
-      color: var(--white);
-      font-size: 1.5rem;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0 0.25rem;
-      flex: 0 0 auto;
-      user-select: none;
-    }
-    button[type="submit"] {
-      flex: 1 1 100%;
-      padding: 0.5rem 0;
-      font-weight: 600;
-      cursor: pointer;
-      border-bottom: 1px solid var(--white);
-      background: none;
-      margin-top: 0.5rem;
-    }
-    button[type="submit"]:hover {
-      background: rgba(255 255 255 / 0.1);
-    }
-    #workout-list {
-      width: 100%;
-      max-width: 480px;
-    }
-    .workout-item {
-      border-bottom: 1px solid rgba(255 255 255 / 0.2);
-      padding: 0.5rem 0;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-    }
-    .workout-header {
-      font-weight: 600;
-      font-size: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .workout-exercise {
-      display: flex;
-      gap: 0.75rem;
-      font-weight: 400;
-    }
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #ff6b6b;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 0.9rem;
-      padding: 0;
-      margin-left: 1rem;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workout Tracker</title>
+<style>
+  :root {
+    --navy: #001f3f;
+    --white: #fff;
+  }
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+  form {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  input, select, button {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--white);
+    color: var(--white);
+    font-size: 1rem;
+    padding: 0.25rem 0.25rem 0.5rem 0;
+    outline-offset: 2px;
+  }
+  input::placeholder {
+    color: rgba(255 255 255 / 0.5);
+  }
+  input[type="date"] {
+    flex: 1 1 100%;
+  }
+  select {
+    flex: 1 1 100%;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  #exercise {
+    flex: 2 1 60%;
+  }
+  #weight {
+    flex: 1 1 35%;
+    text-align: right;
+  }
+  #reps-group {
+    flex: 1 1 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+  #reps-group input {
+    flex: 1 1 30px;
+    text-align: center;
+    border-bottom: 1px solid var(--white);
+    padding: 0.25rem 0;
+    font-size: 1rem;
+  }
+  #add-rep-btn {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0.25rem;
+    flex: 0 0 auto;
+    user-select: none;
+  }
+  button[type="submit"] {
+    flex: 1 1 100%;
+    padding: 0.5rem 0;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 1px solid var(--white);
+    background: none;
+    margin-top: 0.5rem;
+  }
+  button[type="submit"]:hover {
+    background: rgba(255 255 255 / 0.1);
+  }
+  #workout-list {
+    width: 100%;
+    max-width: 480px;
+  }
+  .workout-item {
+    border-bottom: 1px solid rgba(255 255 255 / 0.2);
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .workout-header {
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .workout-exercise {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 400;
+  }
+  .reps-edit {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .reps-edit input {
+    width: 30px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--white);
+    color: var(--white);
+    text-align: center;
+    font-size: 1rem;
+    padding: 0 0 0.25rem 0;
+    outline-offset: 2px;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    margin-left: 1rem;
+  }
+</style>
 </head>
 <body>
   <h1>Workout Tracker</h1>
@@ -156,110 +170,149 @@
   </form>
   <section id="workout-list"></section>
 
-  <script>
-    const form = document.getElementById('workout-form');
-    const workoutList = document.getElementById('workout-list');
-    const repsGroup = document.getElementById('reps-group');
-    const addRepBtn = document.getElementById('add-rep-btn');
+<script>
+  const form = document.getElementById('workout-form');
+  const workoutList = document.getElementById('workout-list');
+  const repsGroup = document.getElementById('reps-group');
+  const addRepBtn = document.getElementById('add-rep-btn');
 
-    let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
+  let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
 
-    function saveWorkouts() {
-      localStorage.setItem('workouts', JSON.stringify(workouts));
-    }
+  function saveWorkouts() {
+    localStorage.setItem('workouts', JSON.stringify(workouts));
+  }
 
-    function renderWorkouts() {
-      workoutList.innerHTML = '';
-      if (!workouts.length) {
-        workoutList.textContent = 'No workouts logged yet.';
-        return;
-      }
-      workouts.forEach((w, i) => {
-        const div = document.createElement('div');
-        div.className = 'workout-item';
+  // Debounce helper to avoid excessive saves while editing reps inline
+  function debounce(func, delay) {
+    let timer;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => func.apply(this, args), delay);
+    };
+  }
 
-        const dateStr = new Date(w.date).toLocaleDateString();
-        const repsStr = w.reps.join(', ');
-
-        div.innerHTML = `
-          <div class="workout-header">
-            <div>${w.type} — ${dateStr}</div>
-            <button class="delete-btn" aria-label="Delete workout ${i}" data-index="${i}">✕</button>
-          </div>
-          <div class="workout-exercise">
-            <div>${w.exercise}</div>
-            <div>Weight: ${w.weight} kg</div>
-            <div>Reps: ${repsStr}</div>
-          </div>
-        `;
-
-        workoutList.appendChild(div);
-      });
-
-      workoutList.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const idx = e.target.getAttribute('data-index');
-          workouts.splice(idx, 1);
-          saveWorkouts();
-          renderWorkouts();
-        });
-      });
-    }
-
-    addRepBtn.addEventListener('click', () => {
-      const newInput = document.createElement('input');
-      newInput.type = 'number';
-      newInput.min = '1';
-      newInput.required = true;
-      newInput.value = '8';
-      repsGroup.insertBefore(newInput, addRepBtn);
-      newInput.focus();
+  // Save reps inline edit
+  function handleRepsEdit(index, repsInputs) {
+    const newReps = repsInputs.map(input => {
+      const val = parseInt(input.value);
+      return isNaN(val) || val < 1 ? null : val;
     });
+    workouts[index].reps = newReps;
+    saveWorkouts();
+  }
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const repsInputs = [...repsGroup.querySelectorAll('input[type="number"]')];
-      const repsValues = repsInputs.map(input => parseInt(input.value)).filter(v => v > 0);
+  function renderWorkouts() {
+    workoutList.innerHTML = '';
+    if (!workouts.length) {
+      workoutList.textContent = 'No workouts logged yet.';
+      return;
+    }
 
-      if (!repsValues.length) {
-        alert('Please enter at least one rep count.');
-        return;
-      }
+    workouts.forEach((w, i) => {
+      const div = document.createElement('div');
+      div.className = 'workout-item';
 
-      const workout = {
-        date: form.date.value,
-        type: form.type.value,
-        exercise: form.exercise.value.trim(),
-        weight: parseFloat(form.weight.value),
-        reps: repsValues,
-      };
+      const dateStr = new Date(w.date).toLocaleDateString();
 
-      workouts.push(workout);
-      saveWorkouts();
-      renderWorkouts();
+      // Create reps inputs — always 5 sets displayed
+      const repsInputs = [];
+      const repsContainer = document.createElement('div');
+      repsContainer.className = 'reps-edit';
 
-      form.exercise.value = '';
-      form.weight.value = '0';
-
-      // Reset reps inputs to default 3 inputs with 8 reps
-      repsGroup.querySelectorAll('input[type="number"]').forEach(input => input.remove());
-      for (let i = 0; i < 3; i++) {
+      for (let set = 0; set < 5; set++) {
         const input = document.createElement('input');
         input.type = 'number';
         input.min = '1';
-        input.required = true;
-        input.value = '8';
-        repsGroup.insertBefore(input, addRepBtn);
+        input.placeholder = `set ${set + 1}`;
+        input.value = w.reps[set] || '';
+        repsInputs.push(input);
+        repsContainer.appendChild(input);
       }
+
+      // Debounced save on input
+      const debouncedSave = debounce(() => handleRepsEdit(i, repsInputs), 500);
+      repsInputs.forEach(input => input.addEventListener('input', debouncedSave));
+
+      div.innerHTML = `
+        <div class="workout-header">
+          <div>${w.type} — ${dateStr}</div>
+          <button class="delete-btn" aria-label="Delete workout ${i}" data-index="${i}">✕</button>
+        </div>
+        <div class="workout-exercise">
+          <div>${w.exercise}</div>
+          <div>Weight: ${w.weight} kg</div>
+        </div>
+      `;
+
+      div.querySelector('.workout-exercise').appendChild(repsContainer);
+
+      workoutList.appendChild(div);
     });
 
+    workoutList.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = e.target.getAttribute('data-index');
+        workouts.splice(idx, 1);
+        saveWorkouts();
+        renderWorkouts();
+      });
+    });
+  }
+
+  addRepBtn.addEventListener('click', () => {
+    const newInput = document.createElement('input');
+    newInput.type = 'number';
+    newInput.min = '1';
+    newInput.required = true;
+    newInput.value = '8';
+    repsGroup.insertBefore(newInput, addRepBtn);
+    newInput.focus();
+  });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const repsInputs = [...repsGroup.querySelectorAll('input[type="number"]')];
+    const repsValues = repsInputs.map(input => parseInt(input.value)).filter(v => v > 0);
+
+    if (!repsValues.length) {
+      alert('Please enter at least one rep count.');
+      return;
+    }
+
+    const workout = {
+      date: form.date.value,
+      type: form.type.value,
+      exercise: form.exercise.value.trim(),
+      weight: parseFloat(form.weight.value),
+      reps: repsValues,
+    };
+
+    workouts.push(workout);
+    saveWorkouts();
     renderWorkouts();
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').catch(() => {});
-      });
+    form.exercise.value = '';
+    form.weight.value = '0';
+
+    // Reset reps inputs to default 3 inputs with 8 reps
+    repsGroup.querySelectorAll('input[type="number"]').forEach(input => input.remove());
+    for (let i = 0; i < 3; i++) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '1';
+      input.required = true;
+      input.value = '8';
+      repsGroup.insertBefore(input, addRepBtn);
     }
-  </script>
+  });
+
+  renderWorkouts();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>
