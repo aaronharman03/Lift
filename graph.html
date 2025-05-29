@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workout Progress Graph</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    font-family: sans-serif;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+  h1 {
+    text-align: center;
+  }
+  #exerciseSelect {
+    width: 100%;
+    font-size: 18px;
+    margin: 20px 0;
+    padding: 8px;
+  }
+  #backBtn {
+    margin-top: 15px;
+    padding: 8px 14px;
+    font-size: 16px;
+    background: #007bff;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  #backBtn:hover {
+    opacity: 0.9;
+  }
+  canvas {
+    max-width: 100%;
+  }
+  #noDataMsg {
+    text-align: center;
+    margin-top: 30px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<h1>Workout Progress Graph</h1>
+
+<label for="exerciseSelect">Select Exercise:</label>
+<select id="exerciseSelect">
+  <option value="">-- Select an Exercise --</option>
+</select>
+
+<canvas id="progressChart" width="600" height="300" style="display:none;"></canvas>
+
+<div id="noDataMsg" style="display:none;">No data available for this exercise.</div>
+
+<button id="backBtn">← Back to Workout Day</button>
+
+<script>
+  // Read the day param from URL
+  const params = new URLSearchParams(location.search);
+  const day = params.get('day') || '1';
+
+  // LocalStorage key for exercises of this day
+  const storageKey = `workout_day_${day}`;
+
+  // Elements
+  const exerciseSelect = document.getElementById('exerciseSelect');
+  const progressChartCanvas = document.getElementById('progressChart');
+  const noDataMsg = document.getElementById('noDataMsg');
+  const backBtn = document.getElementById('backBtn');
+
+  // Load exercises
+  const exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+  // Extract unique exercise names
+  const exerciseNamesSet = new Set();
+  exercises.forEach(ex => {
+    if (ex.name) exerciseNamesSet.add(ex.name);
+  });
+  const exerciseNames = Array.from(exerciseNamesSet).sort();
+
+  // Populate dropdown
+  exerciseNames.forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    exerciseSelect.appendChild(option);
+  });
+
+  let chart = null;
+
+  function renderChartForExercise(name) {
+    if (!name) {
+      progressChartCanvas.style.display = 'none';
+      noDataMsg.style.display = 'none';
+      if (chart) {
+        chart.destroy();
+        chart = null;
+      }
+      return;
+    }
+
+    // Filter all records for this exercise name
+    const filtered = exercises.filter(e => e.name === name);
+
+    if (filtered.length === 0) {
+      progressChartCanvas.style.display = 'none';
+      noDataMsg.style.display = 'block';
+      if (chart) {
+        chart.destroy();
+        chart = null;
+      }
+      return;
+    }
+
+    noDataMsg.style.display = 'none';
+    progressChartCanvas.style.display = 'block';
+
+    // Sort by date ascending
+    filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    // Prepare data for Chart.js
+    const labels = filtered.map(e => e.date);
+    const weights = filtered.map(e => e.weight || 0);
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(progressChartCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Weight (' + (filtered[0].weightUnit || 'kg') + ')',
+          data: weights,
+          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: { display: true, text: 'Date' },
+            ticks: { maxRotation: 45, minRotation: 30 },
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Weight' },
+          }
+        },
+        plugins: {
+          legend: { display: true },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.parsed.y + ' ' + (filtered[0].weightUnit || 'kg'),
+            }
+          }
+        }
+      }
+    });
+  }
+
+  exerciseSelect.addEventListener('change', e => {
+    renderChartForExercise(e.target.value);
+  });
+
+  backBtn.addEventListener('click', () => {
+    // Go back to workout day page, preserving day param
+    location.href = `day.html?day=${day}`;
+  });
+</script>
+
+</body>
+</html>
 
