@@ -45,7 +45,7 @@
     form {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1rem;
+      margin-top: 1rem;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -82,7 +82,7 @@
 
     #list {
       width: 100%;
-      max-width: 500px;
+      max-width: 600px;
     }
 
     .delete-btn {
@@ -105,13 +105,13 @@
     <button onclick="changeDay(1)">→</button>
   </div>
 
+  <div id="list"></div>
+
   <form onsubmit="addExercise(event)">
     <input id="exerciseInput" placeholder="Exercise" required />
     <input id="weightInput" placeholder="Weight (kg)" inputmode="numeric" />
     <button type="submit">Add</button>
   </form>
-
-  <div id="list"></div>
 
   <script>
     const dateDisplay = document.getElementById('dateDisplay');
@@ -140,10 +140,10 @@
         const row = document.createElement('div');
         row.className = 'exercise-line';
 
-        const label = document.createElement('span');
-        label.className = 'exercise-label';
-        label.textContent = ex.name;
-        row.appendChild(label);
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'exercise-label';
+        nameLabel.textContent = ex.name;
+        row.appendChild(nameLabel);
 
         const weightInput = document.createElement('input');
         weightInput.type = 'number';
@@ -166,15 +166,6 @@
           };
           row.appendChild(setInput);
         });
-
-        const addSetBtn = document.createElement('button');
-        addSetBtn.textContent = '+';
-        addSetBtn.onclick = () => {
-          ex.sets.push('');
-          save(data);
-          render();
-        };
-        row.appendChild(addSetBtn);
 
         const delBtn = document.createElement('button');
         delBtn.textContent = '×';
@@ -201,9 +192,14 @@
       const key = getKey(date);
       const data = load();
       data[key] = data[key] || [];
-      data[key].push({ name, weight, sets: [] });
-      save(data);
 
+      data[key].push({
+        name,
+        weight,
+        sets: ['', '', '', '', '']
+      });
+
+      save(data);
       e.target.reset();
       render();
     }
@@ -217,4 +213,5 @@
   </script>
 </body>
 </html>
+
 
