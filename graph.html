@@ -59,7 +59,6 @@
   const ctx = document.getElementById('progressChart').getContext('2d');
   let chart;
 
-  // Populate exercise dropdown with unique exercise names
   const exerciseNames = [...new Set(logs.map(log => log.name))];
   exerciseNames.forEach(name => {
     const option = document.createElement('option');
@@ -79,17 +78,14 @@
     const labels = data.map(log => log.date);
     const weights = data.map(log => log.weight);
 
-    if (weights.length === 0) return; // No data for this exercise
+    if (weights.length === 0) return;
 
-    // Get goalWeight for this exercise from logs, or default max weight
+    const startingWeight = weights[0]; // first entry
     const goalEntry = logs.find(log => log.name === selected && log.goalWeight != null);
     const goalWeight = goalEntry ? goalEntry.goalWeight : Math.max(...weights);
 
-    // Bottom weight = first logged weight
-    const bottomWeight = weights[0];
-
-    const minY = Math.min(bottomWeight, goalWeight);
-    const maxY = Math.max(bottomWeight, goalWeight);
+    const minY = Math.min(startingWeight, goalWeight);
+    const maxY = Math.max(startingWeight, goalWeight);
 
     if (chart) chart.destroy();
 
@@ -102,7 +98,7 @@
           data: weights,
           borderColor: '#007bff',
           backgroundColor: 'rgba(0, 123, 255, 0.2)',
-          tension: 0, // no smoothing for zigzag effect
+          tension: 0, // straight line segments = zigzag
           fill: true
         }]
       },
@@ -136,4 +132,5 @@
 
 </body>
 </html>
+
 
