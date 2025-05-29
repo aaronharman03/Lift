@@ -1,4 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Training Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
+  body {
+    background-color: #121212;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem 3rem;
+    user-select: none;
+  }
+
+  h1 {
+    font-weight: 600;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 1.2px;
+    text-align: center;
+  }
+
+  .date-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  button {
+    cursor: pointer;
+    background: linear-gradient(145deg, #1f1f1f, #141414);
+    border: none;
+    border-radius: 12px;
+    padding: 0.55rem 1.3rem;
+    color: #BB86FC;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow:
+      2px 2px 5px #0c0c0c,
+      -2px -2px 5px #272727;
+    transition: color 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+  }
+  button:hover:not(:disabled) {
+    color: #e0aaff;
+    box-shadow:
+      0 0 15px #bb86fcaa,
+      inset 0 0 6px #bb86fc88;
+  }
+  button:disabled {
+    color: #555;
+    cursor: default;
+    box-shadow: none;
+  }
+
+  input[type="date"] {
+    padding: 0.5rem 1rem;
+    font-size: 1.1rem;
+    border-radius: 14px;
+    border: none;
+    background: #1f1f1f;
+    color: #eee;
+    box-shadow:
+      inset 3px 3px 6px #121212,
+      inset -3px -3px 6px #2c2c2c;
+    user-select: text;
+  }
+
+  input[type="text"], input[type="number"], select {
+    background-color: #1f1f1f;
+    color: #eee;
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    box-shadow:
+      inset 3px 3px 6px #121212,
+      inset -3px -3px 6px #2c2c2c;
+    transition: box-shadow 0.3s ease;
+  }
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  select:focus,
+  input[type="date"]:focus {
+    outline: none;
+    box-shadow:
+      inset 0 0 8px #bb86fc,
+      0 0 8px #bb86fc;
+  }
+
+  /* Workout header */
+  .workout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin: 1.4rem 0 0.3rem 0;
+    letter-spacing: 0.02em;
+    position: relative;
+  }
+
+  /* Separator line under workout header */
+  .workout-separator {
+    height: 1px;
+    background-color: #444;
+    margin-bottom: 1.2rem;
+    border-radius: 1px;
+  }
+
+  .edit-btn, .remove-btn {
+    background: transparent;
+    color: #999;
+    font-size: 1.25rem;
+    border: none;
+    padding: 0 0.3rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .edit-btn:hover, .remove-btn:hover {
+    color: #bb86fc;
+  }
+
+  /* Three dot button for repeat */
+  .repeat-menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: #777;
+    cursor: pointer;
+    padding: 0 0.3rem;
+    line-height: 1;
+    user-select: none;
+    transition: color 0.25s ease;
+  }
+  .repeat-menu-btn:hover {
+    color: #bb86fc;
+  }
+
+  /* Repeat menu popup */
+  .repeat-menu {
+    position: absolute;
+    top: 2.5rem;
+    right: 0;
+    background: #1f1f1f;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    box-shadow:
+      4px 4px 12px #000a,
+      -4px -4px 12px #4448;
+    z-index: 10;
+    user-select: none;
+  }
+  .repeat-menu label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #ccc;
+    cursor: pointer;
+  }
+  .repeat-menu input[type="checkbox"] {
+    accent-color: #bb86fc;
+    cursor: pointer;
+  }
+
+  /* Exercise name */
+  .exercise-header {
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    user-select: none;
+  }
+
+  /* Sets and weights row */
+  .sets-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .weight-input {
+    width: 70px;
+    padding: 0.4rem 0.8rem;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 12px;
+    box-shadow:
+      inset 3px 3px 6px #121212,
+      inset -3px -3px 6px #2c2c2c;
+    border: none;
+    color: #eee;
+    text-align: center;
+    user-select: text;
+  }
+
+  .sets-row input[type="number"] {
+    width: 45px;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    border: none;
+    color: #eee;
+    background: #1f1f1f;
+    box-shadow:
+      inset 3px 3px 6px #121212,
+      inset -3px -3px 6px #2c2c2c;
+    text-align: center;
+  }
+  .sets-row input[type="number"]:focus {
+    box-shadow:
+      inset 0 0 8px #bb86fc,
+      0 0 8px #bb86fc;
+    outline: none;
+  }
+
+  /* Add Set button */
+  .add-set-btn {
+    background: #2a2a2a;
+    border: none;
+    color: #bb86fc;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  .add-set-btn:hover {
+    background: #4b3399;
+  }
+
+  /* Add exercise container */
+  .add-exercise-section {
+    margin-top: 3rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+  .add-exercise-section select,
+  .add-exercise-section input[type="number"] {
+    background: #1f1f1f;
+    color: #eee;
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    box-shadow:
+      inset 3px 3px 6px #121212,
+      inset -3px -3px 6px #2c2c2c;
+    transition: box-shadow 0.3s ease;
+  }
+  .add-exercise-section select:focus,
+  .add-exercise-section input[type="number"]:focus {
+    outline: none;
+    box-shadow:
+      inset 0 0 8px #bb86fc,
+      0 0 8px #bb86fc;
+  }
+  .add-exercise-section input[type="number"] {
+    width: 90px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .add-exercise-section button {
+    background: linear-gradient(145deg, #3b2f77, #5e4bb7);
+    color: #eee;
+    font-weight: 700;
+    box-shadow:
+      4px 4px 8px #2a2364,
+      -4px -4px 8px #6d5eda;
+    border-radius: 14px;
+    padding: 0.55rem 1.3rem;
+    user-select: none;
+  }
+  .add-exercise-section button:hover:not(:disabled) {
+    background: linear-gradient(145deg, #6d5eda, #3b2f77);
+  }
+  .add-exercise-section button:disabled {
+    background: #3a3a3a;
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Training Tracker</h1>
+
+  <div class="date-nav">
+    <button id="prevDayBtn" aria-label="Previous Day">←</button>
+    <input id="datePicker" type="date" aria-label="Select date" />
+    <button id="nextDayBtn" aria-label="Next Day">→</button>
+  </div>
+
+  <div id="workoutsContainer" role="list" aria-live="polite"></div>
+
+  <!-- Add Exercise Section -->
+  <div class="add-exercise-section" role="form" aria-label="Add exercise to workout">
+    <select id="exerciseSelect" aria-label="Select exercise">
+      <option value="" disabled selected>Add exercise...</option>
+    </select>
+    <input id="weightInput" type="number" min="0" placeholder="Weight" aria-label="Weight (kg)" />
+    <button id="addSetBtn" type="button" aria-label="Add set">+ Set</button>
+    <button id="addExerciseBtn" type="button" disabled>Add Exercise</button>
+  </div>
+
+<script>
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const exerciseOptions = [
+    "Bench Press",
+    "Squat",
+    "Deadlift",
+    "Overhead Press",
+    "Barbell Row",
+    "Pull-Up",
+    "Dips",
+    "Bicep Curl",
+    "Tricep Extension",
+    "Leg Press",
+    "Lunges",
+    "Plank",
+    "Crunches"
+  ];
+
+  let trainingData = {};
+  const datePicker = document.getElementById("datePicker");
+  const workoutsContainer = document.getElementById("workoutsContainer");
+  const exerciseSelect = document.getElementById("exerciseSelect");
+  const weightInput = document.getElementById("weightInput");
+  const addSetBtn = document.getElementById("addSetBtn");
+  const addExerciseBtn = document.getElementById("addExerciseBtn");
+
+  // Current selected workout index to add exercise to
+  let selectedWorkoutIndex = null;
+
+  // Sets for new exercise weight group before adding
+  let newExerciseSets = [0];
+
+  // Fill exercise dropdown
+  function populateExerciseDropdown() {
+    exerciseSelect.innerHTML = `<option value="" disabled selected>Add exercise...</option>`;
+    exerciseOptions.forEach(ex => {
+      const option = document.createElement("option");
+      option.value = ex;
+      option.textContent = ex;
+      exerciseSelect.appendChild(option);
+    });
+  }
+  populateExerciseDropdown();
+
+  // Format date as yyyy-mm-dd
+  function formatDate(date) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  const currentDate = new Date();
+
+  function changeDate(offset) {
+    const selectedDate = new Date(datePicker.value);
+    selectedDate.setDate(selectedDate.getDate() + offset);
+    datePicker.value = formatDate(selectedDate);
+    loadTraining();
+  }
+
+  document.getElementById("prevDayBtn").addEventListener("click", () => changeDate(-1));
+  document.getElementById("nextDayBtn").addEventListener("click", () => changeDate(1));
+
+  // Load training data for selected date and render UI
+  function loadTraining() {
+    const date = datePicker.value;
+    workoutsContainer.innerHTML = "";
+    selectedWorkoutIndex = null;
+    newExerciseSets = [0];
+    weightInput.value = "";
+    addSetBtn.disabled = false;
+    addExerciseBtn.disabled = true;
+
+    if (!trainingData[date] || trainingData[date].length === 0) {
+      workoutsContainer.innerHTML = `<p style="color:#666;text-align:center;margin-top:3rem;">No workouts for this date. Add workouts to start.</p>`;
+      return;
+    }
+
+    trainingData[date].forEach((workout, wIndex) => {
+      // Workout header container
+      const workoutHeader = document.createElement("div");
+      workoutHeader.className = "workout-header";
+      workoutHeader.setAttribute("role", "listitem");
+
+      // Workout name text
+      const workoutName = document.createElement("div");
+      workoutName.textContent = workout.name;
+      workoutHeader.appendChild(workoutName);
+
+      // Buttons container
+      const btnContainer = document.createElement("div");
+      btnContainer.style.display = "flex";
+      btnContainer.style.gap = "0.5rem";
+
+      // Edit workout name button
+      const editBtn = document.createElement("button");
+      editBtn.className = "edit-btn";
+      editBtn.title = "Edit Workout Name";
+      editBtn.textContent = "✎";
+      editBtn.onclick = () => editWorkoutName(date, wIndex);
+      btnContainer.appendChild(editBtn);
+
+      // Repeat menu button
+      const repeatBtn = document.createElement("button");
+      repeatBtn.className = "repeat-menu-btn";
+      repeatBtn.textContent = "⋯";
+      repeatBtn.title = "Repeat Days";
+      btnContainer.appendChild(repeatBtn);
+
+      workoutHeader.appendChild(btnContainer);
+      workoutsContainer.appendChild(workoutHeader);
+
+      // Separator line
+      const separator = document.createElement("div");
+      separator.className = "workout-separator";
+      workoutsContainer.appendChild(separator);
+
+      // Repeat menu popup (hidden by default)
+      const repeatMenu = document.createElement("div");
+      repeatMenu.className = "repeat-menu";
+      repeatMenu.style.display = "none";
+
+      daysOfWeek.forEach((day, i) => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = workout.repeatDays.includes(i);
+        checkbox.onchange = () => {
+          if (checkbox.checked) {
+            if (!workout.repeatDays.includes(i)) workout.repeatDays.push(i);
+          } else {
+            workout.repeatDays = workout.repeatDays.filter(d => d !== i);
+          }
+          saveTraining(date);
+        };
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(day));
+        repeatMenu.appendChild(label);
+      });
+
+      workoutHeader.appendChild(repeatMenu);
+
+      // Toggle repeat menu on button click
+      repeatBtn.onclick = (e) => {
+        e.stopPropagation();
+        const isVisible = repeatMenu.style.display === "block";
+        closeAllRepeatMenus();
+        repeatMenu.style.display = isVisible ? "none" : "block";
+      };
+
+      // Close menu on outside click
+      document.addEventListener("click", () => {
+        repeatMenu.style.display = "none";
+      });
+
+      // Exercises and add exercise button
+      workout.exercises.forEach((exercise, exIndex) => {
+        renderExercise(workoutsContainer, workout, exercise, date, wIndex, exIndex);
+      });
+
+      // Set first workout as selected for adding exercise
+      if (selectedWorkoutIndex === null) selectedWorkoutIndex = 0;
+    });
+
+    updateAddExerciseButtonState();
+  }
+
+  function closeAllRepeatMenus() {
+    document.querySelectorAll(".repeat-menu").forEach(menu => menu.style.display = "none");
+  }
+
+  function renderExercise(container, workout, exercise, date, wIndex, exIndex) {
+    const exerciseDiv = document.createElement("div");
+    exerciseDiv.style.marginBottom = "1.6rem";
+
+    const exName = document.createElement("div");
+    exName.className = "exercise-header";
+    exName.textContent = exercise.name;
+    exerciseDiv.appendChild(exName);
+
+    // For each weight group, show weight and sets inline
+    exercise.weights.forEach((weightGroup, wgIndex) => {
+      const setsRow = document.createElement("div");
+      setsRow.className = "sets-row";
+
+      // Weight input
+      const weightInputEx = document.createElement("input");
+      weightInputEx.type = "number";
+      weightInputEx.min = 0;
+      weightInputEx.value = weightGroup.weight;
+      weightInputEx.className = "weight-input";
+      weightInputEx.title = "Weight (kg)";
+      weightInputEx.onchange = () => {
+        weightGroup.weight = Number(weightInputEx.value);
+        saveTraining(date);
+      };
+      setsRow.appendChild(weightInputEx);
+
+      // Sets inputs
+      weightGroup.sets.forEach((set, sIndex) => {
+        const setInput = document.createElement("input");
+        setInput.type = "number";
+        setInput.min = 0;
+        setInput.value = set;
+        setInput.title = `Set ${sIndex + 1} reps`;
+        setInput.onchange = () => {
+          weightGroup.sets[sIndex] = Number(setInput.value);
+          saveTraining(date);
+        };
+        setsRow.appendChild(setInput);
+      });
+
+      // Add Set button for this weight group
+      const addSetBtnEx = document.createElement("button");
+      addSetBtnEx.className = "add-set-btn";
+      addSetBtnEx.textContent = "+ Set";
+      addSetBtnEx.onclick = () => {
+        weightGroup.sets.push(0);
+        saveTraining(date);
+        loadTraining();
+      };
+      setsRow.appendChild(addSetBtnEx);
+
+      exerciseDiv.appendChild(setsRow);
+    });
+
+    container.appendChild(exerciseDiv);
+  }
+
+  function updateAddExerciseButtonState() {
+    // Enable add exercise only if exercise selected, weight entered, and workout exists
+    if (selectedWorkoutIndex !== null &&
+        exerciseSelect.value &&
+        weightInput.value !== "" &&
+        Number(weightInput.value) >= 0 &&
+        trainingData[datePicker.value] &&
+        trainingData[datePicker.value].length > 0
+      ) {
+      addExerciseBtn.disabled = false;
+    } else {
+      addExerciseBtn.disabled = true;
+    }
+  }
+
+  exerciseSelect.addEventListener("change", () => {
+    // Reset sets for new exercise weight group
+    newExerciseSets = [0];
+    updateAddExerciseButtonState();
+  });
+
+  weightInput.addEventListener("input", () => {
+    updateAddExerciseButtonState();
+  });
+
+  addSetBtn.addEventListener("click", () => {
+    newExerciseSets.push(0);
+    // We will show the sets count on the button text, e.g. "+ Set (3)"
+    // Or just keep + Set button simple as user requested.
+    // Could add visual feedback in future if wanted.
+  });
+
+  // Add exercise to selected workout
+  addExerciseBtn.addEventListener("click", () => {
+    const date = datePicker.value;
+    if (!trainingData[date] || !trainingData[date][selectedWorkoutIndex]) return;
+
+    const workout = trainingData[date][selectedWorkoutIndex];
+    const exerciseName = exerciseSelect.value;
+    const weightVal = Number(weightInput.value);
+
+    // Check if exercise already exists in workout
+    let exercise = workout.exercises.find(e => e.name === exerciseName);
+
+    if (!exercise) {
+      exercise = {
+        name: exerciseName,
+        weights: []
+      };
+      workout.exercises.push(exercise);
+    }
+
+    // Check if this weight group exists
+    let weightGroup = exercise.weights.find(wg => wg.weight === weightVal);
+
+    if (!weightGroup) {
+      weightGroup = {
+        weight: weightVal,
+        sets: [...newExerciseSets] // copy sets array
+      };
+      exercise.weights.push(weightGroup);
+    } else {
+      // If weight group exists, add new sets (or you could merge)
+      weightGroup.sets = weightGroup.sets.concat(newExerciseSets);
+    }
+
+    // Reset input fields
+    exerciseSelect.value = "";
+    weightInput.value = "";
+    newExerciseSets = [0];
+    addExerciseBtn.disabled = true;
+
+    saveTraining(date);
+    loadTraining();
+  });
+
+  // Edit workout name inline
+  function editWorkoutName(date, wIndex) {
+    const workout = trainingData[date][wIndex];
+    const workoutHeaders = workoutsContainer.querySelectorAll(".workout-header div:first-child");
+
+    const headerDiv = workoutHeaders[wIndex];
+    const currentName = workout.name;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = currentName;
+    input.style.width = "90%";
+    input.style.fontSize = "1.3rem";
+    input.style.fontWeight = "600";
+    input.style.borderRadius = "12px";
+    input.style.padding = "0.3rem 0.6rem";
+    input.style.background = "#1f1f1f";
+    input.style.color = "#eee";
+    input.style.border = "none";
+    input.style.boxShadow = "inset 3px 3px 6px #121212, inset -3px -3px 6px #2c2c2c";
+
+    headerDiv.textContent = "";
+    headerDiv.appendChild(input);
+    input.focus();
+
+    input.addEventListener("blur", () => {
+      workout.name = input.value.trim() || currentName;
+      saveTraining(date);
+      loadTraining();
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") input.blur();
+    });
+  }
+
+  function saveTraining(date) {
+    localStorage.setItem("trainingData", JSON.stringify(trainingData));
+  }
+
+  function loadFromStorage() {
+    const stored = localStorage.getItem("trainingData");
+    if (stored) trainingData = JSON.parse(stored);
+    else {
+      // Initialize with empty data for today
+      trainingData = {
+        [formatDate(currentDate)]: [
+          {
+            name: "Push",
+            repeatDays: [],
+            exercises: []
+          }
+        ]
+      };
+    }
+  }
+
+  // Initialize date picker
+  datePicker.value = formatDate(currentDate);
+  datePicker.addEventListener("change", () => {
+    loadTraining();
+  });
+
+  // Load storage and UI
+  loadFromStorage();
+  loadTraining();
+</script>
+
+</body>
+</html>
 
 
 
