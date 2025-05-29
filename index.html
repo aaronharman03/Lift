@@ -2,182 +2,204 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Workout Tracker</title>
   <style>
+    :root {
+      --bg: #001f3f;
+      --fg: #ffffff;
+      --border: #ffffff33;
+    }
+
     body {
       margin: 0;
       font-family: sans-serif;
-      background: #001f3f;
-      color: white;
+      background-color: var(--bg);
+      color: var(--fg);
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 1rem;
     }
-    h1 { margin-bottom: 1rem; font-weight: normal; }
-    .calendar {
+
+    h1 {
+      font-weight: normal;
+      margin-bottom: 1rem;
+    }
+
+    .nav {
       display: flex;
       align-items: center;
       gap: 1rem;
       margin-bottom: 1rem;
     }
-    .calendar button {
+
+    .nav button {
       background: none;
-      border: 1px solid white;
-      color: white;
+      border: 1px solid var(--fg);
+      color: var(--fg);
       padding: 0.25rem 0.5rem;
       cursor: pointer;
     }
-    .form {
+
+    form {
       display: flex;
       gap: 0.5rem;
       margin-bottom: 1rem;
     }
-    .form input {
+
+    input {
       background: transparent;
       border: none;
-      border-bottom: 1px solid white;
-      color: white;
+      border-bottom: 1px solid var(--fg);
+      color: var(--fg);
       padding: 0.25rem;
+      width: 100px;
     }
-    .form button {
-      background: none;
-      border: 1px solid white;
-      color: white;
-      padding: 0.25rem 0.5rem;
-      cursor: pointer;
-    }
-    .exercise {
-      margin-bottom: 1rem;
-      border-bottom: 1px solid white;
-      padding-bottom: 0.5rem;
-      width: 100%;
-      max-width: 400px;
-    }
-    .exercise-header {
+
+    .exercise-line {
       display: flex;
-      justify-content: space-between;
+      gap: 0.5rem;
       align-items: center;
       margin-bottom: 0.5rem;
-    }
-    .sets {
-      display: flex;
-      gap: 0.25rem;
       flex-wrap: wrap;
     }
-    .sets input {
+
+    .exercise-line input.set {
       width: 40px;
       text-align: center;
-      border: none;
-      border-bottom: 1px solid white;
-      background: transparent;
-      color: white;
-      padding: 0.25rem;
     }
-    .sets button {
+
+    .exercise-line button {
       background: none;
-      border: 1px solid white;
-      color: white;
+      border: 1px solid var(--fg);
+      color: var(--fg);
       cursor: pointer;
       padding: 0.1rem 0.4rem;
     }
-    .small {
-      font-size: 0.85rem;
+
+    #list {
+      width: 100%;
+      max-width: 500px;
     }
+
+    .delete-btn {
+      font-size: 0.8rem;
+      color: #ff6666;
+      border-color: #ff6666;
+    }
+
   </style>
 </head>
 <body>
   <h1>Workout Tracker</h1>
-  <div class="calendar">
-    <button onclick="changeDate(-1)">←</button>
+
+  <div class="nav">
+    <button onclick="changeDay(-1)">←</button>
     <div id="dateDisplay"></div>
-    <button onclick="changeDate(1)">→</button>
+    <button onclick="changeDay(1)">→</button>
   </div>
-  <form class="form" onsubmit="addExercise(event)">
-    <input id="exerciseName" placeholder="Exercise" required />
-    <input id="weight" placeholder="Weight" type="number" />
+
+  <form onsubmit="addExercise(event)">
+    <input id="exerciseInput" placeholder="Exercise" required />
+    <input id="weightInput" placeholder="Weight (kg)" type="number" />
     <button type="submit">Add</button>
   </form>
-  <div id="workoutList"></div>
+
+  <div id="list"></div>
 
   <script>
     const dateDisplay = document.getElementById('dateDisplay');
-    const workoutList = document.getElementById('workoutList');
-    let currentDate = new Date();
-    currentDate.setHours(0,0,0,0);
+    const list = document.getElementById('list');
+    const getKey = (d) => d.toISOString().split('T')[0];
+    let date = new Date(); date.setHours(0, 0, 0, 0);
 
-    const getKey = date => date.toISOString().split('T')[0];
-    const load = () => JSON.parse(localStorage.getItem('workouts') || '{}');
-    const save = data => localStorage.setItem('workouts', JSON.stringify(data));
-
-    function render() {
-      const data = load();
-      const key = getKey(currentDate);
-      const workouts = data[key] || [];
-      dateDisplay.textContent = currentDate.toDateString();
-      workoutList.innerHTML = '';
-      workouts.forEach((ex, i) => {
-        const div = document.createElement('div');
-        div.className = 'exercise';
-        div.innerHTML = `
-          <div class="exercise-header">
-            <div><strong>${ex.name}</strong> ${ex.weight ? `- ${ex.weight}kg` : ''}</div>
-            <button class="small" onclick="deleteExercise(${i})">Delete</button>
-          </div>
-          <div class="sets" id="sets-${i}"></div>
-          <button class="small" onclick="addSet(${i})">+ Add Set</button>
-        `;
-        workoutList.appendChild(div);
-
-        const setsDiv = document.getElementById(`sets-${i}`);
-        ex.sets.forEach((rep, j) => {
-          const input = document.createElement('input');
-          input.value = rep;
-          input.oninput = () => {
-            ex.sets[j] = input.value;
-            save(data);
-          };
-          setsDiv.appendChild(input);
-        });
-      });
+    function load() {
+      return JSON.parse(localStorage.getItem('workouts') || '{}');
     }
 
-    function changeDate(offset) {
-      currentDate.setDate(currentDate.getDate() + offset);
-      render();
+    function save(data) {
+      localStorage.setItem('workouts', JSON.stringify(data));
+    }
+
+    function render() {
+      const key = getKey(date);
+      const data = load();
+      const exercises = data[key] || [];
+      dateDisplay.textContent = date.toDateString();
+      list.innerHTML = '';
+
+      exercises.forEach((ex, idx) => {
+        const row = document.createElement('div');
+        row.className = 'exercise-line';
+
+        const name = document.createElement('span');
+        name.textContent = ex.name;
+        row.appendChild(name);
+
+        const weight = document.createElement('input');
+        weight.placeholder = 'Weight';
+        weight.value = ex.weight || '';
+        weight.oninput = () => {
+          ex.weight = weight.value;
+          save(data);
+        };
+        row.appendChild(weight);
+
+        ex.sets.forEach((val, setIdx) => {
+          const setInput = document.createElement('input');
+          setInput.className = 'set';
+          setInput.value = val;
+          setInput.oninput = () => {
+            ex.sets[setIdx] = setInput.value;
+            save(data);
+          };
+          row.appendChild(setInput);
+        });
+
+        const addSetBtn = document.createElement('button');
+        addSetBtn.textContent = '+';
+        addSetBtn.onclick = () => {
+          ex.sets.push('');
+          save(data);
+          render();
+        };
+        row.appendChild(addSetBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '×';
+        delBtn.className = 'delete-btn';
+        delBtn.onclick = () => {
+          if (confirm(`Delete "${ex.name}"?`)) {
+            exercises.splice(idx, 1);
+            save(data);
+            render();
+          }
+        };
+        row.appendChild(delBtn);
+
+        list.appendChild(row);
+      });
     }
 
     function addExercise(e) {
       e.preventDefault();
-      const name = document.getElementById('exerciseName').value.trim();
-      const weight = document.getElementById('weight').value;
+      const name = document.getElementById('exerciseInput').value.trim();
+      const weight = document.getElementById('weightInput').value.trim();
       if (!name) return;
 
+      const key = getKey(date);
       const data = load();
-      const key = getKey(currentDate);
-      if (!data[key]) data[key] = [];
-      data[key].push({ name, weight: weight ? parseInt(weight) : null, sets: [] });
+      data[key] = data[key] || [];
+      data[key].push({ name, weight, sets: [] });
       save(data);
-      document.getElementById('exerciseName').value = '';
-      document.getElementById('weight').value = '';
+
+      e.target.reset();
       render();
     }
 
-    function deleteExercise(index) {
-      if (!confirm('Delete this exercise?')) return;
-      const data = load();
-      const key = getKey(currentDate);
-      data[key].splice(index, 1);
-      save(data);
-      render();
-    }
-
-    function addSet(exIndex) {
-      const data = load();
-      const key = getKey(currentDate);
-      data[key][exIndex].sets.push('');
-      save(data);
+    function changeDay(offset) {
+      date.setDate(date.getDate() + offset);
       render();
     }
 
@@ -185,4 +207,3 @@
   </script>
 </body>
 </html>
-
