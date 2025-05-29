@@ -28,8 +28,10 @@
       color: white;
       padding: 16px 24px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 12px;
     }
 
     .calendar-nav {
@@ -68,6 +70,29 @@
       border: 1px solid #ccc;
       border-radius: 6px;
       padding: 8px;
+    }
+
+    /* Buttons container */
+    .action-buttons {
+      display: flex;
+      gap: 20px;
+    }
+
+    .mode-btn {
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      background-color: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .mode-btn:hover {
+      background-color: var(--accent);
+      color: var(--primary);
     }
 
     main {
@@ -113,6 +138,11 @@
       <input type="date" id="datePicker">
     </div>
   </div>
+
+  <div class="action-buttons">
+    <button id="dietBtn" class="mode-btn">Diet</button>
+    <button id="trainBtn" class="mode-btn">Train</button>
+  </div>
 </header>
 
 <main>
@@ -131,6 +161,9 @@
   const openCalendarBtn = document.getElementById('openCalendar');
   const calendarPopup = document.getElementById('calendarPopup');
   const datePicker = document.getElementById('datePicker');
+
+  const dietBtn = document.getElementById('dietBtn');
+  const trainBtn = document.getElementById('trainBtn');
 
   let selectedDate = new Date();
 
@@ -163,11 +196,12 @@
     updateDateDisplay();
   });
 
-  // Calendar
+  // Calendar popup toggle
   openCalendarBtn.addEventListener('click', () => {
     calendarPopup.style.display = calendarPopup.style.display === 'block' ? 'none' : 'block';
   });
 
+  // Date picker change
   datePicker.addEventListener('change', () => {
     selectedDate = new Date(datePicker.value);
     updateDateDisplay();
@@ -180,8 +214,20 @@
       calendarPopup.style.display = 'none';
     }
   });
+
+  // Buttons navigate to log.html with mode and date
+  dietBtn.addEventListener('click', () => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    window.location.href = `log.html?mode=diet&date=${dateStr}`;
+  });
+
+  trainBtn.addEventListener('click', () => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    window.location.href = `log.html?mode=train&date=${dateStr}`;
+  });
 </script>
 
 </body>
 </html>
+
 
