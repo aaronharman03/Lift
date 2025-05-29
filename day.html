@@ -221,10 +221,17 @@
       <button type="button" id="cancelBtn">Cancel</button>
     </div>
     <button type="button" id="deleteBtn" style="display:none;">Delete</button>
+    <button type="button" id="setGoalBtn">Set Goal</button>
+
   </form>
 </div>
 
 <script>
+  let exerciseGoals = JSON.parse(localStorage.getItem('exerciseGoals')) || {};
+function saveGoals() {
+  localStorage.setItem('exerciseGoals', JSON.stringify(exerciseGoals));
+}
+
   const params = new URLSearchParams(location.search);
   const day = params.get('day') || '1';
   document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
@@ -439,6 +446,27 @@ renderExercises();
 
   // Initial render
   renderExercises();
+  setGoalBtn.addEventListener('click', () => {
+  if (editingIndex === null) return;
+
+  const current = exercises[editingIndex];
+  const unit = current.weightUnit || 'kg';
+
+  const input = prompt(`Set your goal weight for ${current.name} in ${unit}:`, current.goal || '');
+  if (input === null) return; // Cancelled
+
+  const goal = parseFloat(input);
+  if (isNaN(goal) || goal <= 0) {
+    alert("Please enter a valid number greater than 0.");
+    return;
+  }
+
+  current.goal = goal;
+  saveExercises();
+  renderExercises();
+  alert(`Goal of ${goal}${unit} saved for ${current.name}.`);
+});
+
 </script>
 </body>
 </html>
