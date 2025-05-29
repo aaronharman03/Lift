@@ -2,208 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Workout Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Sets Inputs</title>
   <style>
-    :root {
-      --bg: #001f3f;
-      --fg: #ffffff;
-      --border: #ffffff33;
-    }
-
     body {
-      margin: 0;
+      background: #001f3f;
+      color: white;
       font-family: sans-serif;
-      background-color: var(--bg);
-      color: var(--fg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       padding: 1rem;
     }
-
-    h1 {
-      font-weight: normal;
-      margin-bottom: 1rem;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .nav button {
-      background: none;
-      border: 1px solid var(--fg);
-      color: var(--fg);
-      padding: 0.25rem 0.5rem;
-      cursor: pointer;
-    }
-
-    #list {
-      width: 100%;
-      max-width: 600px;
-    }
-
     .exercise-row {
       display: flex;
-      align-items: center;
       gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      flex-wrap: nowrap;
-      overflow-x: auto;
+      align-items: center;
     }
-
     .exercise-row span {
-      min-width: 80px;
+      min-width: 100px;
       font-weight: bold;
     }
-
     .exercise-row input {
-      width: 50px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--fg);
-      padding: 0.25rem;
+      width: 40px;
+      padding: 0.2rem;
       font-size: 1rem;
       text-align: center;
-    }
-
-    form {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 1rem;
-    }
-
-    form input {
-      width: 120px;
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--fg);
-      padding: 0.25rem;
-      font-size: 1rem;
-    }
-
-    form button {
-      padding: 0.25rem 0.75rem;
-      background: none;
-      border: 1px solid var(--fg);
-      color: var(--fg);
-      cursor: pointer;
+      border: 1px solid #ffffff55;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>Workout Tracker</h1>
 
-  <div class="nav">
-    <button onclick="changeDay(-1)">←</button>
-    <div id="dateDisplay"></div>
-    <button onclick="changeDay(1)">→</button>
+  <div class="exercise-row">
+    <span>Bench Press</span>
+    <input type="number" placeholder="Weight" />
+    <input type="number" placeholder="Set 1" />
+    <input type="number" placeholder="Set 2" />
+    <input type="number" placeholder="Set 3" />
+    <input type="number" placeholder="Set 4" />
+    <input type="number" placeholder="Set 5" />
   </div>
 
-  <div id="list"></div>
-
-  <form onsubmit="addExercise(event)">
-    <input id="exerciseInput" placeholder="Exercise" required />
-    <input id="weightInput" placeholder="Weight (kg)" inputmode="numeric" />
-    <button type="submit">Add</button>
-  </form>
-
-  <script>
-    const list = document.getElementById('list');
-    const dateDisplay = document.getElementById('dateDisplay');
-    let date = new Date();
-    date.setHours(0, 0, 0, 0);
-
-    function getKey(d) {
-      return d.toISOString().split('T')[0];
-    }
-
-    function load() {
-      return JSON.parse(localStorage.getItem('workouts') || '{}');
-    }
-
-    function save(data) {
-      localStorage.setItem('workouts', JSON.stringify(data));
-    }
-
-    function render() {
-      const key = getKey(date);
-      const data = load();
-      const exercises = data[key] || [];
-
-      dateDisplay.textContent = date.toDateString();
-      list.innerHTML = '';
-
-      exercises.forEach((ex, idx) => {
-        const row = document.createElement('div');
-        row.className = 'exercise-row';
-
-        const nameLabel = document.createElement('span');
-        nameLabel.textContent = ex.name;
-        row.appendChild(nameLabel);
-
-        const weightInput = document.createElement('input');
-        weightInput.type = 'number';
-        weightInput.placeholder = 'kg';
-        weightInput.value = ex.weight || '';
-        weightInput.oninput = () => {
-          ex.weight = weightInput.value;
-          save(data);
-        };
-        row.appendChild(weightInput);
-
-        for (let i = 0; i < 5; i++) {
-          const setInput = document.createElement('input');
-          setInput.type = 'number';
-          setInput.inputMode = 'numeric';
-          setInput.value = ex.sets[i] || '';
-          setInput.placeholder = `${i + 1}`;
-          setInput.oninput = () => {
-            ex.sets[i] = setInput.value;
-            save(data);
-          };
-          row.appendChild(setInput);
-        }
-
-        list.appendChild(row);
-      });
-    }
-
-    function addExercise(e) {
-      e.preventDefault();
-      const name = document.getElementById('exerciseInput').value.trim();
-      const weight = document.getElementById('weightInput').value.trim();
-      if (!name) return;
-
-      const key = getKey(date);
-      const data = load();
-      data[key] = data[key] || [];
-
-      data[key].push({
-        name,
-        weight,
-        sets: ['', '', '', '', '']
-      });
-
-      save(data);
-      e.target.reset();
-      render();
-    }
-
-    function changeDay(offset) {
-      date.setDate(date.getDate() + offset);
-      render();
-    }
-
-    render();
-  </script>
 </body>
 </html>
+
 
 
 
