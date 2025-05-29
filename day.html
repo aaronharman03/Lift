@@ -5,76 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Workout Day</title>
 <style>
-  body { font-family: sans-serif; padding: 20px; background: #fff; max-width: 600px; margin: auto; }
-  button {
-    cursor: pointer;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    margin: 5px 5px 5px 0;
-    font-size: 16px;
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
   }
-  button:hover {
-    opacity: 0.85;
+  h1 {
+    margin-bottom: 20px;
   }
-  .btn-primary { background-color: #007bff; color: white; }
-  .btn-danger { background-color: #dc3545; color: white; }
-  .btn-secondary { background-color: #6c757d; color: white; }
-  h1, h2 { margin-bottom: 10px; }
-  form input, form select {
+  form {
+    margin-bottom: 30px;
+  }
+  input, select {
     padding: 8px;
     font-size: 16px;
-    margin: 5px 10px 15px 0;
-    box-sizing: border-box;
+    margin-right: 10px;
   }
   input[type=number] {
     width: 60px;
   }
-  #exercisesList .exercise {
-    border: 1px solid #ddd;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    background: #f7f7f7;
+  #repsInputs input {
+    margin-right: 6px;
   }
-  #exercisesList .exercise strong {
+  button {
+    padding: 8px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  #exercisesList {
     font-size: 18px;
+    line-height: 1.6;
+    white-space: nowrap;
   }
-  #exercisesList .exercise div {
-    margin: 5px 0;
+  .exercise-line {
+    margin-bottom: 8px;
   }
-  .reps-inputs input {
-    margin-right: 8px;
+  .btn-back {
+    margin-bottom: 15px;
+    background-color: #6c757d;
   }
 </style>
 </head>
 <body>
 
-  <button class="btn-secondary" onclick="goBack()">← Back to Days</button>
-  <h1 id="dayTitle">Workout Day</h1>
+<button class="btn-back" onclick="goBack()">← Back to Days</button>
+<h1 id="dayTitle">Workout Day</h1>
 
-  <h2>Add Exercise</h2>
-  <form id="exerciseForm">
-    <input type="text" id="exerciseName" placeholder="Exercise Name" required style="width: 40%;" />
-    <input type="number" id="weight" placeholder="Weight (kg)" min="0" style="width: 20%;" />
-    <label for="numSets">Sets:</label>
-    <select id="numSets" required style="width: 20%;">
-      <option value="">Select sets</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-    </select>
-    <div id="repsInputs" class="reps-inputs"></div>
-    <button type="submit" class="btn-primary">Add Exercise</button>
-  </form>
+<form id="exerciseForm">
+  <input type="text" id="exerciseName" placeholder="Exercise Name" required />
+  <input type="number" id="weight" placeholder="Weight (kg)" min="0" />
+  <label for="numSets">Sets:</label>
+  <select id="numSets" required>
+    <option value="">Sets</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+  </select>
+  <div id="repsInputs"></div>
+  <button type="submit">Add Exercise</button>
+</form>
 
-  <h2>Exercises</h2>
-  <div id="exercisesList"></div>
+<div id="exercisesList"></div>
 
 <script>
-  // Get day from URL query param
   const params = new URLSearchParams(location.search);
   const day = params.get('day') || '1';
   document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
@@ -98,31 +102,19 @@
       return;
     }
 
-    exercises.forEach((ex, idx) => {
+    exercises.forEach(ex => {
+      const repsStr = ex.reps && ex.reps.length
+        ? ex.reps.filter(r => r != null && r !== '').join(',')
+        : 'N/A';
+
+      const line = `${ex.name} - ${ex.weight || '0'}kg - ${repsStr}`;
       const div = document.createElement('div');
-      div.className = 'exercise';
-
-      // Format reps nicely
-      let repsHtml = '';
-      if (ex.reps && ex.reps.length) {
-        repsHtml = '<div>Reps per set: ' + ex.reps.map((r,i) => `Set ${i+1}: ${r || 'N/A'}`).join(', ') + '</div>';
-      } else {
-        repsHtml = '<div>Reps per set: N/A</div>';
-      }
-
-      div.innerHTML = `
-        <strong>${escapeHtml(ex.name)}</strong>
-        <div>Weight: ${ex.weight || 'N/A'}</div>
-        <div>Sets: ${ex.sets || 'N/A'}</div>
-        ${repsHtml}
-        <button class="btn-primary" onclick="editExercise(${idx})">Edit</button>
-        <button class="btn-danger" onclick="deleteExercise(${idx})">Delete</button>
-      `;
+      div.className = 'exercise-line';
+      div.textContent = line;
       exercisesListEl.appendChild(div);
     });
   }
 
-  // Show reps input boxes depending on number of sets chosen
   numSetsSelect.addEventListener('change', () => {
     const count = parseInt(numSetsSelect.value);
     repsInputsDiv.innerHTML = '';
@@ -131,97 +123,13 @@
         const input = document.createElement('input');
         input.type = 'number';
         input.min = '0';
-        input.placeholder = `Reps set ${i+1}`;
-        input.dataset.setIndex = i;
+        input.placeholder = `Reps ${i + 1}`;
         repsInputsDiv.appendChild(input);
       }
     }
   });
 
-  function editExercise(idx) {
-    const ex = exercises[idx];
-    // Fill form with existing data
-    document.getElementById('exerciseName').value = ex.name;
-    document.getElementById('weight').value = ex.weight;
-    numSetsSelect.value = ex.sets;
-    // Trigger change to show reps inputs
-    numSetsSelect.dispatchEvent(new Event('change'));
-
-    // Fill reps inputs if available
-    if (ex.reps && ex.reps.length) {
-      const inputs = repsInputsDiv.querySelectorAll('input');
-      inputs.forEach((input, i) => {
-        input.value = ex.reps[i] || '';
-      });
-    }
-
-    // Change Add button to Save edit
-    form.querySelector('button[type="submit"]').textContent = 'Save Edit';
-
-    // Temporarily disable adding new exercise while editing
-    form.removeEventListener('submit', handleAddSubmit);
-    form.addEventListener('submit', handleEditSubmit);
-
-    // Store editing index on form dataset
-    form.dataset.editingIdx = idx;
-  }
-
-  function handleEditSubmit(e) {
-    e.preventDefault();
-    const idx = parseInt(form.dataset.editingIdx);
-    if (isNaN(idx)) return;
-
-    const name = document.getElementById('exerciseName').value.trim();
-    const weight = document.getElementById('weight').value.trim();
-    const sets = numSetsSelect.value;
-
-    if (!name) {
-      alert('Please enter an exercise name.');
-      return;
-    }
-    if (!sets || !(sets >= 1 && sets <= 5)) {
-      alert('Please select number of sets (1-5).');
-      return;
-    }
-
-    // Collect reps from inputs
-    const repsInputs = repsInputsDiv.querySelectorAll('input');
-    let reps = [];
-    for (const input of repsInputs) {
-      let val = input.value.trim();
-      if (val === '') val = null;
-      else if (isNaN(val) || Number(val) < 0) {
-        alert('Reps must be a positive number or blank.');
-        return;
-      }
-      reps.push(val);
-    }
-
-    exercises[idx] = { name, weight, sets, reps };
-
-    saveExercises();
-    renderExercises();
-
-    form.reset();
-    repsInputsDiv.innerHTML = '';
-    form.querySelector('button[type="submit"]').textContent = 'Add Exercise';
-
-    // Re-enable add submit listener, remove edit submit listener
-    form.removeEventListener('submit', handleEditSubmit);
-    form.addEventListener('submit', handleAddSubmit);
-
-    delete form.dataset.editingIdx;
-  }
-
-  function deleteExercise(idx) {
-    if (confirm('Delete this exercise?')) {
-      exercises.splice(idx, 1);
-      saveExercises();
-      renderExercises();
-    }
-  }
-
-  function handleAddSubmit(e) {
+  form.addEventListener('submit', e => {
     e.preventDefault();
 
     const name = document.getElementById('exerciseName').value.trim();
@@ -237,7 +145,6 @@
       return;
     }
 
-    // Collect reps from inputs
     const repsInputs = repsInputsDiv.querySelectorAll('input');
     let reps = [];
     for (const input of repsInputs) {
@@ -256,23 +163,10 @@
 
     form.reset();
     repsInputsDiv.innerHTML = '';
-  }
-
-  form.addEventListener('submit', handleAddSubmit);
+  });
 
   function goBack() {
     location.href = 'index.html';
-  }
-
-  // Simple helper to avoid HTML injection
-  function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, m => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[m]);
   }
 
   renderExercises();
@@ -280,4 +174,5 @@
 
 </body>
 </html>
+
 
