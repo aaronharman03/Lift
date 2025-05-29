@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4caf50">
+
+  <!-- iOS support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PhysiqueTracker">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    .date-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    button { padding: 0.5rem 1rem; margin: 0 0.5rem; }
+    input[type="date"], input[type="number"], input[type="text"] { padding: 0.5rem; }
+    .log { border-top: 1px solid #ccc; padding-top: 1rem; }
+    .progress-container { margin-top: 20px; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; }
+    .progress-bar { width: 100%; height: 20px; background-color: #eee; border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background-color: #4caf50; width: 50%; }
+    .nutrient-stats { margin-top: 10px; font-size: 0.9rem; }
+    .nutrient-stats div { margin: 4px 0; }
+    .activity-log, .food-log { margin-top: 20px; }
+    .activity-log select, .activity-log input, .food-log input { padding: 0.5rem; margin: 0.5rem 0.5rem 0.5rem 0; }
+    .activity-log ul, .food-log ul { list-style-type: none; padding: 0; }
+    .activity-log li, .food-log li { padding: 4px 0; }
+    .meals { margin-top: 20px; }
+    .meal { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; min-height: 50px; background-color: #f9f9f9; }
+    .meal h4 { margin: 0 0 5px; }
+  </style>
+</head>
+<body>
+  <h1>Daily Tracker</h1>
+
+  <label for="menuSelect">Navigate:</label>
+  <select id="menuSelect" onchange="handleMenuSelect(this.value)">
+    <option value="">-- Select --</option>
+    <option value="diet">Diet</option>
+    <option value="train">Train</option>
+    <option value="progress">Progress</option>
+    <option value="help">Help</option>
+  </select>
+
+  <div class="date-nav">
+    <button onclick="changeDate(-1)">&larr;</button>
+    <input type="date" id="datePicker" onchange="loadLog()" />
+    <button onclick="changeDate(1)">&rarr;</button>
+  </div>
+
+  <div class="log" id="dailyLog">
+    <p>Loading data...</p>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-labels">
+      <span>Current</span>
+      <span>Goal</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="nutrient-stats">
+      <div><strong>Calories:</strong> <span id="kcalStat">0 / 0 kcal (0%)</span></div>
+      <div><strong>Protein:</strong> <span id="proteinStat">0g / 0g (0%)</span></div>
+    </div>
+  </div>
+
+  <div class="activity-log">
+    <h3>Log Activity</h3>
+    <select id="activityType">
+      <option value="run">Run</option>
+      <option value="lift">Lift</option>
+      <option value="walk">Walk</option>
+      <option value="stand">Stand</option>
+    </select>
+    <input type="number" id="activityDuration" placeholder="Duration (min)" min="1" />
+    <button onclick="addActivity()">Add Activity</button>
+
+    <ul id="activityList"></ul>
+  </div>
+
+  <div class="food-log">
+    <h3>Log Food</h3>
+    <input type="text" id="foodSearch" placeholder="Search food..." />
+    <input type="number" id="foodQuantity" placeholder="Quantity (g/ml/etc)" min="1" />
+    <button onclick="addFood()">Add Food</button>
+
+    <ul id="foodList"></ul>
+  </div>
+
+  <div class="meals">
+    <h3>Meals</h3>
+    <div
+      class="meal"
+      id="breakfast"
+      ondrop="drop(event)"
+      ondragover="allowDrop(event)"
+    >
+      <h4>Breakfast</h4>
+    </div>
+    <div
+      class="meal"
+      id="lunch"
+      ondrop="drop(event)"
+      ondragover="allowDrop(event)"
+    >
+      <h4>Lunch</h4>
+    </div>
+    <div
+      class="meal"
+      id="dinner"
+      ondrop="drop(event)"
+      ondragover="allowDrop(event)"
+    >
+      <h4>Dinner</h4>
+    </div>
+    <div
+      class="meal"
+      id="snack"
+      ondrop="drop(event)"
+      ondragover="allowDrop(event)"
+    >
+      <h4>Snack</h4>
+    </div>
+  </div>
+
+  <script>
+    const datePicker = document.getElementById("datePicker");
+    const logContainer = document.getElementById("dailyLog");
+    const progressFill = document.getElementById("progressFill");
+    const kcalStat = document.getElementById("kcalStat");
+    const proteinStat = document.getElementById("proteinStat");
+    const activityList = document.getElementById("activityList");
+    const foodList = document.getElementById("foodList");
+
+    // Base calorie and protein goals (can be dynamic if needed)
+    let baseKcalGoal = 2400;
+    const proteinGoal = 160;
+
+    // Keep track of calories burned by activities added
+    let caloriesBurnedByActivity = 0;
+
+    // Simple calories burned per minute estimates for activities
+    const caloriesBurnRate = {
+      run: 10, // calories per minute
+      lift: 6,
+      walk: 4,
+      stand: 2,
+    };
+
+    function formatDate(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function changeDate(offset) {
+      const currentDate = new Date(datePicker.value);
+      currentDate.setDate(currentDate.getDate() + offset);
+      datePicker.value = formatDate(currentDate);
+      loadLog();
+    }
+
+    function loadLog() {
+      const selectedDate = datePicker.value;
+      logContainer.innerHTML = `
+        <h2>Log for ${selectedDate}</h2>
+        <p>[Food, Exercise, etc. goes here]</p>
+      `;
+
+      // Calculate new calorie goal including activity calories burned
+      const kcalGoal = baseKcalGoal + caloriesBurnedByActivity;
+
+      // For demo, kcal consumed stays constant (you can update to sum food calories later)
+      const kcalConsumed = 1800;
+
+      const kcalPercent = Math.round((kcalConsumed / kcalGoal) * 100);
+      const proteinConsumed = 120;
+      const proteinPercent = Math.round((proteinConsumed / proteinGoal) * 100);
+
+      progressFill.style.width = kcalPercent + "%";
+      kcalStat.textContent = `${kcalConsumed} / ${kcalGoal} kcal (${kcalPercent}%)`;
+      proteinStat.textContent = `${proteinConsumed}g / ${proteinGoal}g (${proteinPercent}%)`;
+    }
+
+    function addActivity() {
+      const type = document.getElementById("activityType").value;
+      const duration = parseInt(document.getElementById("activityDuration").value);
+      if (!duration || duration <= 0) return;
+
+      const caloriesForThisActivity = caloriesBurnRate[type] * duration;
+      caloriesBurnedByActivity += caloriesForThisActivity;
+
+      const li = document.createElement("li");
+      li.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)} - ${duration} min (+${caloriesForThisActivity} kcal burned)`;
+      activityList.appendChild(li);
+
+      document.getElementById("activityDuration").value = "";
+
+      // Update the display with new calorie goal
+      loadLog();
+    }
+
+    function addFood() {
+      const food = document.getElementById("foodSearch").value;
+      const quantity = document.getElementById("foodQuantity").value;
+      if (!food || !quantity || quantity <= 0) return;
+      const li = document.createElement("li");
+      li.textContent = `${food} - ${quantity}`;
+      li.setAttribute("draggable", true);
+      li.setAttribute("ondragstart", "drag(event)");
+      li.id = "foodItem-" + Math.random().toString(36).substring(2, 9);
+      foodList.appendChild(li);
+      document.getElementById("foodSearch").value = "";
+      document.getElementById("foodQuantity").value = "";
+    }
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const item = document.getElementById(data);
+      ev.target.appendChild(item);
+    }
+
+    datePicker.value = formatDate(new Date());
+    loadLog();
+
+    function handleMenuSelect(value) {
+      if (!value) return;
+
+      const pages = {
+        diet: 'diet.html',
+        train: 'train.html',
+        progress: 'progress.html',
+        help: 'help.html'
+      };
+
+      if (pages[value]) {
+        window.location.href = pages[value];
+      }
+    }
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('Service Worker Registered'))
+      .catch(err => console.log('Service Worker Registration Failed:', err));
+    }
+  </script>
+</body>
+</html>
