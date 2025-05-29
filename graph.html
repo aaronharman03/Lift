@@ -1,183 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Progress Graph</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body {
-    font-family: sans-serif;
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 0 20px;
-  }
-  h1 {
-    text-align: center;
-  }
-  #exerciseSelect {
-    width: 100%;
-    font-size: 18px;
-    margin: 20px 0;
-    padding: 8px;
-  }
-  #backBtn {
-    margin-top: 15px;
-    padding: 8px 14px;
-    font-size: 16px;
-    background: #007bff;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  #backBtn:hover {
-    opacity: 0.9;
-  }
-  canvas {
-    max-width: 100%;
-  }
-  #noDataMsg {
-    text-align: center;
-    margin-top: 30px;
-    color: #666;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Progress Graph</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      background: #fdfdfd;
+    }
+    h1 {
+      text-align: center;
+    }
+    #exerciseSelect {
+      font-size: 16px;
+      margin: 20px auto;
+      display: block;
+      padding: 8px;
+    }
+    canvas {
+      margin-top: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn-back {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .btn-back:hover {
+      opacity: 0.9;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Workout Progress Graph</h1>
+<button class="btn-back" onclick="goBack()">← Back</button>
+<h1>Exercise Progress</h1>
 
-<label for="exerciseSelect">Select Exercise:</label>
 <select id="exerciseSelect">
-  <option value="">-- Select an Exercise --</option>
+  <option value="">Select Exercise</option>
 </select>
 
-<canvas id="progressChart" width="600" height="300" style="display:none;"></canvas>
+<canvas id="progressChart" height="300"></canvas>
 
-<div id="noDataMsg" style="display:none;">No data available for this exercise.</div>
-
-<button id="backBtn">← Back to Workout Day</button>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Read the day param from URL
-  const params = new URLSearchParams(location.search);
-  const day = params.get('day') || '1';
+  const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+  const select = document.getElementById('exerciseSelect');
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  let chart;
 
-  // LocalStorage key for exercises of this day
-  const storageKey = `workout_day_${day}`;
-
-  // Elements
-  const exerciseSelect = document.getElementById('exerciseSelect');
-  const progressChartCanvas = document.getElementById('progressChart');
-  const noDataMsg = document.getElementById('noDataMsg');
-  const backBtn = document.getElementById('backBtn');
-
-  // Load exercises
-  const exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
-
-  // Extract unique exercise names
-  const exerciseNamesSet = new Set();
-  exercises.forEach(ex => {
-    if (ex.name) exerciseNamesSet.add(ex.name);
-  });
-  const exerciseNames = Array.from(exerciseNamesSet).sort();
-
-  // Populate dropdown
+  const exerciseNames = [...new Set(logs.map(log => log.name))];
   exerciseNames.forEach(name => {
     const option = document.createElement('option');
     option.value = name;
     option.textContent = name;
-    exerciseSelect.appendChild(option);
+    select.appendChild(option);
   });
 
-  let chart = null;
+  select.addEventListener('change', () => {
+    const selected = select.value;
+    if (!selected) return;
 
-  function renderChartForExercise(name) {
-    if (!name) {
-      progressChartCanvas.style.display = 'none';
-      noDataMsg.style.display = 'none';
-      if (chart) {
-        chart.destroy();
-        chart = null;
-      }
-      return;
-    }
+    const data = logs
+      .filter(log => log.name === selected && log.weight != null)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Filter all records for this exercise name
-    const filtered = exercises.filter(e => e.name === name);
-
-    if (filtered.length === 0) {
-      progressChartCanvas.style.display = 'none';
-      noDataMsg.style.display = 'block';
-      if (chart) {
-        chart.destroy();
-        chart = null;
-      }
-      return;
-    }
-
-    noDataMsg.style.display = 'none';
-    progressChartCanvas.style.display = 'block';
-
-    // Sort by date ascending
-    filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
-
-    // Prepare data for Chart.js
-    const labels = filtered.map(e => e.date);
-    const weights = filtered.map(e => e.weight || 0);
+    const labels = data.map(log => log.date);
+    const weights = data.map(log => log.weight);
 
     if (chart) chart.destroy();
-
-    chart = new Chart(progressChartCanvas, {
+    chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels,
         datasets: [{
-          label: 'Weight (' + (filtered[0].weightUnit || 'kg') + ')',
+          label: `${selected} Weight`,
           data: weights,
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          fill: true,
-          tension: 0.2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',
+          tension: 0.3,
+          fill: true
         }]
       },
       options: {
         responsive: true,
         scales: {
-          x: {
-            title: { display: true, text: 'Date' },
-            ticks: { maxRotation: 45, minRotation: 30 },
-          },
           y: {
-            beginAtZero: true,
-            title: { display: true, text: 'Weight' },
-          }
-        },
-        plugins: {
-          legend: { display: true },
-          tooltip: {
-            callbacks: {
-              label: ctx => ctx.parsed.y + ' ' + (filtered[0].weightUnit || 'kg'),
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Weight'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
             }
           }
         }
       }
     });
+  });
+
+  function goBack() {
+    window.history.back();
   }
-
-  exerciseSelect.addEventListener('change', e => {
-    renderChartForExercise(e.target.value);
-  });
-
-  backBtn.addEventListener('click', () => {
-    // Go back to workout day page, preserving day param
-    location.href = `day.html?day=${day}`;
-  });
 </script>
 
 </body>
 </html>
+
 
