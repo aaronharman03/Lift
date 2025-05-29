@@ -398,6 +398,34 @@
       exercises.push(exerciseData);
     }
     saveExercises();
+    const exerciseData = {
+  name,
+  weight: weightVal,
+  weightUnit,
+  reps
+};
+
+if (editingIndex !== null) {
+  exercises[editingIndex] = exerciseData;
+} else {
+  exercises.push(exerciseData);
+}
+
+saveExercises();
+
+// ✅ Add this block to also save the log globally for graph.html
+const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+logs.push({
+  name: name,
+  weight: weightVal,
+  weightUnit: weightUnit,
+  reps: reps,
+  date: new Date().toISOString().split('T')[0]
+});
+localStorage.setItem('exercise_logs', JSON.stringify(logs));
+
+renderExercises();
+
     renderExercises();
     hideModal();
   });
