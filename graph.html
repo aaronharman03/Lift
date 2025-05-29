@@ -39,16 +39,6 @@
     .btn-back:hover {
       opacity: 0.9;
     }
-    #showGoalLine {
-      margin-left: 8px;
-      cursor: pointer;
-    }
-    label[for="showGoalLine"] {
-      font-size: 14px;
-      display: block;
-      margin-top: 10px;
-      user-select: none;
-    }
   </style>
 </head>
 <body>
@@ -60,24 +50,16 @@
   <option value="">Select Exercise</option>
 </select>
 
-<label for="showGoalLine">
-  <input type="checkbox" id="showGoalLine" checked />
-  Show Goal Line
-</label>
-
 <canvas id="progressChart" height="300"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Load exercise logs (simulate structure including goalWeight and goalWeightUnit)
   const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
   const select = document.getElementById('exerciseSelect');
   const ctx = document.getElementById('progressChart').getContext('2d');
   let chart;
 
-  const showGoalLineCheckbox = document.getElementById('showGoalLine');
-
-  // Populate exercises dropdown with unique names
+  // Populate exercise dropdown with unique exercise names
   const exerciseNames = [...new Set(logs.map(log => log.name))];
   exerciseNames.forEach(name => {
     const option = document.createElement('option');
@@ -86,7 +68,8 @@
     select.appendChild(option);
   });
 
-  function drawChart(selected) {
+  select.addEventListener('change', () => {
+    const selected = select.value;
     if (!selected) return;
 
     const data = logs
@@ -96,51 +79,32 @@
     const labels = data.map(log => log.date);
     const weights = data.map(log => log.weight);
 
-    // Find the first entry with a goalWeight for this exercise
+    if (weights.length === 0) return; // No data for this exercise
+
+    // Get goalWeight for this exercise from logs, or default max weight
     const goalEntry = logs.find(log => log.name === selected && log.goalWeight != null);
-    const goalWeight = goalEntry ? goalEntry.goalWeight : null;
+    const goalWeight = goalEntry ? goalEntry.goalWeight : Math.max(...weights);
 
-    // Calculate y-axis min/max with padding
-    let minY = Math.min(...weights);
-    let maxY = Math.max(...weights);
+    // Bottom weight = first logged weight
+    const bottomWeight = weights[0];
 
-    if (goalWeight != null) {
-      minY = Math.min(minY, goalWeight);
-      maxY = Math.max(maxY, goalWeight);
-    }
-
-    const padding = (maxY - minY) * 0.1 || 5;
-    minY = Math.max(0, minY - padding);
-    maxY = maxY + padding;
+    const minY = Math.min(bottomWeight, goalWeight);
+    const maxY = Math.max(bottomWeight, goalWeight);
 
     if (chart) chart.destroy();
-
-    const datasets = [{
-      label: `${selected} Weight`,
-      data: weights,
-      borderColor: '#007bff',
-      backgroundColor: 'rgba(0, 123, 255, 0.2)',
-      tension: 0.3,
-      fill: true
-    }];
-
-    if (goalWeight != null && showGoalLineCheckbox.checked) {
-      datasets.push({
-        label: 'Goal Weight',
-        data: Array(labels.length).fill(goalWeight),
-        borderColor: 'rgba(220, 53, 69, 0.8)',
-        borderDash: [6, 4],
-        pointRadius: 0,
-        fill: false,
-        tension: 0
-      });
-    }
 
     chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels,
-        datasets
+        datasets: [{
+          label: `${selected} Weight`,
+          data: weights,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',
+          tension: 0, // no smoothing for zigzag effect
+          fill: true
+        }]
       },
       options: {
         responsive: true,
@@ -160,24 +124,9 @@
               text: 'Date'
             }
           }
-        },
-        plugins: {
-          legend: {
-            labels: {
-              filter: (legendItem) => showGoalLineCheckbox.checked || legendItem.text !== 'Goal Weight'
-            }
-          }
         }
       }
     });
-  }
-
-  select.addEventListener('change', () => {
-    drawChart(select.value);
-  });
-
-  showGoalLineCheckbox.addEventListener('change', () => {
-    drawChart(select.value);
   });
 
   function goBack() {
@@ -187,3 +136,4 @@
 
 </body>
 </html>
+
