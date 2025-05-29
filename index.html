@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Workout Tracker</title>
   <style>
     :root {
@@ -46,6 +46,8 @@
       display: flex;
       gap: 0.5rem;
       margin-bottom: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     input {
@@ -54,7 +56,7 @@
       border-bottom: 1px solid var(--fg);
       color: var(--fg);
       padding: 0.25rem;
-      width: 100px;
+      font-size: 16px; /* Prevent zoom on mobile */
     }
 
     .exercise-line {
@@ -88,7 +90,6 @@
       color: #ff6666;
       border-color: #ff6666;
     }
-
   </style>
 </head>
 <body>
@@ -102,7 +103,7 @@
 
   <form onsubmit="addExercise(event)">
     <input id="exerciseInput" placeholder="Exercise" required />
-    <input id="weightInput" placeholder="Weight (kg)" type="number" />
+    <input id="weightInput" placeholder="Weight (kg)" inputmode="numeric" />
     <button type="submit">Add</button>
   </form>
 
@@ -140,6 +141,7 @@
         const weight = document.createElement('input');
         weight.placeholder = 'Weight';
         weight.value = ex.weight || '';
+        weight.inputMode = "numeric";
         weight.oninput = () => {
           ex.weight = weight.value;
           save(data);
@@ -149,6 +151,7 @@
         ex.sets.forEach((val, setIdx) => {
           const setInput = document.createElement('input');
           setInput.className = 'set';
+          setInput.inputMode = 'numeric';
           setInput.value = val;
           setInput.oninput = () => {
             ex.sets[setIdx] = setInput.value;
