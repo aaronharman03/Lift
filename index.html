@@ -1,330 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>FitLife - User Info</title>
-<link rel="manifest" href="manifest.json" />
-<style>
-  /* Reset some default */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FitTrack – Welcome</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1b2a;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background: linear-gradient(135deg, #0a1e44, #001f3f);
-    color: #f5f7fa;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
+    h1 {
+      margin-bottom: 1.5rem;
+      font-size: 2.2rem;
+      text-align: center;
+    }
 
-  h1 {
-    font-size: 2.8rem;
-    margin-bottom: 1.5rem;
-    font-weight: 700;
-    text-align: center;
-    color: #ffffff;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  }
+    form {
+      background-color: #ffffff;
+      color: #000;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
 
-  form {
-    background: #ffffff;
-    padding: 2.5rem 2rem;
-    border-radius: 16px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-    max-width: 400px;
-    width: 100%;
-    color: #001f3f;
-    display: flex;
-    flex-direction: column;
-  }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.4rem;
+      font-weight: bold;
+    }
 
-  label {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-  }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
 
-  .input-group {
-    position: relative;
-    margin-bottom: 1.5rem;
-  }
+    .inline-group {
+      display: flex;
+      gap: 10px;
+    }
 
-  input,
-  select {
-    width: 100%;
-    padding: 0.65rem 1rem;
-    border: 1.8px solid #cbd5e1;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #001f3f;
-    transition: border-color 0.3s ease;
-    outline-offset: 2px;
-  }
+    .inline-group input {
+      flex: 1;
+    }
 
-  input:focus,
-  select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 6px #3b82f6;
-  }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      background-color: #0d1b2a;
+      color: white;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
 
-  .percent-sign {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: 700;
-    color: #64748b;
-    user-select: none;
-    pointer-events: none;
-    font-size: 1rem;
-  }
+    button:hover {
+      background-color: #1b263b;
+    }
 
-  button {
-    margin-top: 0.8rem;
-    padding: 1rem;
-    font-size: 1.2rem;
-    font-weight: 700;
-    background-color: #001f3f;
-    color: #ffffff;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 8px 15px rgba(0, 31, 63, 0.3);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  button:hover {
-    background-color: #004080;
-    box-shadow: 0 12px 20px rgba(0, 64, 128, 0.4);
-  }
-
-  .error {
-    color: #e74c3c;
-    font-size: 0.9rem;
-    margin-top: -1rem;
-    margin-bottom: 1rem;
-    text-align: center;
-    font-weight: 600;
-  }
-
-  /* Units toggle styling */
-  .units-toggle {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .units-toggle label {
-    font-weight: 600;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  /* Height imperial group layout */
-  #heightImperialGroup {
-    display: none;
-    gap: 10px;
-    flex-wrap: nowrap;
-    align-items: center;
-  }
-
-  #heightImperialGroup input {
-    width: 60px;
-  }
-
-  #heightImperialGroup span {
-    font-weight: 600;
-  }
-</style>
+    .error {
+      margin-top: 1rem;
+      color: red;
+      font-weight: bold;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Tell us about you</h1>
+<h1>Let's Get Started</h1>
 
-<form id="userForm" novalidate>
-  <label>Units</label>
-  <div class="units-toggle">
-    <label><input type="radio" name="units" value="metric" checked /> Metric (cm, kg)</label>
-    <label><input type="radio" name="units" value="imperial" /> Imperial (ft/in, lbs)</label>
-  </div>
+<form id="userForm">
+  <label for="units">Units</label>
+  <select id="units">
+    <option value="metric">Metric (cm, kg)</option>
+    <option value="imperial">Imperial (ft/in, lbs)</option>
+  </select>
 
   <label for="sex">Sex</label>
   <select id="sex" required>
-    <option value="" disabled selected>Select your sex</option>
+    <option value="">Select...</option>
     <option value="male">Male</option>
     <option value="female">Female</option>
   </select>
 
-  <label for="age">Age (years)</label>
+  <label for="age">Age</label>
   <input type="number" id="age" min="10" max="100" required />
 
-  <label for="heightMetric">Height</label>
-  <div id="heightMetricGroup">
-    <input type="number" id="heightMetric" min="50" max="250" placeholder="cm" />
+  <label for="height">Height</label>
+  <div id="heightMetric">
+    <input type="number" id="heightCm" placeholder="cm" />
   </div>
-  <div id="heightImperialGroup">
-    <input type="number" id="heightFt" min="1" max="8" placeholder="ft" />
-    <span>ft</span>
-    <input type="number" id="heightIn" min="0" max="11" placeholder="in" />
-    <span>in</span>
+  <div id="heightImperial" style="display: none;" class="inline-group">
+    <input type="number" id="heightFt" placeholder="ft" />
+    <input type="number" id="heightIn" placeholder="in" />
   </div>
 
-  <label for="weightMetric">Weight</label>
-  <div id="weightMetricGroup">
-    <input type="number" id="weightMetric" min="20" max="300" placeholder="kg" />
+  <label for="weight">Weight</label>
+  <div id="weightMetric">
+    <input type="number" id="weightKg" placeholder="kg" />
   </div>
-  <div id="weightImperialGroup" style="display:none;">
-    <input type="number" id="weightImperial" min="44" max="660" placeholder="lbs" />
-  </div>
-
-  <label for="currentBF">Current Body Fat</label>
-  <div class="input-group">
-    <input type="number" id="currentBF" min="1" max="70" step="0.1" required />
-    <span class="percent-sign">%</span>
+  <div id="weightImperial" style="display: none;">
+    <input type="number" id="weightLbs" placeholder="lbs" />
   </div>
 
-  <label for="goalBF">Goal Body Fat</label>
-  <div class="input-group">
-    <input type="number" id="goalBF" min="1" max="70" step="0.1" required />
-    <span class="percent-sign">%</span>
-  </div>
+  <label for="currentBF">Current Body Fat %</label>
+  <input type="number" id="currentBF" min="1" max="70" step="0.1" required />
 
-  <button type="submit">Save & Continue</button>
-  <div id="errorMsg" class="error" style="display:none;"></div>
+  <label for="goalBF">Goal Body Fat %</label>
+  <input type="number" id="goalBF" min="1" max="70" step="0.1" required />
+
+  <button type="submit">Continue</button>
+  <div class="error" id="errorMsg"></div>
 </form>
 
 <script>
-  // Service worker registration
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker Registered'))
-      .catch(err => console.error('Service Worker registration failed:', err));
+    navigator.serviceWorker.register('service-worker.js');
   }
 
-  // Units toggle logic
-  const unitsRadios = document.querySelectorAll('input[name="units"]');
-
-  const heightMetricGroup = document.getElementById('heightMetricGroup');
-  const heightImperialGroup = document.getElementById('heightImperialGroup');
-  const weightMetricGroup = document.getElementById('weightMetricGroup');
-  const weightImperialGroup = document.getElementById('weightImperialGroup');
-
-  unitsRadios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      if (radio.checked) {
-        if (radio.value === 'metric') {
-          heightMetricGroup.style.display = 'block';
-          heightImperialGroup.style.display = 'none';
-          weightMetricGroup.style.display = 'block';
-          weightImperialGroup.style.display = 'none';
-        } else {
-          heightMetricGroup.style.display = 'none';
-          heightImperialGroup.style.display = 'flex';
-          weightMetricGroup.style.display = 'none';
-          weightImperialGroup.style.display = 'block';
-        }
-      }
-    });
-  });
-
+  const units = document.getElementById('units');
+  const heightMetric = document.getElementById('heightMetric');
+  const heightImperial = document.getElementById('heightImperial');
+  const weightMetric = document.getElementById('weightMetric');
+  const weightImperial = document.getElementById('weightImperial');
   const form = document.getElementById('userForm');
   const errorMsg = document.getElementById('errorMsg');
 
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorMsg.style.display = 'block';
-  }
+  units.addEventListener('change', () => {
+    const isMetric = units.value === 'metric';
+    heightMetric.style.display = isMetric ? 'block' : 'none';
+    heightImperial.style.display = isMetric ? 'none' : 'flex';
+    weightMetric.style.display = isMetric ? 'block' : 'none';
+    weightImperial.style.display = isMetric ? 'none' : 'block';
+  });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const sex = form.sex.value;
     const age = parseInt(form.age.value);
-    const units = form.units.value;
-
+    const currentBF = parseFloat(form.currentBF.value);
+    const goalBF = parseFloat(form.goalBF.value);
     let height, weight;
 
-    if (!sex) {
-      showError('Please select your sex.');
-      return;
-    }
-    if (isNaN(age) || age < 10 || age > 100) {
-      showError('Please enter a valid age between 10 and 100.');
-      return;
-    }
+    if (!sex) return showError('Please select your sex.');
+    if (!age || age < 10 || age > 100) return showError('Invalid age.');
+    if (isNaN(currentBF) || currentBF < 1 || currentBF > 70) return showError('Invalid current body fat %.');
+    if (isNaN(goalBF) || goalBF < 1 || goalBF > 70) return showError('Invalid goal body fat %.');
 
-    if (units === 'metric') {
-      height = parseFloat(form.heightMetric.value);
-      weight = parseFloat(form.weightMetric.value);
-
-      if (isNaN(height) || height < 50 || height > 250) {
-        showError('Please enter a valid height between 50cm and 250cm.');
-        return;
-      }
-      if (isNaN(weight) || weight < 20 || weight > 300) {
-        showError('Please enter a valid weight between 20kg and 300kg.');
-        return;
-      }
+    if (units.value === 'metric') {
+      height = parseFloat(form.heightCm.value);
+      weight = parseFloat(form.weightKg.value);
+      if (!height || height < 50 || height > 250) return showError('Invalid height in cm.');
+      if (!weight || weight < 20 || weight > 300) return showError('Invalid weight in kg.');
     } else {
-      // Convert ft/in to cm
-      const feet = parseInt(form.heightFt.value);
-      const inches = parseInt(form.heightIn.value);
-      if (isNaN(feet) || feet < 1 || feet > 8 || isNaN(inches) || inches < 0 || inches > 11) {
-        showError('Please enter valid height in feet (1-8) and inches (0-11).');
-        return;
-      }
-      height = (feet * 12 + inches) * 2.54;
-
-      // Convert lbs to kg
-      weight = parseFloat(form.weightImperial.value);
-      if (isNaN(weight) || weight < 44 || weight > 660) {
-        showError('Please enter valid weight in pounds (44-660).');
-        return;
-      }
+      const ft = parseInt(form.heightFt.value);
+      const inch = parseInt(form.heightIn.value);
+      weight = parseFloat(form.weightLbs.value);
+      if (!ft || ft < 1 || ft > 8 || isNaN(inch) || inch < 0 || inch > 11)
+        return showError('Invalid height in feet/inches.');
+      if (!weight || weight < 44 || weight > 660) return showError('Invalid weight in lbs.');
+      height = (ft * 12 + inch) * 2.54;
       weight = weight * 0.453592;
     }
 
-    const currentBF = parseFloat(form.currentBF.value);
-    const goalBF = parseFloat(form.goalBF.value);
-
-    if (isNaN(currentBF) || currentBF < 1 || currentBF > 70) {
-      showError('Please enter a valid current body fat percentage.');
-      return;
-    }
-    if (isNaN(goalBF) || goalBF < 1 || goalBF > 70) {
-      showError('Please enter a valid goal body fat percentage.');
-      return;
-    }
-    if (goalBF >= currentBF) {
-      showError('Goal body fat % should be less than current body fat %.');
-      return;
-    }
-
-    // Store in metric units internally
-    const userData = { 
-      sex, 
-      age, 
-      height: +height.toFixed(1), 
-      weight: +weight.toFixed(1), 
-      currentBF, 
-      goalBF 
-    };
+    const userData = { sex, age, height, weight, currentBF, goalBF };
     localStorage.setItem('userData', JSON.stringify(userData));
-
-    errorMsg.style.display = 'none';
-
-    // Move to next page
-    window.location.href = 'workouts.html';
+    window.location.href = 'plan.html';
   });
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
 </script>
 
 </body>
