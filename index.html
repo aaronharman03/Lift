@@ -56,7 +56,7 @@
       border-bottom: 1px solid var(--fg);
       color: var(--fg);
       padding: 0.25rem;
-      font-size: 16px; /* Prevent zoom on mobile */
+      font-size: 16px;
     }
 
     .exercise-line {
@@ -90,6 +90,10 @@
       color: #ff6666;
       border-color: #ff6666;
     }
+
+    .exercise-label {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -112,8 +116,10 @@
   <script>
     const dateDisplay = document.getElementById('dateDisplay');
     const list = document.getElementById('list');
+    let date = new Date();
+    date.setHours(0, 0, 0, 0);
+
     const getKey = (d) => d.toISOString().split('T')[0];
-    let date = new Date(); date.setHours(0, 0, 0, 0);
 
     function load() {
       return JSON.parse(localStorage.getItem('workouts') || '{}');
@@ -134,19 +140,20 @@
         const row = document.createElement('div');
         row.className = 'exercise-line';
 
-        const name = document.createElement('span');
-        name.textContent = ex.name;
-        row.appendChild(name);
+        const label = document.createElement('span');
+        label.className = 'exercise-label';
+        label.textContent = ex.name;
+        row.appendChild(label);
 
-        const weight = document.createElement('input');
-        weight.placeholder = 'Weight';
-        weight.value = ex.weight || '';
-        weight.inputMode = "numeric";
-        weight.oninput = () => {
-          ex.weight = weight.value;
+        const weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.placeholder = 'kg';
+        weightInput.value = ex.weight || '';
+        weightInput.oninput = () => {
+          ex.weight = weightInput.value;
           save(data);
         };
-        row.appendChild(weight);
+        row.appendChild(weightInput);
 
         ex.sets.forEach((val, setIdx) => {
           const setInput = document.createElement('input');
@@ -210,3 +217,4 @@
   </script>
 </body>
 </html>
+
