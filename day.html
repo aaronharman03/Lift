@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workout Day</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; background: #fff; max-width: 600px; margin: auto; }
+  button {
+    cursor: pointer;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    margin: 5px 5px 5px 0;
+    font-size: 16px;
+  }
+  button:hover {
+    opacity: 0.85;
+  }
+  .btn-primary { background-color: #007bff; color: white; }
+  .btn-danger { background-color: #dc3545; color: white; }
+  .btn-secondary { background-color: #6c757d; color: white; }
+  h1, h2 { margin-bottom: 10px; }
+  form input, form select {
+    padding: 8px;
+    font-size: 16px;
+    margin: 5px 10px 15px 0;
+    width: calc(33% - 12px);
+    box-sizing: border-box;
+  }
+  #exercisesList .exercise {
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    background: #f7f7f7;
+  }
+  #exercisesList .exercise strong {
+    font-size: 18px;
+  }
+  #exercisesList .exercise div {
+    margin: 5px 0;
+  }
+</style>
+</head>
+<body>
+
+  <button class="btn-secondary" onclick="goBack()">← Back to Days</button>
+  <h1 id="dayTitle">Workout Day</h1>
+
+  <h2>Add Exercise</h2>
+  <form id="exerciseForm">
+    <input type="text" id="exerciseName" placeholder="Exercise Name" required />
+    <input type="number" id="weight" placeholder="Weight (kg)" min="0" />
+    <select id="sets">
+      <option value="">Sets (optional)</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <button type="submit" class="btn-primary">Add Exercise</button>
+  </form>
+
+  <h2>Exercises</h2>
+  <div id="exercisesList"></div>
+
+<script>
+  // Get day from URL query param
+  const params = new URLSearchParams(location.search);
+  const day = params.get('day') || '1';
+  document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
+
+  const storageKey = `workout_day_${day}`;
+  const exercisesListEl = document.getElementById('exercisesList');
+  const form = document.getElementById('exerciseForm');
+
+  let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+  function saveExercises() {
+    localStorage.setItem(storageKey, JSON.stringify(exercises));
+  }
+
+  function renderExercises() {
+    exercisesListEl.innerHTML = '';
+    if (exercises.length === 0) {
+      exercisesListEl.textContent = 'No exercises logged yet.';
+      return;
+    }
+
+    exercises.forEach((ex, idx) => {
+      const div = document.createElement('div');
+      div.className = 'exercise';
+
+      div.innerHTML = `
+        <strong>${escapeHtml(ex.name)}</strong>
+        <div>Weight: ${ex.weight || 'N/A'}</div>
+        <div>Sets: ${ex.sets || 'N/A'}</div>
+        <button class="btn-primary" onclick="editExercise(${idx})">Edit</button>
+        <button class="btn-danger" onclick="deleteExercise(${idx})">Delete</button>
+      `;
+      exercisesListEl.appendChild(div);
+    });
+  }
+
+  function editExercise(idx) {
+    const ex = exercises[idx];
+
+    const newName = prompt('Edit exercise name:', ex.name);
+    if (newName === null || !newName.trim()) return alert('Name cannot be empty.');
+
+    const newWeight = prompt('Edit weight (leave blank for none):', ex.weight || '');
+    if (newWeight === null) return;
+
+    const newSets = prompt('Edit sets (1-5, leave blank for none):', ex.sets || '');
+    if (newSets === null) return;
+    if (newSets && !['1','2','3','4','5'].includes(newSets.trim())) {
+      return alert('Sets must be 1 to 5 or blank.');
+    }
+
+    exercises[idx] = {
+      name: newName.trim(),
+      weight: newWeight.trim() || '',
+      sets: newSets.trim() || '',
+    };
+
+    saveExercises();
+    renderExercises();
+  }
+
+  function deleteExercise(idx) {
+    if (confirm('Delete this exercise?')) {
+      exercises.splice(idx, 1);
+      saveExercises();
+      renderExercises();
+    }
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('exerciseName').value.trim();
+    const weight = document.getElementById('weight').value.trim();
+    const sets = document.getElementById('sets').value;
+
+    if (!name) {
+      alert('Please enter an exercise name.');
+      return;
+    }
+
+    if (sets && !['1','2','3','4','5'].includes(sets)) {
+      alert('Sets must be 1 to 5.');
+      return;
+    }
+
+    exercises.push({ name, weight, sets });
+    saveExercises();
+    renderExercises();
+
+    form.reset();
+  });
+
+  function goBack() {
+    location.href = 'index.html';
+  }
+
+  // Simple helper to avoid HTML injection
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, m => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[m]);
+  }
+
+  renderExercises();
+</script>
+
+</body>
+</html>
 
