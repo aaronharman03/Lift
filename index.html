@@ -1,1 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FitLife - User Info</title>
+
+<link rel="manifest" href="manifest.json" />
+
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f4f8;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+  }
+  form {
+    background: white;
+    padding: 2em;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 100%;
+  }
+  label {
+    display: block;
+    margin-bottom: 0.3em;
+    font-weight: 600;
+  }
+  input, select {
+    width: 100%;
+    padding: 0.5em 0.7em;
+    margin-bottom: 1.2em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  button {
+    width: 100%;
+    background-color: #27ae60;
+    border: none;
+    color: white;
+    padding: 1em;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #219150;
+  }
+  .error {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: -1em;
+    margin-bottom: 1em;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tell us about you</h1>
+
+<form id="userForm" novalidate>
+  <label for="sex">Sex</label>
+  <select id="sex" required>
+    <option value="" disabled selected>Select your sex</option>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+
+  <label for="age">Age (years)</label>
+  <input type="number" id="age" min="10" max="100" required />
+
+  <label for="height">Height (cm)</label>
+  <input type="number" id="height" min="50" max="250" required />
+
+  <label for="weight">Weight (kg)</label>
+  <input type="number" id="weight" min="20" max="300" required />
+
+  <label for="currentBF">Current Body Fat %</label>
+  <input type="number" id="currentBF" min="1" max="70" step="0.1" required />
+
+  <label for="goalBF">Goal Body Fat %</label>
+  <input type="number" id="goalBF" min="1" max="70" step="0.1" required />
+
+  <button type="submit">Save & Continue</button>
+  <div id="errorMsg" class="error" style="display:none;"></div>
+</form>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker Registered'))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  }
+
+  const form = document.getElementById('userForm');
+  const errorMsg = document.getElementById('errorMsg');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Get values
+    const sex = form.sex.value;
+    const age = parseInt(form.age.value);
+    const height = parseFloat(form.height.value);
+    const weight = parseFloat(form.weight.value);
+    const currentBF = parseFloat(form.currentBF.value);
+    const goalBF = parseFloat(form.goalBF.value);
+
+    // Basic validation checks
+    if (!sex) {
+      showError('Please select your sex.');
+      return;
+    }
+    if (isNaN(age) || age < 10 || age > 100) {
+      showError('Please enter a valid age between 10 and 100.');
+      return;
+    }
+    if (isNaN(height) || height < 50 || height > 250) {
+      showError('Please enter a valid height between 50cm and 250cm.');
+      return;
+    }
+    if (isNaN(weight) || weight < 20 || weight > 300) {
+      showError('Please enter a valid weight between 20kg and 300kg.');
+      return;
+    }
+    if (isNaN(currentBF) || currentBF < 1 || currentBF > 70) {
+      showError('Please enter a valid current body fat percentage.');
+      return;
+    }
+    if (isNaN(goalBF) || goalBF < 1 || goalBF > 70) {
+      showError('Please enter a valid goal body fat percentage.');
+      return;
+    }
+    if (goalBF >= currentBF) {
+      showError('Goal body fat % should be less than current body fat %.');
+      return;
+    }
+
+    // Save to localStorage
+    const userData = { sex, age, height, weight, currentBF, goalBF };
+    localStorage.setItem('userData', JSON.stringify(userData));
+
+    // Clear error if any
+    errorMsg.style.display = 'none';
+
+    // Navigate to workouts page
+    window.location.href = 'workouts.html';
+  });
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
 
