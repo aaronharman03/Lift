@@ -384,24 +384,10 @@
       }
       reps.push(parseInt(val, 10));
     }
-
-    const exerciseData = {
-      name,
-      weight: weightVal,
-      weightUnit,
-      reps
-    };
-
-    if (editingIndex !== null) {
-      exercises[editingIndex] = exerciseData;
-    } else {
-      exercises.push(exerciseData);
-    }
-    saveExercises();
     const exerciseData = {
   name,
   weight: weightVal,
-  weightUnit,
+  weightUnit: currentWeightUnit,
   reps
 };
 
@@ -413,20 +399,18 @@ if (editingIndex !== null) {
 
 saveExercises();
 
-// ✅ Add this block to also save the log globally for graph.html
+// ✅ Add to global exercise log for graphs
 const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
 logs.push({
-  name: name,
-  weight: weightVal,
-  weightUnit: weightUnit,
-  reps: reps,
+  name: exerciseData.name,
+  weight: exerciseData.weight,
+  weightUnit: exerciseData.weightUnit || 'kg',
+  reps: exerciseData.reps || [],
   date: new Date().toISOString().split('T')[0]
 });
 localStorage.setItem('exercise_logs', JSON.stringify(logs));
 
 renderExercises();
-
-    renderExercises();
     hideModal();
   });
 
