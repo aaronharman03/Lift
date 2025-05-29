@@ -163,6 +163,26 @@
   #cancelBtn:hover {
     opacity: 0.9;
   }
+
+  /* Weight input and unit toggle */
+  #weight-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  #weight {
+    flex: 1;
+  }
+  #weightUnitBtn {
+    margin-left: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f0f0f0;
+    font-weight: bold;
+  }
 </style>
 </head>
 <body>
@@ -180,7 +200,10 @@
   <h2 id="modalTitle">Add Exercise</h2>
   <form id="exerciseForm">
     <input type="text" id="exerciseName" placeholder="Exercise Name" required autocomplete="off" />
-    <input type="number" id="weight" placeholder="Weight (kg)" min="0" autocomplete="off" />
+    <div id="weight-container">
+      <input type="number" id="weight" placeholder="Weight" min="0" autocomplete="off" />
+      <button type="button" id="weightUnitBtn">kg</button>
+    </div>
     <select id="numSets" required>
       <option value="">Select Sets</option>
       <option value="1">1</option>
@@ -212,6 +235,7 @@
   const exerciseForm = document.getElementById('exerciseForm');
   const exerciseNameInput = document.getElementById('exerciseName');
   const weightInput = document.getElementById('weight');
+  const weightUnitBtn = document.getElementById('weightUnitBtn');
   const numSetsSelect = document.getElementById('numSets');
   const repsInputsDiv = document.getElementById('repsInputs');
   const saveBtn = document.getElementById('saveBtn');
@@ -220,6 +244,9 @@
 
   let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
   let editingIndex = null;
+
+  // Current unit (kg or lbs) for modal input
+  let currentWeightUnit = 'kg';
 
   function saveExercises() {
     localStorage.setItem(storageKey, JSON.stringify(exercises));
@@ -237,12 +264,14 @@
         ? ex.reps.filter(r => r != null && r !== '').join(',')
         : 'N/A';
 
+      const unit = ex.weightUnit || 'kg';
+
       const div = document.createElement('div');
       div.className = 'exercise-line';
 
       const span = document.createElement('span');
       span.className = 'exercise-text';
-      span.textContent = `${ex.name} - ${ex.weight || '0'}kg - ${repsStr}`;
+      span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}`;
 
       const menuBtn = document.createElement('button');
       menuBtn.className = 'menu-btn';
@@ -291,25 +320,74 @@
     menu.appendChild(editBtn);
     menu.appendChild(deleteBtn);
 
-    // Append menu inside the exercise line div to position correctly
     btn.parentElement.appendChild(menu);
   }
 
   function closeAllMenus() {
-    document.querySelectorAll('.menu').forEach(menu => menu.remove());
+    document.querySelectorAll('.menu').forEach(m => m.remove());
   }
 
-  numSetsSelect.addEventListener('change', () => {
-    const count = parseInt(numSetsSelect.value);
+  function openModalForAdd() {
+    editingIndex = null;
+    modalTitle.textContent = 'Add Exercise';
+    exerciseForm.reset();
     repsInputsDiv.innerHTML = '';
-    if (count > 0 && count <= 5) {
-      for (let i = 0; i < count; i++) {
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.min = '0';
-        input.placeholder = `Reps ${i + 1}`;
-        repsInputsDiv.appendChild(input);
-      }
+    currentWeightUnit = 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
+    modal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+    exerciseNameInput.focus();
+    closeAllMenus();
+  }
+
+  function openModalForEdit(index) {
+    editingIndex = index;
+    const ex = exercises[index];
+    modalTitle.textContent = 'Edit Exercise';
+    exerciseNameInput.value = ex.name;
+    weightInput.value = ex.weight || '';
+    currentWeightUnit = ex.weightUnit || 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
+    numSetsSelect.value = ex.sets;
+    numSetsSelect.dispatchEvent(new Event('change'));
+    if (ex.reps && ex.reps.length) {
+      const inputs = repsInputsDiv.querySelectorAll('input');
+      inputs.forEach((input, i) => {
+        input.value = ex.reps[i] || '';
+      });
+    }
+    modal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+    exerciseNameInput.focus();
+    closeAllMenus();
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  }
+
+  addExerciseBtn.addEventListener('click', openModalForAdd);
+  cancelBtn.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', closeModal);
+
+  // Toggle weight unit button
+  weightUnitBtn.addEventListener('click', () => {
+    currentWeightUnit = currentWeightUnit === 'kg' ? 'lbs' : 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
+  });
+
+  // Update reps inputs when sets change
+  numSetsSelect.addEventListener('change', () => {
+    const count = parseInt(numSetsSelect.value) || 0;
+    repsInputsDiv.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.min = '0';
+      inp.placeholder = `Reps set ${i+1}`;
+      inp.autocomplete = 'off';
+      repsInputsDiv.appendChild(inp);
     }
   });
 
@@ -342,12 +420,10 @@
     }
 
     if (editingIndex !== null) {
-      // Save edit
-      exercises[editingIndex] = { name, weight, sets, reps };
+      exercises[editingIndex] = { name, weight, weightUnit: currentWeightUnit, sets, reps };
       editingIndex = null;
     } else {
-      // Add new
-      exercises.push({ name, weight, sets, reps });
+      exercises.push({ name, weight, weightUnit: currentWeightUnit, sets, reps });
     }
 
     saveExercises();
@@ -355,64 +431,17 @@
     closeModal();
   });
 
-  addExerciseBtn.addEventListener('click', () => {
-    openModalForAdd();
-  });
-
-  cancelBtn.addEventListener('click', closeModal);
-
-  modalOverlay.addEventListener('click', closeModal);
-
-  function openModalForAdd() {
-    editingIndex = null;
-    modalTitle.textContent = 'Add Exercise';
-    exerciseForm.reset();
-    repsInputsDiv.innerHTML = '';
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
-    exerciseNameInput.focus();
-    closeAllMenus();
-  }
-
-  function openModalForEdit(index) {
-    editingIndex = index;
-    const ex = exercises[index];
-    modalTitle.textContent = 'Edit Exercise';
-    exerciseNameInput.value = ex.name;
-    weightInput.value = ex.weight;
-    numSetsSelect.value = ex.sets;
-    numSetsSelect.dispatchEvent(new Event('change'));
-    if (ex.reps && ex.reps.length) {
-      const inputs = repsInputsDiv.querySelectorAll('input');
-      inputs.forEach((input, i) => {
-        input.value = ex.reps[i] || '';
-      });
-    }
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
-    exerciseNameInput.focus();
-    closeAllMenus();
-  }
-
-  function closeModal() {
-    editingIndex = null;
-    modal.style.display = 'none';
-    modalOverlay.style.display = 'none';
-    exerciseForm.reset();
-    repsInputsDiv.innerHTML = '';
-  }
+  // Close menus when clicking outside
+  document.body.addEventListener('click', closeAllMenus);
 
   function goBack() {
-    location.href = 'index.html';
+    location.href = 'index.html'; // Assuming your main page is index.html with day buttons
   }
 
-  // Close menus on clicking outside
-  document.body.addEventListener('click', () => {
-    closeAllMenus();
-  });
-
+  // Initial render
   renderExercises();
 </script>
 
 </body>
 </html>
+
