@@ -25,8 +25,10 @@
     padding: 8px;
     font-size: 16px;
     margin: 5px 10px 15px 0;
-    width: calc(33% - 12px);
     box-sizing: border-box;
+  }
+  input[type=number] {
+    width: 60px;
   }
   #exercisesList .exercise {
     border: 1px solid #ddd;
@@ -41,6 +43,9 @@
   #exercisesList .exercise div {
     margin: 5px 0;
   }
+  .reps-inputs input {
+    margin-right: 8px;
+  }
 </style>
 </head>
 <body>
@@ -50,16 +55,18 @@
 
   <h2>Add Exercise</h2>
   <form id="exerciseForm">
-    <input type="text" id="exerciseName" placeholder="Exercise Name" required />
-    <input type="number" id="weight" placeholder="Weight (kg)" min="0" />
-    <select id="sets">
-      <option value="">Sets (optional)</option>
+    <input type="text" id="exerciseName" placeholder="Exercise Name" required style="width: 40%;" />
+    <input type="number" id="weight" placeholder="Weight (kg)" min="0" style="width: 20%;" />
+    <label for="numSets">Sets:</label>
+    <select id="numSets" required style="width: 20%;">
+      <option value="">Select sets</option>
       <option value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
       <option value="4">4</option>
       <option value="5">5</option>
     </select>
+    <div id="repsInputs" class="reps-inputs"></div>
     <button type="submit" class="btn-primary">Add Exercise</button>
   </form>
 
@@ -75,6 +82,8 @@
   const storageKey = `workout_day_${day}`;
   const exercisesListEl = document.getElementById('exercisesList');
   const form = document.getElementById('exerciseForm');
+  const numSetsSelect = document.getElementById('numSets');
+  const repsInputsDiv = document.getElementById('repsInputs');
 
   let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
 
@@ -93,10 +102,19 @@
       const div = document.createElement('div');
       div.className = 'exercise';
 
+      // Format reps nicely
+      let repsHtml = '';
+      if (ex.reps && ex.reps.length) {
+        repsHtml = '<div>Reps per set: ' + ex.reps.map((r,i) => `Set ${i+1}: ${r || 'N/A'}`).join(', ') + '</div>';
+      } else {
+        repsHtml = '<div>Reps per set: N/A</div>';
+      }
+
       div.innerHTML = `
         <strong>${escapeHtml(ex.name)}</strong>
         <div>Weight: ${ex.weight || 'N/A'}</div>
         <div>Sets: ${ex.sets || 'N/A'}</div>
+        ${repsHtml}
         <button class="btn-primary" onclick="editExercise(${idx})">Edit</button>
         <button class="btn-danger" onclick="deleteExercise(${idx})">Delete</button>
       `;
@@ -104,29 +122,95 @@
     });
   }
 
+  // Show reps input boxes depending on number of sets chosen
+  numSetsSelect.addEventListener('change', () => {
+    const count = parseInt(numSetsSelect.value);
+    repsInputsDiv.innerHTML = '';
+    if (count > 0 && count <= 5) {
+      for (let i = 0; i < count; i++) {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.placeholder = `Reps set ${i+1}`;
+        input.dataset.setIndex = i;
+        repsInputsDiv.appendChild(input);
+      }
+    }
+  });
+
   function editExercise(idx) {
     const ex = exercises[idx];
+    // Fill form with existing data
+    document.getElementById('exerciseName').value = ex.name;
+    document.getElementById('weight').value = ex.weight;
+    numSetsSelect.value = ex.sets;
+    // Trigger change to show reps inputs
+    numSetsSelect.dispatchEvent(new Event('change'));
 
-    const newName = prompt('Edit exercise name:', ex.name);
-    if (newName === null || !newName.trim()) return alert('Name cannot be empty.');
-
-    const newWeight = prompt('Edit weight (leave blank for none):', ex.weight || '');
-    if (newWeight === null) return;
-
-    const newSets = prompt('Edit sets (1-5, leave blank for none):', ex.sets || '');
-    if (newSets === null) return;
-    if (newSets && !['1','2','3','4','5'].includes(newSets.trim())) {
-      return alert('Sets must be 1 to 5 or blank.');
+    // Fill reps inputs if available
+    if (ex.reps && ex.reps.length) {
+      const inputs = repsInputsDiv.querySelectorAll('input');
+      inputs.forEach((input, i) => {
+        input.value = ex.reps[i] || '';
+      });
     }
 
-    exercises[idx] = {
-      name: newName.trim(),
-      weight: newWeight.trim() || '',
-      sets: newSets.trim() || '',
-    };
+    // Change Add button to Save edit
+    form.querySelector('button[type="submit"]').textContent = 'Save Edit';
+
+    // Temporarily disable adding new exercise while editing
+    form.removeEventListener('submit', handleAddSubmit);
+    form.addEventListener('submit', handleEditSubmit);
+
+    // Store editing index on form dataset
+    form.dataset.editingIdx = idx;
+  }
+
+  function handleEditSubmit(e) {
+    e.preventDefault();
+    const idx = parseInt(form.dataset.editingIdx);
+    if (isNaN(idx)) return;
+
+    const name = document.getElementById('exerciseName').value.trim();
+    const weight = document.getElementById('weight').value.trim();
+    const sets = numSetsSelect.value;
+
+    if (!name) {
+      alert('Please enter an exercise name.');
+      return;
+    }
+    if (!sets || !(sets >= 1 && sets <= 5)) {
+      alert('Please select number of sets (1-5).');
+      return;
+    }
+
+    // Collect reps from inputs
+    const repsInputs = repsInputsDiv.querySelectorAll('input');
+    let reps = [];
+    for (const input of repsInputs) {
+      let val = input.value.trim();
+      if (val === '') val = null;
+      else if (isNaN(val) || Number(val) < 0) {
+        alert('Reps must be a positive number or blank.');
+        return;
+      }
+      reps.push(val);
+    }
+
+    exercises[idx] = { name, weight, sets, reps };
 
     saveExercises();
     renderExercises();
+
+    form.reset();
+    repsInputsDiv.innerHTML = '';
+    form.querySelector('button[type="submit"]').textContent = 'Add Exercise';
+
+    // Re-enable add submit listener, remove edit submit listener
+    form.removeEventListener('submit', handleEditSubmit);
+    form.addEventListener('submit', handleAddSubmit);
+
+    delete form.dataset.editingIdx;
   }
 
   function deleteExercise(idx) {
@@ -137,28 +221,44 @@
     }
   }
 
-  form.addEventListener('submit', e => {
+  function handleAddSubmit(e) {
     e.preventDefault();
+
     const name = document.getElementById('exerciseName').value.trim();
     const weight = document.getElementById('weight').value.trim();
-    const sets = document.getElementById('sets').value;
+    const sets = numSetsSelect.value;
 
     if (!name) {
       alert('Please enter an exercise name.');
       return;
     }
-
-    if (sets && !['1','2','3','4','5'].includes(sets)) {
-      alert('Sets must be 1 to 5.');
+    if (!sets || !(sets >= 1 && sets <= 5)) {
+      alert('Please select number of sets (1-5).');
       return;
     }
 
-    exercises.push({ name, weight, sets });
+    // Collect reps from inputs
+    const repsInputs = repsInputsDiv.querySelectorAll('input');
+    let reps = [];
+    for (const input of repsInputs) {
+      let val = input.value.trim();
+      if (val === '') val = null;
+      else if (isNaN(val) || Number(val) < 0) {
+        alert('Reps must be a positive number or blank.');
+        return;
+      }
+      reps.push(val);
+    }
+
+    exercises.push({ name, weight, sets, reps });
     saveExercises();
     renderExercises();
 
     form.reset();
-  });
+    repsInputsDiv.innerHTML = '';
+  }
+
+  form.addEventListener('submit', handleAddSubmit);
 
   function goBack() {
     location.href = 'index.html';
