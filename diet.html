@@ -9,64 +9,71 @@
       --primary: #0d1b2a;
       --secondary: #1b263b;
       --accent: #ffffff;
-      --text-dark: #212529;
-      --bg-light: #f8f9fa;
-    }
-
-    * {
-      box-sizing: border-box;
+      --text: #212529;
+      --bg: #f0f2f5;
     }
 
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg-light);
-      color: var(--text-dark);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     header {
-      background-color: var(--primary);
-      color: var(--accent);
-      padding: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 16px 24px;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
     }
 
     .calendar-nav {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
+      position: relative;
     }
 
-    .calendar-nav button {
+    .calendar-icon {
       background: var(--secondary);
-      color: var(--accent);
       border: none;
-      padding: 10px 14px;
       border-radius: 6px;
-      font-size: 1rem;
+      color: white;
+      padding: 8px 12px;
       cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .calendar-nav button:hover {
-      background-color: #263859;
+      font-size: 1.2rem;
     }
 
     .calendar-nav span {
-      font-size: 1.1rem;
       font-weight: bold;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 6px;
+      font-size: 1.1rem;
     }
 
-    input[type="date"] {
+    .calendar-popup {
+      position: absolute;
+      top: 100%;
+      margin-top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
       display: none;
+    }
+
+    .calendar-popup input[type="date"] {
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
     }
 
     main {
@@ -81,7 +88,7 @@
       background: white;
       padding: 32px;
       border-radius: 16px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
       max-width: 500px;
       width: 100%;
       text-align: center;
@@ -89,12 +96,10 @@
 
     .content h1 {
       margin-bottom: 1rem;
-      font-size: 1.8rem;
     }
 
     .bmr-display {
       font-size: 1.2rem;
-      color: #333;
       margin-top: 20px;
     }
 
@@ -109,10 +114,11 @@
 
   <header>
     <div class="calendar-nav">
-      <button id="prevDay">&#8592;</button>
-      <span id="currentDate" title="Click to select date"></span>
-      <button id="nextDay">&#8594;</button>
-      <input type="date" id="datePicker" />
+      <button class="calendar-icon" id="openCalendar">🗓️</button>
+      <span id="currentDate">Loading...</span>
+      <div class="calendar-popup" id="calendarPopup">
+        <input type="date" id="datePicker">
+      </div>
     </div>
   </header>
 
@@ -120,29 +126,31 @@
     <div class="content">
       <h1>Your Diet Plan</h1>
       <div class="bmr-display" id="bmrDisplay">Loading your BMR...</div>
-      <p class="note">Use the arrows or click the date to navigate.</p>
+      <p class="note">Tap the calendar to change the day.</p>
     </div>
   </main>
 
   <script>
-    const bmr = localStorage.getItem('bmr');
     const bmrDisplay = document.getElementById('bmrDisplay');
+    const bmr = localStorage.getItem('bmr');
     const currentDateEl = document.getElementById('currentDate');
+    const openCalendarBtn = document.getElementById('openCalendar');
+    const calendarPopup = document.getElementById('calendarPopup');
     const datePicker = document.getElementById('datePicker');
-    const prevDayBtn = document.getElementById('prevDay');
-    const nextDayBtn = document.getElementById('nextDay');
 
+    // Load BMR
     if (bmr) {
-      bmrDisplay.textContent = `Your Basal Metabolic Rate (BMR) is ${bmr} calories/day.`;
+      bmrDisplay.textContent = `Your BMR is ${bmr} calories/day.`;
     } else {
-      bmrDisplay.textContent = 'BMR not found. Please complete your profile first.';
+      bmrDisplay.textContent = `BMR not found. Please complete setup.`;
     }
 
+    // Handle date selection
     let selectedDate = new Date();
-    updateDisplayedDate();
 
-    function updateDisplayedDate() {
+    function updateDateDisplay() {
       currentDateEl.textContent = selectedDate.toLocaleDateString(undefined, {
+        weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -150,23 +158,23 @@
       datePicker.valueAsDate = selectedDate;
     }
 
-    currentDateEl.addEventListener('click', () => {
-      datePicker.showPicker();
+    updateDateDisplay();
+
+    openCalendarBtn.addEventListener('click', () => {
+      calendarPopup.style.display = calendarPopup.style.display === 'block' ? 'none' : 'block';
     });
 
     datePicker.addEventListener('change', () => {
       selectedDate = new Date(datePicker.value);
-      updateDisplayedDate();
+      updateDateDisplay();
+      calendarPopup.style.display = 'none';
     });
 
-    prevDayBtn.addEventListener('click', () => {
-      selectedDate.setDate(selectedDate.getDate() - 1);
-      updateDisplayedDate();
-    });
-
-    nextDayBtn.addEventListener('click', () => {
-      selectedDate.setDate(selectedDate.getDate() + 1);
-      updateDisplayedDate();
+    // Close popup if clicking outside
+    document.addEventListener('click', (e) => {
+      if (!calendarPopup.contains(e.target) && !openCalendarBtn.contains(e.target)) {
+        calendarPopup.style.display = 'none';
+      }
     });
   </script>
 
