@@ -3,202 +3,196 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Tracker - Manage Days</title>
+<title>Workout Days</title>
 <style>
   body {
     font-family: sans-serif;
-    max-width: 400px;
+    max-width: 500px;
     margin: 40px auto;
-    padding: 0 20px;
-    background: #fff;
+    padding: 0 16px;
+    background: #f9f9f9;
   }
   h1 {
     text-align: center;
     margin-bottom: 30px;
   }
-  #daysList {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 30px;
-  }
-  #daysList li {
+  .day-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 14px 16px;
     margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
   .day-label {
+    font-size: 18px;
     flex-grow: 1;
-    font-size: 20px;
-    padding: 10px 14px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    cursor: pointer;
-    user-select: none;
+    text-decoration: none;
+    color: black;
   }
   .day-label[contenteditable="true"] {
-    border-color: #007bff;
-    background: #e7f1ff;
+    background: #eef5ff;
     outline: none;
+    padding: 2px 4px;
+    border-radius: 4px;
   }
-  .day-label:hover:not([contenteditable="true"]) {
-    background: #f0f0f0;
-  }
-  .delete-btn {
-    margin-left: 10px;
-    background: #dc3545;
+  .menu-btn {
+    background: none;
     border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
-    width: 32px;
-    height: 32px;
+    font-size: 20px;
     cursor: pointer;
-    user-select: none;
+    padding: 4px;
   }
-  .delete-btn:hover {
-    background: #b02a37;
+  .menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 6px 0;
+    z-index: 10;
+  }
+  .menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .menu button:hover {
+    background: #f0f0f0;
   }
   #addDayBtn {
     display: block;
-    margin: 0 auto;
-    padding: 12px 24px;
-    font-size: 18px;
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 16px;
     border-radius: 8px;
     background-color: #007bff;
     color: white;
     border: none;
     cursor: pointer;
-    user-select: none;
-    box-shadow: 0 4px 8px rgb(0 123 255 / 0.3);
   }
   #addDayBtn:hover {
     background-color: #0056b3;
   }
-  a.day-link {
-    text-decoration: none;
-    color: inherit;
-    flex-grow: 1;
-    display: block;
-  }
 </style>
 </head>
 <body>
-  <h1>Manage Workout Days</h1>
-  <ul id="daysList" aria-label="Workout days list"></ul>
-  <button id="addDayBtn">Add Day</button>
+<h1>Workout Days</h1>
+<div id="daysList"></div>
+<button id="addDayBtn">+ Add Day</button>
 
 <script>
   const storageKey = 'workout_days';
-  const daysListEl = document.getElementById('daysList');
-  const addDayBtn = document.getElementById('addDayBtn');
-
-  // Load days from localStorage or default 6 days labeled "Day 1" ...
   let days = JSON.parse(localStorage.getItem(storageKey)) || [
     { id: 1, name: 'Day 1' },
     { id: 2, name: 'Day 2' },
     { id: 3, name: 'Day 3' },
-    { id: 4, name: 'Day 4' },
-    { id: 5, name: 'Day 5' },
-    { id: 6, name: 'Day 6' },
   ];
+
+  const daysList = document.getElementById('daysList');
+  const addDayBtn = document.getElementById('addDayBtn');
+  let openMenu = null;
 
   function saveDays() {
     localStorage.setItem(storageKey, JSON.stringify(days));
   }
 
   function renderDays() {
-    daysListEl.innerHTML = '';
-    days.forEach(day => {
-      const li = document.createElement('li');
-      
-      // Editable label with link
-      const label = document.createElement('span');
+    daysList.innerHTML = '';
+    days.forEach((day, index) => {
+      const row = document.createElement('div');
+      row.className = 'day-row';
+
+      const label = document.createElement('a');
       label.className = 'day-label';
-      label.contentEditable = false;
       label.textContent = day.name;
-      label.setAttribute('tabindex', '0');
-      label.setAttribute('role', 'textbox');
-      label.setAttribute('aria-label', `Edit name for ${day.name}`);
+      label.href = `day.html?day=${day.id}`;
 
-      // Wrap label in anchor link to day.html with day id
-      const link = document.createElement('a');
-      link.href = `day.html?day=${day.id}`;
-      link.className = 'day-link';
-      link.title = `Go to ${day.name}`;
-      link.appendChild(label);
+      const menuBtn = document.createElement('button');
+      menuBtn.className = 'menu-btn';
+      menuBtn.innerHTML = '⋮';
 
-      // Delete button
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-btn';
-      delBtn.textContent = '×';
-      delBtn.setAttribute('aria-label', `Delete ${day.name}`);
+      const menu = document.createElement('div');
+      menu.className = 'menu';
+      menu.style.display = 'none';
 
-      // Append elements
-      li.appendChild(link);
-      li.appendChild(delBtn);
-      daysListEl.appendChild(li);
+      const rename = document.createElement('button');
+      rename.textContent = 'Rename';
+      rename.onclick = () => {
+        label.contentEditable = true;
+        label.focus();
+        closeMenu();
+      };
 
-      // Enable editing on label click or Enter key
-      label.addEventListener('click', (e) => {
-        e.preventDefault();
-        enableEditing(label);
-      });
-      label.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          enableEditing(label);
-        }
-      });
-
-      // Delete button event
-      delBtn.addEventListener('click', () => {
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = () => {
         if (confirm(`Delete "${day.name}"?`)) {
-          days = days.filter(d => d.id !== day.id);
+          days.splice(index, 1);
           saveDays();
           renderDays();
         }
-      });
+      };
 
-      // Save changes when editing ends
+      menu.appendChild(rename);
+      menu.appendChild(del);
+      document.body.appendChild(menu);
+
+      menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleMenu(menu, menuBtn);
+      };
+
       label.addEventListener('blur', () => {
-        finishEditing(label, day);
-      });
-      label.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          label.blur();
+        label.contentEditable = false;
+        const newName = label.textContent.trim();
+        if (newName) {
+          day.name = newName;
+          saveDays();
+        } else {
+          label.textContent = day.name;
         }
       });
+
+      row.appendChild(label);
+      row.appendChild(menuBtn);
+      daysList.appendChild(row);
     });
   }
 
-  function enableEditing(label) {
-    label.contentEditable = true;
-    label.focus();
-    // Place cursor at end
-    document.execCommand('selectAll', false, null);
-    document.getSelection().collapseToEnd();
+  function toggleMenu(menu, btn) {
+    closeMenu();
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = rect.bottom + 5 + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.style.display = 'block';
+    openMenu = menu;
   }
 
-  function finishEditing(label, day) {
-    label.contentEditable = false;
-    const newName = label.textContent.trim() || `Day ${day.id}`;
-    label.textContent = newName;
-    // Update the day name
-    day.name = newName;
-    saveDays();
+  function closeMenu() {
+    if (openMenu) openMenu.style.display = 'none';
+    openMenu = null;
   }
 
-  addDayBtn.addEventListener('click', () => {
-    // Generate new unique ID (max existing id +1)
-    const newId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
-    const newDay = { id: newId, name: `Day ${newId}` };
-    days.push(newDay);
+  addDayBtn.onclick = () => {
+    const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
+    days.push({ id: nextId, name: `Day ${nextId}` });
     saveDays();
     renderDays();
-  });
+  };
 
+  window.addEventListener('click', closeMenu);
   renderDays();
 </script>
 </body>
 </html>
+
