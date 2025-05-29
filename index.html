@@ -115,6 +115,35 @@
     text-align: center;
     font-weight: 600;
   }
+
+  /* Units toggle styling */
+  .units-toggle {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .units-toggle label {
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Height imperial group layout */
+  #heightImperialGroup {
+    display: none;
+    gap: 10px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  #heightImperialGroup input {
+    width: 60px;
+  }
+
+  #heightImperialGroup span {
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -122,6 +151,12 @@
 <h1>Tell us about you</h1>
 
 <form id="userForm" novalidate>
+  <label>Units</label>
+  <div class="units-toggle">
+    <label><input type="radio" name="units" value="metric" checked /> Metric (cm, kg)</label>
+    <label><input type="radio" name="units" value="imperial" /> Imperial (ft/in, lbs)</label>
+  </div>
+
   <label for="sex">Sex</label>
   <select id="sex" required>
     <option value="" disabled selected>Select your sex</option>
@@ -132,11 +167,24 @@
   <label for="age">Age (years)</label>
   <input type="number" id="age" min="10" max="100" required />
 
-  <label for="height">Height (cm)</label>
-  <input type="number" id="height" min="50" max="250" required />
+  <label for="heightMetric">Height</label>
+  <div id="heightMetricGroup">
+    <input type="number" id="heightMetric" min="50" max="250" placeholder="cm" />
+  </div>
+  <div id="heightImperialGroup">
+    <input type="number" id="heightFt" min="1" max="8" placeholder="ft" />
+    <span>ft</span>
+    <input type="number" id="heightIn" min="0" max="11" placeholder="in" />
+    <span>in</span>
+  </div>
 
-  <label for="weight">Weight (kg)</label>
-  <input type="number" id="weight" min="20" max="300" required />
+  <label for="weightMetric">Weight</label>
+  <div id="weightMetricGroup">
+    <input type="number" id="weightMetric" min="20" max="300" placeholder="kg" />
+  </div>
+  <div id="weightImperialGroup" style="display:none;">
+    <input type="number" id="weightImperial" min="44" max="660" placeholder="lbs" />
+  </div>
 
   <label for="currentBF">Current Body Fat</label>
   <div class="input-group">
@@ -155,24 +203,55 @@
 </form>
 
 <script>
+  // Service worker registration
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(() => console.log('Service Worker Registered'))
       .catch(err => console.error('Service Worker registration failed:', err));
   }
 
+  // Units toggle logic
+  const unitsRadios = document.querySelectorAll('input[name="units"]');
+
+  const heightMetricGroup = document.getElementById('heightMetricGroup');
+  const heightImperialGroup = document.getElementById('heightImperialGroup');
+  const weightMetricGroup = document.getElementById('weightMetricGroup');
+  const weightImperialGroup = document.getElementById('weightImperialGroup');
+
+  unitsRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (radio.checked) {
+        if (radio.value === 'metric') {
+          heightMetricGroup.style.display = 'block';
+          heightImperialGroup.style.display = 'none';
+          weightMetricGroup.style.display = 'block';
+          weightImperialGroup.style.display = 'none';
+        } else {
+          heightMetricGroup.style.display = 'none';
+          heightImperialGroup.style.display = 'flex';
+          weightMetricGroup.style.display = 'none';
+          weightImperialGroup.style.display = 'block';
+        }
+      }
+    });
+  });
+
   const form = document.getElementById('userForm');
   const errorMsg = document.getElementById('errorMsg');
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const sex = form.sex.value;
     const age = parseInt(form.age.value);
-    const height = parseFloat(form.height.value);
-    const weight = parseFloat(form.weight.value);
-    const currentBF = parseFloat(form.currentBF.value);
-    const goalBF = parseFloat(form.goalBF.value);
+    const units = form.units.value;
+
+    let height, weight;
 
     if (!sex) {
       showError('Please select your sex.');
@@ -182,14 +261,41 @@
       showError('Please enter a valid age between 10 and 100.');
       return;
     }
-    if (isNaN(height) || height < 50 || height > 250) {
-      showError('Please enter a valid height between 50cm and 250cm.');
-      return;
+
+    if (units === 'metric') {
+      height = parseFloat(form.heightMetric.value);
+      weight = parseFloat(form.weightMetric.value);
+
+      if (isNaN(height) || height < 50 || height > 250) {
+        showError('Please enter a valid height between 50cm and 250cm.');
+        return;
+      }
+      if (isNaN(weight) || weight < 20 || weight > 300) {
+        showError('Please enter a valid weight between 20kg and 300kg.');
+        return;
+      }
+    } else {
+      // Convert ft/in to cm
+      const feet = parseInt(form.heightFt.value);
+      const inches = parseInt(form.heightIn.value);
+      if (isNaN(feet) || feet < 1 || feet > 8 || isNaN(inches) || inches < 0 || inches > 11) {
+        showError('Please enter valid height in feet (1-8) and inches (0-11).');
+        return;
+      }
+      height = (feet * 12 + inches) * 2.54;
+
+      // Convert lbs to kg
+      weight = parseFloat(form.weightImperial.value);
+      if (isNaN(weight) || weight < 44 || weight > 660) {
+        showError('Please enter valid weight in pounds (44-660).');
+        return;
+      }
+      weight = weight * 0.453592;
     }
-    if (isNaN(weight) || weight < 20 || weight > 300) {
-      showError('Please enter a valid weight between 20kg and 300kg.');
-      return;
-    }
+
+    const currentBF = parseFloat(form.currentBF.value);
+    const goalBF = parseFloat(form.goalBF.value);
+
     if (isNaN(currentBF) || currentBF < 1 || currentBF > 70) {
       showError('Please enter a valid current body fat percentage.');
       return;
@@ -203,19 +309,24 @@
       return;
     }
 
-    const userData = { sex, age, height, weight, currentBF, goalBF };
+    // Store in metric units internally
+    const userData = { 
+      sex, 
+      age, 
+      height: +height.toFixed(1), 
+      weight: +weight.toFixed(1), 
+      currentBF, 
+      goalBF 
+    };
     localStorage.setItem('userData', JSON.stringify(userData));
 
     errorMsg.style.display = 'none';
 
+    // Move to next page
     window.location.href = 'workouts.html';
   });
-
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorMsg.style.display = 'block';
-  }
 </script>
 
 </body>
 </html>
+
