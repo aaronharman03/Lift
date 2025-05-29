@@ -249,6 +249,9 @@
 
       const unit = ex.weightUnit || 'kg';
 
+      // Format date nicely (YYYY-MM-DD)
+      const dateStr = ex.date || '';
+      
       const div = document.createElement('div');
       div.className = 'exercise-line';
       div.title = 'Click to edit exercise';
@@ -257,7 +260,7 @@
 
       const span = document.createElement('span');
       span.className = 'exercise-text';
-      span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}`;
+      span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}  (${dateStr})`;
 
       div.appendChild(span);
       div.addEventListener('click', () => openModalForEdit(idx));
@@ -341,46 +344,81 @@
   numSetsSelect.addEventListener('change', updateRepsInputs);
 
   addExerciseBtn.addEventListener('click', openModalForAdd);
-
-  cancelBtn.addEventListener('click', (e) => {
+  cancelBtn.addEventListener('click', e => {
     e.preventDefault();
     closeModal();
   });
 
-  modalOverlay.addEventListener('click', closeModal);
+  deleteBtn.addEventListener('click', () => {
+    if (editingIndex !== null) {
+      if (confirm(`Delete exercise "${exercises[editingIndex].name}"?`)) {
+        exercises.splice(editingIndex, 1);
+        saveExercises();
+        renderExercises();
+        closeModal();
+      }
+    }
+  });
 
-  exerciseForm.addEventListener('submit', (e) => {
+  exerciseForm.addEventListener('submit', e => {
     e.preventDefault();
-    const name = exerciseNameInput.value.trim();
-    if (!name) return;
 
+    const name = exerciseNameInput.value.trim();
+    if (!name) {
+      alert('Please enter an exercise name.');
+      return;
+    }
     const sets = parseInt(numSetsSelect.value);
     if (isNaN(sets) || sets < 1) {
       alert('Please select the number of sets.');
       return;
     }
 
-    const repsInputs = [...repsInputsDiv.querySelectorAll('input')];
-    const reps = repsInputs.map(input => input.value.trim() === '' ? null : parseInt(input.value));
-    if (reps.some(r => r !== null && (isNaN(r) || r < 0))) {
-      alert('Reps must be positive numbers or left empty.');
-      return;
+    const repsInputs = repsInputsDiv.querySelectorAll('input');
+    let reps = [];
+    for (let input of repsInputs) {
+      const val = input.value.trim();
+      if (val === '') {
+        reps.push('');
+      } else {
+        const numVal = Number(val);
+        if (isNaN(numVal) || numVal < 0) {
+          alert('Reps must be a non-negative number.');
+          return;
+        }
+        reps.push(numVal);
+      }
     }
 
-    const weightVal = weightInput.value.trim() === '' ? null : parseFloat(weightInput.value);
+    // Weight input optional
+    let weight = weightInput.value.trim();
+    if (weight === '') {
+      weight = '';
+    } else {
+      weight = Number(weight);
+      if (isNaN(weight) || weight < 0) {
+        alert('Weight must be a non-negative number.');
+        return;
+      }
+    }
 
-    const newExercise = {
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10);
+
+    const exerciseObj = {
       name,
       sets,
       reps,
-      weight: weightVal,
-      weightUnit: currentWeightUnit
+      weight,
+      weightUnit: currentWeightUnit,
+      date: dateStr
     };
 
-    if (editingIndex !== null) {
-      exercises[editingIndex] = newExercise;
+    if (editingIndex === null) {
+      exercises.push(exerciseObj);
     } else {
-      exercises.push(newExercise);
+      exercises[editingIndex] = exerciseObj;
     }
 
     saveExercises();
@@ -388,23 +426,13 @@
     closeModal();
   });
 
-  deleteBtn.addEventListener('click', () => {
-    if (editingIndex === null) return;
-    if (confirm('Are you sure you want to delete this exercise?')) {
-      exercises.splice(editingIndex, 1);
-      saveExercises();
-      renderExercises();
-      closeModal();
-    }
-  });
-
   function goBack() {
-    // You can customize this to your needs or adjust the back navigation
-    window.history.back();
+    location.href = 'days.html';
   }
 
+  // Initial render
   renderExercises();
-</script>
 
+</script>
 </body>
 </html>
