@@ -87,6 +87,13 @@
 </head>
 <body>
 
+<script>
+  // Auto-skip index.html if user already completed the intro
+  if (localStorage.getItem('hasSeenDietPage')) {
+    window.location.href = 'diet.html';
+  }
+</script>
+
 <h1>Let's Get Started</h1>
 
 <form id="userForm">
@@ -186,7 +193,14 @@
 
     const userData = { sex, age, height, weight, currentBF, goalBF };
     localStorage.setItem('userData', JSON.stringify(userData));
-    window.location.href = 'plan.html';
+
+    // Set flag for first-time completion
+    if (!localStorage.getItem('hasSeenDietPage')) {
+      localStorage.setItem('hasSeenDietPage', 'true');
+    }
+
+    // Redirect to diet.html
+    window.location.href = 'diet.html';
   });
 
   function showError(msg) {
@@ -197,4 +211,5 @@
 
 </body>
 </html>
+
 
