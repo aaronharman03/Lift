@@ -1,1 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fitness WPA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a1d37"/>
+  <style>
+    /* Same CSS as before — navy/white design */
+    body { margin: 0; font-family: Arial, sans-serif; background: white; color: #0a1d37; }
+    .container { padding: 2rem; max-width: 600px; margin: auto; }
+    .hidden { display: none; }
+    input, textarea, button {
+      width: 100%; padding: 0.75rem; margin: 0.5rem 0;
+      border: 1px solid #0a1d37; border-radius: 12px; font-size: 1rem;
+    }
+    button { background-color: #0a1d37; color: white; cursor: pointer; }
+    header { display: flex; align-items: center; justify-content: space-between; }
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; }
+    .nav-buttons button { width: auto; margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="index-page">
+      <h1>Welcome</h1>
+      <form id="user-form">
+        <input type="text" name="sex" placeholder="Sex" required />
+        <input type="number" name="age" placeholder="Age" required />
+        <input type="number" name="height" placeholder="Height (cm)" required />
+        <input type="number" name="weight" placeholder="Weight (kg)" required />
+        <input type="text" name="currentBody" placeholder="Current Body" required />
+        <input type="text" name="goal" placeholder="Goal" required />
+        <button type="submit">Continue</button>
+      </form>
+    </div>
+
+    <div id="home-page" class="hidden">
+      <header class="calendar-header">
+        <button onclick="changeDate(-1)">&#8592;</button>
+        <h2 id="current-date"></h2>
+        <button onclick="changeDate(1)">&#8594;</button>
+        <button onclick="showCalendarPopup()">📅</button>
+      </header>
+      <div class="nav-buttons">
+        <button onclick="openLog('train')">Train</button>
+        <button onclick="openLog('diet')">Diet</button>
+      </div>
+    </div>
+
+    <div id="log-page" class="hidden">
+      <h1 id="log-title"></h1>
+      <textarea id="log-text" placeholder="Enter your log..."></textarea>
+      <button onclick="saveLog()">Save</button>
+      <button onclick="goHome()">Back to Home</button>
+    </div>
+  </div>
+
+  <script>
+    const indexPage = document.getElementById('index-page');
+    const homePage = document.getElementById('home-page');
+    const logPage = document.getElementById('log-page');
+    const userForm = document.getElementById('user-form');
+    const currentDateEl = document.getElementById('current-date');
+    const logTitle = document.getElementById('log-title');
+    const logText = document.getElementById('log-text');
+
+    let currentDate = new Date();
+    let currentLogType = '';
+
+    function formatDate(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    function updateCalendarDisplay() {
+      currentDateEl.textContent = currentDate.toDateString();
+    }
+
+    function changeDate(days) {
+      currentDate.setDate(currentDate.getDate() + days);
+      updateCalendarDisplay();
+    }
+
+    function showCalendarPopup() {
+      const newDate = prompt('Enter date (YYYY-MM-DD):', formatDate(currentDate));
+      if (newDate) {
+        const parsed = new Date(newDate);
+        if (!isNaN(parsed)) {
+          currentDate = parsed;
+          updateCalendarDisplay();
+        } else {
+          alert('Invalid date format.');
+        }
+      }
+    }
+
+    function openLog(type) {
+      currentLogType = type;
+      indexPage.classList.add('hidden');
+      homePage.classList.add('hidden');
+      logPage.classList.remove('hidden');
+      logTitle.textContent = `${type === 'train' ? 'Training' : 'Diet'} Log for ${formatDate(currentDate)}`;
+      const saved = localStorage.getItem(`${type}-${formatDate(currentDate)}`);
+      logText.value = saved || '';
+    }
+
+    function saveLog() {
+      localStorage.setItem(`${currentLogType}-${formatDate(currentDate)}`, logText.value);
+      alert('Saved!');
+    }
+
+    function goHome() {
+      indexPage.classList.add('hidden');
+      logPage.classList.add('hidden');
+      homePage.classList.remove('hidden');
+      updateCalendarDisplay();
+    }
+
+    userForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      indexPage.classList.add('hidden');
+      homePage.classList.remove('hidden');
+      updateCalendarDisplay();
+    });
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
 
