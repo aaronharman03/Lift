@@ -12,8 +12,15 @@
     margin: auto;
     background: #fff;
   }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
   h1 {
     margin-bottom: 20px;
+    text-align: center;
   }
   #exercisesList {
     font-size: 18px;
@@ -37,7 +44,6 @@
     flex-grow: 1;
   }
   .btn-back {
-    margin-bottom: 15px;
     background-color: #6c757d;
     border: none;
     color: white;
@@ -48,7 +54,19 @@
   .btn-back:hover {
     opacity: 0.9;
   }
-  #addExerciseBtn, #viewGraphBtn {
+  #viewGraphBtn {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 14px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  #viewGraphBtn:hover {
+    opacity: 0.9;
+  }
+  #addExerciseBtn {
     padding: 10px 20px;
     font-size: 18px;
     cursor: pointer;
@@ -57,10 +75,9 @@
     border: none;
     border-radius: 6px;
     display: block;
-    margin: 0 auto 20px;
-    width: 70%;
+    margin: 0 auto 30px;
   }
-  #addExerciseBtn:hover, #viewGraphBtn:hover {
+  #addExerciseBtn:hover {
     opacity: 0.9;
   }
 
@@ -169,13 +186,16 @@
 </head>
 <body>
 
-<button class="btn-back" onclick="goBack()">← Back to Days</button>
+<header>
+  <button class="btn-back" onclick="goBack()">← Back to Days</button>
+  <button id="viewGraphBtn">View Progress Graph</button>
+</header>
+
 <h1 id="dayTitle">Workout Day</h1>
 
 <div id="exercisesList"></div>
 
 <button id="addExerciseBtn">Add Exercise</button>
-<button id="viewGraphBtn">View Progress Graph</button>
 
 <!-- Modal -->
 <div id="modalOverlay"></div>
@@ -230,8 +250,6 @@
 
   let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
   let editingIndex = null;
-
-  // Current unit (kg or lbs) for modal input
   let currentWeightUnit = 'kg';
 
   function saveExercises() {
@@ -255,7 +273,7 @@
       const div = document.createElement('div');
       div.className = 'exercise-line';
       div.title = 'Click to edit exercise';
-      div.tabIndex = 0; // make focusable for accessibility
+      div.tabIndex = 0;
       div.setAttribute('role', 'button');
 
       const span = document.createElement('span');
@@ -280,12 +298,10 @@
     modalTitle.textContent = 'Add Exercise';
     exerciseForm.reset();
     repsInputsDiv.innerHTML = '';
+    deleteBtn.style.display = 'none';
     currentWeightUnit = 'kg';
     weightUnitBtn.textContent = currentWeightUnit;
-    deleteBtn.style.display = 'none';
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
-    exerciseNameInput.focus();
+    showModal();
   }
 
   function openModalForEdit(index) {
@@ -296,89 +312,84 @@
     weightInput.value = ex.weight || '';
     currentWeightUnit = ex.weightUnit || 'kg';
     weightUnitBtn.textContent = currentWeightUnit;
-    numSetsSelect.value = ex.sets;
-    numSetsSelect.dispatchEvent(new Event('change'));
-    if (ex.reps && ex.reps.length) {
-      const inputs = repsInputsDiv.querySelectorAll('input');
-      inputs.forEach((input, i) => {
-        input.value = ex.reps[i] || '';
-      });
-    }
+    numSetsSelect.value = ex.reps.length;
+    generateRepsInputs(ex.reps.length, ex.reps);
     deleteBtn.style.display = 'block';
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
-    exerciseNameInput.focus();
+    showModal();
   }
 
-  function closeModal() {
-    modal.style.display = 'none';
-    modalOverlay.style.display = 'none';
-    editingIndex = null;
-  }
-
-  function updateRepsInputs() {
-    const sets = parseInt(numSetsSelect.value);
+  function generateRepsInputs(num, existingReps=[]) {
     repsInputsDiv.innerHTML = '';
-    if (isNaN(sets) || sets < 1) return;
-
-    for (let i = 0; i < sets; i++) {
+    for (let i = 0; i < num; i++) {
       const input = document.createElement('input');
       input.type = 'number';
       input.min = '0';
-      input.step = '1';
       input.placeholder = `Reps set ${i + 1}`;
+      input.required = true;
+      input.value = existingReps[i] || '';
       input.autocomplete = 'off';
       repsInputsDiv.appendChild(input);
     }
   }
 
-  weightUnitBtn.addEventListener('click', () => {
-    if (currentWeightUnit === 'kg') {
-      currentWeightUnit = 'lbs';
-    } else {
-      currentWeightUnit = 'kg';
-    }
-    weightUnitBtn.textContent = currentWeightUnit;
-  });
-
-  numSetsSelect.addEventListener('change', updateRepsInputs);
+  function showModal() {
+    modal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+    exerciseNameInput.focus();
+  }
+  function hideModal() {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  }
 
   addExerciseBtn.addEventListener('click', openModalForAdd);
 
-  cancelBtn.addEventListener('click', (e) => {
+  cancelBtn.addEventListener('click', e => {
     e.preventDefault();
-    closeModal();
+    hideModal();
   });
 
-  modalOverlay.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', hideModal);
 
-  exerciseForm.addEventListener('submit', (e) => {
+  numSetsSelect.addEventListener('change', () => {
+    const num = parseInt(numSetsSelect.value, 10);
+    if (!isNaN(num)) {
+      generateRepsInputs(num);
+    } else {
+      repsInputsDiv.innerHTML = '';
+    }
+  });
+
+  exerciseForm.addEventListener('submit', e => {
     e.preventDefault();
-    const name = exerciseNameInput.value.trim();
-    if (!name) return;
 
-    const sets = parseInt(numSetsSelect.value);
-    if (isNaN(sets) || sets < 1) {
-      alert('Please select the number of sets.');
+    const name = exerciseNameInput.value.trim();
+    const weight = weightInput.value.trim();
+    const weightVal = weight === '' ? 0 : parseFloat(weight);
+    const weightUnit = currentWeightUnit;
+    const numSets = parseInt(numSetsSelect.value, 10);
+
+    if (!name || isNaN(numSets) || numSets <= 0) {
+      alert('Please enter all required fields.');
       return;
     }
 
     const reps = [];
-    const repsInputs = repsInputsDiv.querySelectorAll('input');
-    for (const input of repsInputs) {
-      let val = input.value.trim();
-      reps.push(val === '' ? null : val);
+    const inputs = repsInputsDiv.querySelectorAll('input');
+    for (const input of inputs) {
+      const val = input.value.trim();
+      if (val === '' || isNaN(parseInt(val, 10))) {
+        alert('Please enter valid reps for all sets.');
+        return;
+      }
+      reps.push(parseInt(val, 10));
     }
-
-    let weightVal = weightInput.value.trim();
-    weightVal = weightVal === '' ? null : weightVal;
 
     const exerciseData = {
       name,
       weight: weightVal,
-      weightUnit: currentWeightUnit,
-      sets,
-      reps,
+      weightUnit,
+      reps
     };
 
     if (editingIndex !== null) {
@@ -386,37 +397,38 @@
     } else {
       exercises.push(exerciseData);
     }
-
     saveExercises();
     renderExercises();
-    closeModal();
+    hideModal();
   });
 
   deleteBtn.addEventListener('click', () => {
-    if (editingIndex !== null) {
+    if (editingIndex !== null && confirm('Delete this exercise?')) {
       exercises.splice(editingIndex, 1);
       saveExercises();
       renderExercises();
-      closeModal();
+      hideModal();
     }
   });
 
-  function goBack() {
-    location.href = 'index.html'; // Or your page with the workout days list
-  }
-
-  // Here is Step 4 addition — View Progress Graph button click handler:
-  viewGraphBtn.addEventListener('click', () => {
-    const params = new URLSearchParams(location.search);
-    const currentDay = params.get('day') || '1';
-    window.location.href = `graph.html?day=${currentDay}`;
+  weightUnitBtn.addEventListener('click', () => {
+    currentWeightUnit = currentWeightUnit === 'kg' ? 'lb' : 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
   });
 
-  // Initial render of exercises on page load
+  function goBack() {
+    location.href = 'index.html'; // Change this path if your main page has a different name or folder
+  }
+
+  viewGraphBtn.addEventListener('click', () => {
+    // Go to graph page for this day (make sure this page exists)
+    location.href = `graph.html?day=${day}`;
+  });
+
+  // Initial render
   renderExercises();
-
 </script>
-
 </body>
 </html>
+
 
