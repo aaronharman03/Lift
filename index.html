@@ -38,12 +38,14 @@
       font-weight: bold;
     }
     input, select {
-      width: 100%;
-      padding: 0.4rem;
-      margin-bottom: 1rem;
       border-radius: 4px;
       border: none;
       font-size: 1rem;
+      padding: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    input[type="text"], input[type="number"], input[type="date"], select {
+      width: 100%;
     }
     button {
       background-color: var(--white);
@@ -88,6 +90,54 @@
     .exercise-list li {
       margin-bottom: 0.25rem;
     }
+
+    /* Layout for exercise + weight on same line */
+    .exercise-weight-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      align-items: flex-end;
+    }
+    .exercise-weight-row label {
+      flex: 1 0 60%;
+      margin-bottom: 0.25rem;
+    }
+    .exercise-weight-row input[type="text"] {
+      flex: 1 0 60%;
+      margin-bottom: 0;
+    }
+    .exercise-weight-row input[type="number"] {
+      width: 100px;
+      margin-bottom: 0;
+    }
+
+    /* Reps input group horizontally */
+    .reps-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .reps-group input {
+      width: 50px;
+      text-align: center;
+      padding: 0.4rem;
+    }
+    .add-rep-btn {
+      background-color: var(--white);
+      color: var(--navy);
+      border: none;
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      align-self: flex-end;
+      margin-left: 0.5rem;
+      font-size: 0.9rem;
+      height: 30px;
+    }
+    .add-rep-btn:hover {
+      background-color: #ddd;
+    }
   </style>
   <link rel="manifest" href="manifest.json" />
 </head>
@@ -107,17 +157,20 @@
       <option value="Other">Other</option>
     </select>
 
-    <label for="exercise">Exercise Name</label>
-    <input type="text" id="exercise" placeholder="e.g. Bench Press" required />
+    <div class="exercise-weight-row">
+      <label for="exercise">Exercise Name</label>
+      <input type="text" id="exercise" placeholder="e.g. Bench Press" required />
+      <label for="weight" style="margin-left:auto;">Weight (kg)</label>
+      <input type="number" id="weight" min="0" value="0" required />
+    </div>
 
-    <label for="sets">Sets</label>
-    <input type="number" id="sets" min="1" value="3" required />
-
-    <label for="reps">Reps</label>
-    <input type="number" id="reps" min="1" value="8" required />
-
-    <label for="weight">Weight (kg)</label>
-    <input type="number" id="weight" min="0" value="0" required />
+    <label>Reps (one per box)</label>
+    <div class="reps-group" id="reps-group">
+      <input type="number" min="1" required value="8" />
+      <input type="number" min="1" required value="8" />
+      <input type="number" min="1" required value="8" />
+      <button type="button" class="add-rep-btn" id="add-rep-btn" title="Add another rep input">+ Rep</button>
+    </div>
 
     <button type="submit">Add Workout</button>
   </form>
@@ -126,20 +179,18 @@
 
   <script>
     // Workout Tracker PWA - Vanilla JS
-    
-    // Get form and list container references
+
     const form = document.getElementById('workout-form');
     const workoutList = document.getElementById('workout-list');
+    const repsGroup = document.getElementById('reps-group');
+    const addRepBtn = document.getElementById('add-rep-btn');
 
-    // Load workouts from localStorage or initialize empty array
     let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
 
-    // Function to save workouts to localStorage
     function saveWorkouts() {
       localStorage.setItem('workouts', JSON.stringify(workouts));
     }
 
-    // Function to render workout list
     function renderWorkouts() {
       workoutList.innerHTML = '';
       if (workouts.length === 0) {
@@ -153,20 +204,20 @@
 
         const dateStr = new Date(w.date).toLocaleDateString();
 
+        // Display reps as a comma-separated string
+        const repsStr = w.reps.join(', ');
+
         div.innerHTML = `
           <h3>${w.type} - ${dateStr}</h3>
-          <div class="workout-meta">Exercise: ${w.exercise}</div>
-          <ul class="exercise-list">
-            <li><strong>Sets:</strong> ${w.sets}</li>
-            <li><strong>Reps:</strong> ${w.reps}</li>
-            <li><strong>Weight:</strong> ${w.weight} kg</li>
-          </ul>
+          <div class="workout-meta">
+            <strong>Exercise:</strong> ${w.exercise} &nbsp;&nbsp; <strong>Weight:</strong> ${w.weight} kg
+          </div>
+          <div class="workout-meta"><strong>Reps per set:</strong> ${repsStr}</div>
           <button aria-label="Delete workout ${i}" data-index="${i}" style="background:#ff4c4c; border:none; border-radius:4px; color:white; padding:0.3rem 0.6rem; cursor:pointer;">Delete</button>
         `;
         workoutList.appendChild(div);
       });
 
-      // Add delete button event listeners
       workoutList.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const index = e.target.getAttribute('data-index');
@@ -177,34 +228,59 @@
       });
     }
 
-    // Handle form submit
+    // Add new reps input box when + Rep button clicked
+    addRepBtn.addEventListener('click', () => {
+      const newRepInput = document.createElement('input');
+      newRepInput.type = 'number';
+      newRepInput.min = '1';
+      newRepInput.required = true;
+      newRepInput.value = '8';
+      repsGroup.insertBefore(newRepInput, addRepBtn);
+      newRepInput.focus();
+    });
+
     form.addEventListener('submit', e => {
       e.preventDefault();
+
+      // Gather reps from all inputs in repsGroup except the button
+      const repsInputs = [...repsGroup.querySelectorAll('input[type="number"]')];
+      const repsValues = repsInputs.map(input => parseInt(input.value)).filter(val => !isNaN(val) && val > 0);
+
+      if (repsValues.length === 0) {
+        alert('Please enter at least one valid rep count.');
+        return;
+      }
 
       const workout = {
         date: form.date.value,
         type: form.type.value,
         exercise: form.exercise.value.trim(),
-        sets: parseInt(form.sets.value),
-        reps: parseInt(form.reps.value),
         weight: parseFloat(form.weight.value),
+        reps: repsValues,
       };
 
       workouts.push(workout);
       saveWorkouts();
       renderWorkouts();
 
-      // Reset form except date for convenience
+      // Reset form but keep date for convenience
       form.exercise.value = '';
-      form.sets.value = '3';
-      form.reps.value = '8';
       form.weight.value = '0';
+
+      // Reset reps inputs to default 3 inputs with value 8
+      repsGroup.querySelectorAll('input[type="number"]').forEach(input => input.remove());
+      for (let i = 0; i < 3; i++) {
+        const repInput = document.createElement('input');
+        repInput.type = 'number';
+        repInput.min = '1';
+        repInput.required = true;
+        repInput.value = '8';
+        repsGroup.insertBefore(repInput, addRepBtn);
+      }
     });
 
-    // Initial render
     renderWorkouts();
 
-    // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js').then(reg => {
