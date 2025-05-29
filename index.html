@@ -8,22 +8,22 @@
     :root {
       --bg: #001f3f;
       --fg: #ffffff;
-      --border: #ffffff33;
+      --border: #ffffff55;
     }
 
     body {
       margin: 0;
       font-family: sans-serif;
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--fg);
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1rem;
     }
 
     h1 {
-      font-weight: normal;
+      font-weight: 400;
       margin-bottom: 1rem;
     }
 
@@ -39,45 +39,8 @@
       border: 1px solid var(--fg);
       color: var(--fg);
       padding: 0.25rem 0.5rem;
+      font-size: 1rem;
       cursor: pointer;
-    }
-
-    form {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    input {
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--fg);
-      color: var(--fg);
-      padding: 0.25rem;
-      font-size: 16px;
-    }
-
-    .exercise-line {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      margin-bottom: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .exercise-line input.set {
-      width: 40px;
-      text-align: center;
-    }
-
-    .exercise-line button {
-      background: none;
-      border: 1px solid var(--fg);
-      color: var(--fg);
-      cursor: pointer;
-      padding: 0.1rem 0.4rem;
     }
 
     #list {
@@ -85,14 +48,51 @@
       max-width: 600px;
     }
 
-    .delete-btn {
-      font-size: 0.8rem;
-      color: #ff6666;
-      border-color: #ff6666;
+    .exercise-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
     }
 
-    .exercise-label {
+    .exercise-row span {
+      min-width: 80px;
       font-weight: bold;
+    }
+
+    .exercise-row input {
+      width: 50px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 0.25rem;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    form input {
+      width: 120px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 0.25rem;
+      font-size: 1rem;
+    }
+
+    form button {
+      padding: 0.25rem 0.75rem;
+      background: none;
+      border: 1px solid var(--fg);
+      color: var(--fg);
+      cursor: pointer;
     }
   </style>
 </head>
@@ -114,12 +114,14 @@
   </form>
 
   <script>
-    const dateDisplay = document.getElementById('dateDisplay');
     const list = document.getElementById('list');
+    const dateDisplay = document.getElementById('dateDisplay');
     let date = new Date();
     date.setHours(0, 0, 0, 0);
 
-    const getKey = (d) => d.toISOString().split('T')[0];
+    function getKey(d) {
+      return d.toISOString().split('T')[0];
+    }
 
     function load() {
       return JSON.parse(localStorage.getItem('workouts') || '{}');
@@ -133,51 +135,40 @@
       const key = getKey(date);
       const data = load();
       const exercises = data[key] || [];
+
       dateDisplay.textContent = date.toDateString();
       list.innerHTML = '';
 
       exercises.forEach((ex, idx) => {
         const row = document.createElement('div');
-        row.className = 'exercise-line';
+        row.className = 'exercise-row';
 
-        const nameLabel = document.createElement('span');
-        nameLabel.className = 'exercise-label';
-        nameLabel.textContent = ex.name;
-        row.appendChild(nameLabel);
+        const label = document.createElement('span');
+        label.textContent = ex.name;
+        row.appendChild(label);
 
-        const weightInput = document.createElement('input');
-        weightInput.type = 'number';
-        weightInput.placeholder = 'kg';
-        weightInput.value = ex.weight || '';
-        weightInput.oninput = () => {
-          ex.weight = weightInput.value;
+        const weight = document.createElement('input');
+        weight.type = 'number';
+        weight.value = ex.weight || '';
+        weight.placeholder = 'kg';
+        weight.oninput = () => {
+          ex.weight = weight.value;
           save(data);
         };
-        row.appendChild(weightInput);
+        row.appendChild(weight);
 
-        ex.sets.forEach((val, setIdx) => {
+        for (let i = 0; i < 5; i++) {
           const setInput = document.createElement('input');
-          setInput.className = 'set';
+          setInput.type = 'number';
           setInput.inputMode = 'numeric';
-          setInput.value = val;
+          setInput.value = ex.sets[i] || '';
+          setInput.placeholder = `${i + 1}`;
           setInput.oninput = () => {
-            ex.sets[setIdx] = setInput.value;
+            ex.sets[i] = setInput.value;
             save(data);
           };
           row.appendChild(setInput);
-        });
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = '×';
-        delBtn.className = 'delete-btn';
-        delBtn.onclick = () => {
-          if (confirm(`Delete "${ex.name}"?`)) {
-            exercises.splice(idx, 1);
-            save(data);
-            render();
-          }
-        };
-        row.appendChild(delBtn);
+        }
 
         list.appendChild(row);
       });
@@ -213,5 +204,6 @@
   </script>
 </body>
 </html>
+
 
 
