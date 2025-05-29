@@ -48,7 +48,7 @@
   .btn-back:hover {
     opacity: 0.9;
   }
-  #addExerciseBtn {
+  #addExerciseBtn, #viewGraphBtn {
     padding: 10px 20px;
     font-size: 18px;
     cursor: pointer;
@@ -57,9 +57,10 @@
     border: none;
     border-radius: 6px;
     display: block;
-    margin: 0 auto 30px;
+    margin: 0 auto 20px;
+    width: 70%;
   }
-  #addExerciseBtn:hover {
+  #addExerciseBtn:hover, #viewGraphBtn:hover {
     opacity: 0.9;
   }
 
@@ -174,6 +175,7 @@
 <div id="exercisesList"></div>
 
 <button id="addExerciseBtn">Add Exercise</button>
+<button id="viewGraphBtn">View Progress Graph</button>
 
 <!-- Modal -->
 <div id="modalOverlay"></div>
@@ -213,6 +215,7 @@
   const modal = document.getElementById('modal');
   const modalOverlay = document.getElementById('modalOverlay');
   const addExerciseBtn = document.getElementById('addExerciseBtn');
+  const viewGraphBtn = document.getElementById('viewGraphBtn');
 
   const exerciseForm = document.getElementById('exerciseForm');
   const exerciseNameInput = document.getElementById('exerciseName');
@@ -249,9 +252,6 @@
 
       const unit = ex.weightUnit || 'kg';
 
-      // Format date nicely (YYYY-MM-DD)
-      const dateStr = ex.date || '';
-      
       const div = document.createElement('div');
       div.className = 'exercise-line';
       div.title = 'Click to edit exercise';
@@ -260,7 +260,7 @@
 
       const span = document.createElement('span');
       span.className = 'exercise-text';
-      span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}  (${dateStr})`;
+      span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}`;
 
       div.appendChild(span);
       div.addEventListener('click', () => openModalForEdit(idx));
@@ -344,81 +344,47 @@
   numSetsSelect.addEventListener('change', updateRepsInputs);
 
   addExerciseBtn.addEventListener('click', openModalForAdd);
-  cancelBtn.addEventListener('click', e => {
+
+  cancelBtn.addEventListener('click', (e) => {
     e.preventDefault();
     closeModal();
   });
 
-  deleteBtn.addEventListener('click', () => {
-    if (editingIndex !== null) {
-      if (confirm(`Delete exercise "${exercises[editingIndex].name}"?`)) {
-        exercises.splice(editingIndex, 1);
-        saveExercises();
-        renderExercises();
-        closeModal();
-      }
-    }
-  });
+  modalOverlay.addEventListener('click', closeModal);
 
-  exerciseForm.addEventListener('submit', e => {
+  exerciseForm.addEventListener('submit', (e) => {
     e.preventDefault();
-
     const name = exerciseNameInput.value.trim();
-    if (!name) {
-      alert('Please enter an exercise name.');
-      return;
-    }
+    if (!name) return;
+
     const sets = parseInt(numSetsSelect.value);
     if (isNaN(sets) || sets < 1) {
       alert('Please select the number of sets.');
       return;
     }
 
+    const reps = [];
     const repsInputs = repsInputsDiv.querySelectorAll('input');
-    let reps = [];
-    for (let input of repsInputs) {
-      const val = input.value.trim();
-      if (val === '') {
-        reps.push('');
-      } else {
-        const numVal = Number(val);
-        if (isNaN(numVal) || numVal < 0) {
-          alert('Reps must be a non-negative number.');
-          return;
-        }
-        reps.push(numVal);
-      }
+    for (const input of repsInputs) {
+      let val = input.value.trim();
+      reps.push(val === '' ? null : val);
     }
 
-    // Weight input optional
-    let weight = weightInput.value.trim();
-    if (weight === '') {
-      weight = '';
-    } else {
-      weight = Number(weight);
-      if (isNaN(weight) || weight < 0) {
-        alert('Weight must be a non-negative number.');
-        return;
-      }
-    }
+    let weightVal = weightInput.value.trim();
+    weightVal = weightVal === '' ? null : weightVal;
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10);
-
-    const exerciseObj = {
+    const exerciseData = {
       name,
+      weight: weightVal,
+      weightUnit: currentWeightUnit,
       sets,
       reps,
-      weight,
-      weightUnit: currentWeightUnit,
-      date: dateStr
     };
 
-    if (editingIndex === null) {
-      exercises.push(exerciseObj);
+    if (editingIndex !== null) {
+      exercises[editingIndex] = exerciseData;
     } else {
-      exercises[editingIndex] = exerciseObj;
+      exercises.push(exerciseData);
     }
 
     saveExercises();
@@ -426,13 +392,31 @@
     closeModal();
   });
 
+  deleteBtn.addEventListener('click', () => {
+    if (editingIndex !== null) {
+      exercises.splice(editingIndex, 1);
+      saveExercises();
+      renderExercises();
+      closeModal();
+    }
+  });
+
   function goBack() {
-    location.href = 'days.html';
+    location.href = 'index.html'; // Or your page with the workout days list
   }
 
-  // Initial render
+  // Here is Step 4 addition — View Progress Graph button click handler:
+  viewGraphBtn.addEventListener('click', () => {
+    const params = new URLSearchParams(location.search);
+    const currentDay = params.get('day') || '1';
+    window.location.href = `graph.html?day=${currentDay}`;
+  });
+
+  // Initial render of exercises on page load
   renderExercises();
 
 </script>
+
 </body>
 </html>
+
