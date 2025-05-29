@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Diet Tracker</title>
+  <style>
+    :root {
+      --primary: #0d1b2a;
+      --secondary: #1b263b;
+      --accent: #ffffff;
+      --text: #212529;
+      --bg: #f0f2f5;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+    }
+
+    .calendar-icon, .nav-arrow {
+      background: var(--secondary);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .calendar-popup {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .calendar-popup input[type="date"] {
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .content {
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .bmr-display {
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="calendar-nav">
+    <button class="nav-arrow" id="prevDay">←</button>
+    <span id="currentDate">Loading...</span>
+    <button class="nav-arrow" id="nextDay">→</button>
+    <button class="calendar-icon" id="openCalendar">📅</button>
+
+    <div class="calendar-popup" id="calendarPopup">
+      <input type="date" id="datePicker">
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="content">
+    <h1>Your Diet Plan</h1>
+    <div class="bmr-display" id="bmrDisplay">Loading your BMR...</div>
+    <p class="note">Use arrows or calendar to navigate dates.</p>
+  </div>
+</main>
+
+<script>
+  const bmrDisplay = document.getElementById('bmrDisplay');
+  const currentDateEl = document.getElementById('currentDate');
+  const prevDayBtn = document.getElementById('prevDay');
+  const nextDayBtn = document.getElementById('nextDay');
+  const openCalendarBtn = document.getElementById('openCalendar');
+  const calendarPopup = document.getElementById('calendarPopup');
+  const datePicker = document.getElementById('datePicker');
+
+  let selectedDate = new Date();
+
+  // Load BMR from localStorage
+  const bmr = localStorage.getItem('bmr');
+  if (bmr) {
+    bmrDisplay.textContent = `Your BMR is ${bmr} calories/day.`;
+  } else {
+    bmrDisplay.textContent = `BMR not found. Please complete setup.`;
+  }
+
+  // Display current date
+  function updateDateDisplay() {
+    currentDateEl.textContent = selectedDate.toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    datePicker.valueAsDate = selectedDate;
+  }
+
+  updateDateDisplay();
+
+  // Navigation
+  prevDayBtn.addEventListener('click', () => {
+    selectedDate.setDate(selectedDate.getDate() - 1);
+    updateDateDisplay();
+  });
+
+  nextDayBtn.addEventListener('click', () => {
+    selectedDate.setDate(selectedDate.getDate() + 1);
+    updateDateDisplay();
+  });
+
+  // Calendar
+  openCalendarBtn.addEventListener('click', () => {
+    calendarPopup.style.display = calendarPopup.style.display === 'block' ? 'none' : 'block';
+  });
+
+  datePicker.addEventListener('change', () => {
+    selectedDate = new Date(datePicker.value);
+    updateDateDisplay();
+    calendarPopup.style.display = 'none';
+  });
+
+  // Close calendar when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!calendarPopup.contains(e.target) && !openCalendarBtn.contains(e.target)) {
+      calendarPopup.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
 
