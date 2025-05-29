@@ -18,9 +18,9 @@
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
     }
 
     header {
@@ -39,7 +39,7 @@
       position: relative;
     }
 
-    .calendar-icon {
+    .calendar-icon, .nav-arrow {
       background: var(--secondary);
       border: none;
       border-radius: 6px;
@@ -49,15 +49,9 @@
       font-size: 1.2rem;
     }
 
-    .calendar-nav span {
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
     .calendar-popup {
       position: absolute;
       top: 100%;
-      margin-top: 10px;
       left: 50%;
       transform: translateX(-50%);
       background: white;
@@ -94,10 +88,6 @@
       text-align: center;
     }
 
-    .content h1 {
-      margin-bottom: 1rem;
-    }
-
     .bmr-display {
       font-size: 1.2rem;
       margin-top: 20px;
@@ -112,71 +102,85 @@
 </head>
 <body>
 
-  <header>
-    <div class="calendar-nav">
-      <button class="calendar-icon" id="openCalendar">🗓️</button>
-      <span id="currentDate">Loading...</span>
-      <div class="calendar-popup" id="calendarPopup">
-        <input type="date" id="datePicker">
-      </div>
+<header>
+  <div class="calendar-nav">
+    <button class="nav-arrow" id="prevDay">←</button>
+    <span id="currentDate">Loading...</span>
+    <button class="nav-arrow" id="nextDay">→</button>
+    <button class="calendar-icon" id="openCalendar">📅</button>
+
+    <div class="calendar-popup" id="calendarPopup">
+      <input type="date" id="datePicker">
     </div>
-  </header>
+  </div>
+</header>
 
-  <main>
-    <div class="content">
-      <h1>Your Diet Plan</h1>
-      <div class="bmr-display" id="bmrDisplay">Loading your BMR...</div>
-      <p class="note">Tap the calendar to change the day.</p>
-    </div>
-  </main>
+<main>
+  <div class="content">
+    <h1>Your Diet Plan</h1>
+    <div class="bmr-display" id="bmrDisplay">Loading your BMR...</div>
+    <p class="note">Use arrows or calendar to navigate dates.</p>
+  </div>
+</main>
 
-  <script>
-    const bmrDisplay = document.getElementById('bmrDisplay');
-    const bmr = localStorage.getItem('bmr');
-    const currentDateEl = document.getElementById('currentDate');
-    const openCalendarBtn = document.getElementById('openCalendar');
-    const calendarPopup = document.getElementById('calendarPopup');
-    const datePicker = document.getElementById('datePicker');
+<script>
+  const bmrDisplay = document.getElementById('bmrDisplay');
+  const currentDateEl = document.getElementById('currentDate');
+  const prevDayBtn = document.getElementById('prevDay');
+  const nextDayBtn = document.getElementById('nextDay');
+  const openCalendarBtn = document.getElementById('openCalendar');
+  const calendarPopup = document.getElementById('calendarPopup');
+  const datePicker = document.getElementById('datePicker');
 
-    // Load BMR
-    if (bmr) {
-      bmrDisplay.textContent = `Your BMR is ${bmr} calories/day.`;
-    } else {
-      bmrDisplay.textContent = `BMR not found. Please complete setup.`;
-    }
+  let selectedDate = new Date();
 
-    // Handle date selection
-    let selectedDate = new Date();
+  // Load BMR from localStorage
+  const bmr = localStorage.getItem('bmr');
+  if (bmr) {
+    bmrDisplay.textContent = `Your BMR is ${bmr} calories/day.`;
+  } else {
+    bmrDisplay.textContent = `BMR not found. Please complete setup.`;
+  }
 
-    function updateDateDisplay() {
-      currentDateEl.textContent = selectedDate.toLocaleDateString(undefined, {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      datePicker.valueAsDate = selectedDate;
-    }
+  // Display current date
+  function updateDateDisplay() {
+    currentDateEl.textContent = selectedDate.toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    datePicker.valueAsDate = selectedDate;
+  }
 
+  updateDateDisplay();
+
+  // Navigation
+  prevDayBtn.addEventListener('click', () => {
+    selectedDate.setDate(selectedDate.getDate() - 1);
     updateDateDisplay();
+  });
 
-    openCalendarBtn.addEventListener('click', () => {
-      calendarPopup.style.display = calendarPopup.style.display === 'block' ? 'none' : 'block';
-    });
+  nextDayBtn.addEventListener('click', () => {
+    selectedDate.setDate(selectedDate.getDate() + 1);
+    updateDateDisplay();
+  });
 
-    datePicker.addEventListener('change', () => {
-      selectedDate = new Date(datePicker.value);
-      updateDateDisplay();
+  // Calendar
+  openCalendarBtn.addEventListener('click', () => {
+    calendarPopup.style.display = calendarPopup.style.display === 'block' ? 'none' : 'block';
+  });
+
+  datePicker.addEventListener('change', () => {
+    selectedDate = new Date(datePicker.value);
+    updateDateDisplay();
+    calendarPopup.style.display = 'none';
+  });
+
+  // Close calendar when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!calendarPopup.contains(e.target) && !openCalendarBtn.contains(e.target)) {
       calendarPopup.style.display = 'none';
-    });
-
-    // Close popup if clicking outside
-    document.addEventListener('click', (e) => {
-      if (!calendarPopup.contains(e.target) && !openCalendarBtn.contains(e.target)) {
-        calendarPopup.style.display = 'none';
-      }
-    });
-  </script>
+    }
+  });
+</script>
 
 </body>
 </html>
