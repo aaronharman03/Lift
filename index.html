@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+   <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -12,7 +13,7 @@
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #001f3f; /* Navy background */
-    color: white;
+    color: white; /* White text outside boxes */
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -23,16 +24,16 @@
   h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    color: white;
+    color: white; /* White heading */
   }
   form {
-    background: white;
+    background: white; /* White box */
     padding: 2em;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     max-width: 400px;
     width: 100%;
-    color: #001f3f; /* Navy text inside white box */
+    color: #001f3f; /* Navy text inside box */
   }
   label {
     display: block;
@@ -50,6 +51,7 @@
     border-radius: 6px;
     font-size: 1rem;
     box-sizing: border-box;
+    color: #001f3f; /* Navy text inside inputs */
   }
   /* % sign styling */
   .percent-sign {
@@ -58,7 +60,7 @@
     top: 50%;
     transform: translateY(-50%);
     font-weight: 600;
-    color: #555;
+    color: #001f3f; /* Navy % sign */
     pointer-events: none;
   }
   button {
@@ -133,7 +135,6 @@
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // Get values
     const sex = form.sex.value;
     const age = parseInt(form.age.value);
     const height = parseFloat(form.height.value);
@@ -141,7 +142,6 @@
     const currentBF = parseFloat(form.currentBF.value);
     const goalBF = parseFloat(form.goalBF.value);
 
-    // Basic validation checks
     if (!sex) {
       showError('Please select your sex.');
       return;
@@ -171,14 +171,11 @@
       return;
     }
 
-    // Save to localStorage
     const userData = { sex, age, height, weight, currentBF, goalBF };
     localStorage.setItem('userData', JSON.stringify(userData));
 
-    // Clear error if any
     errorMsg.style.display = 'none';
 
-    // Navigate to workouts page
     window.location.href = 'workouts.html';
   });
 
