@@ -3,183 +3,160 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Workout Tracker PWA</title>
+  <title>Workout Tracker</title>
   <style>
-    /* Navy and white color scheme */
     :root {
       --navy: #001f3f;
-      --white: #ffffff;
-      --light-navy: #003366;
+      --white: #fff;
     }
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--navy);
+      font-family: system-ui, sans-serif;
+      background: var(--navy);
       color: var(--white);
+      padding: 1rem;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      padding: 1rem;
+      align-items: center;
     }
     h1 {
-      text-align: center;
       margin-bottom: 1rem;
+      font-weight: 400;
     }
     form {
-      background: var(--light-navy);
-      padding: 1rem;
-      border-radius: 8px;
+      width: 100%;
       max-width: 480px;
-      margin: 0 auto 2rem auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
     }
-    label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-weight: bold;
-    }
-    input, select {
-      border-radius: 4px;
+    input, select, button {
+      background: transparent;
       border: none;
+      border-bottom: 1px solid var(--white);
+      color: var(--white);
       font-size: 1rem;
-      padding: 0.4rem;
-      margin-bottom: 1rem;
+      padding: 0.25rem 0.25rem 0.5rem 0;
+      outline-offset: 2px;
     }
-    input[type="text"], input[type="number"], input[type="date"], select {
-      width: 100%;
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
     }
-    button {
-      background-color: var(--white);
-      color: var(--navy);
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      font-weight: bold;
+    input[type="date"] {
+      flex: 1 1 100%;
+    }
+    select {
+      flex: 1 1 100%;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      width: 100%;
+    }
+    /* Exercise + Weight on one line */
+    #exercise {
+      flex: 2 1 60%;
+    }
+    #weight {
+      flex: 1 1 35%;
+      text-align: right;
+    }
+    /* Reps inputs in a row */
+    #reps-group {
+      flex: 1 1 100%;
+      display: flex;
+      gap: 0.5rem;
+    }
+    #reps-group input {
+      flex: 1 1 30px;
+      text-align: center;
+      border-bottom: 1px solid var(--white);
+      padding: 0.25rem 0;
       font-size: 1rem;
     }
-    button:hover {
-      background-color: #ddd;
+    #add-rep-btn {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 0.25rem;
+      flex: 0 0 auto;
+      user-select: none;
+    }
+    button[type="submit"] {
+      flex: 1 1 100%;
+      padding: 0.5rem 0;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 1px solid var(--white);
+      background: none;
+      margin-top: 0.5rem;
+    }
+    button[type="submit"]:hover {
+      background: rgba(255 255 255 / 0.1);
     }
     #workout-list {
+      width: 100%;
       max-width: 480px;
-      margin: 0 auto;
     }
     .workout-item {
-      background: var(--light-navy);
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    }
-    .workout-item h3 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-    }
-    .workout-meta {
+      border-bottom: 1px solid rgba(255 255 255 / 0.2);
+      padding: 0.5rem 0;
       font-size: 0.9rem;
-      opacity: 0.8;
-      margin-bottom: 0.5rem;
-    }
-    .exercise-list {
-      list-style-type: none;
-      padding-left: 0;
-      margin: 0;
-    }
-    .exercise-list li {
-      margin-bottom: 0.25rem;
-    }
-
-    /* Layout for exercise + weight on same line */
-    .exercise-weight-row {
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      align-items: flex-end;
+      flex-direction: column;
+      gap: 0.15rem;
     }
-    .exercise-weight-row label {
-      flex: 1 0 60%;
-      margin-bottom: 0.25rem;
-    }
-    .exercise-weight-row input[type="text"] {
-      flex: 1 0 60%;
-      margin-bottom: 0;
-    }
-    .exercise-weight-row input[type="number"] {
-      width: 100px;
-      margin-bottom: 0;
-    }
-
-    /* Reps input group horizontally */
-    .reps-group {
+    .workout-header {
+      font-weight: 600;
+      font-size: 1rem;
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      justify-content: space-between;
+      align-items: center;
     }
-    .reps-group input {
-      width: 50px;
-      text-align: center;
-      padding: 0.4rem;
+    .workout-exercise {
+      display: flex;
+      gap: 0.75rem;
+      font-weight: 400;
     }
-    .add-rep-btn {
-      background-color: var(--white);
-      color: var(--navy);
+    .delete-btn {
+      background: none;
       border: none;
-      padding: 0.3rem 0.8rem;
-      border-radius: 6px;
-      font-weight: bold;
+      color: #ff6b6b;
+      font-weight: 700;
       cursor: pointer;
-      align-self: flex-end;
-      margin-left: 0.5rem;
       font-size: 0.9rem;
-      height: 30px;
-    }
-    .add-rep-btn:hover {
-      background-color: #ddd;
+      padding: 0;
+      margin-left: 1rem;
     }
   </style>
-  <link rel="manifest" href="manifest.json" />
 </head>
 <body>
   <h1>Workout Tracker</h1>
-
-  <form id="workout-form">
-    <label for="date">Date</label>
+  <form id="workout-form" autocomplete="off">
     <input type="date" id="date" required />
-
-    <label for="type">Workout Type</label>
     <select id="type" required>
-      <option value="" disabled selected>Select type</option>
-      <option value="Cardio">Cardio</option>
-      <option value="Strength">Strength</option>
-      <option value="Flexibility">Flexibility</option>
-      <option value="Other">Other</option>
+      <option value="" disabled selected>Workout type</option>
+      <option>Cardio</option>
+      <option>Strength</option>
+      <option>Flexibility</option>
+      <option>Other</option>
     </select>
-
-    <div class="exercise-weight-row">
-      <label for="exercise">Exercise Name</label>
-      <input type="text" id="exercise" placeholder="e.g. Bench Press" required />
-      <label for="weight" style="margin-left:auto;">Weight (kg)</label>
-      <input type="number" id="weight" min="0" value="0" required />
+    <input type="text" id="exercise" placeholder="Exercise name" required />
+    <input type="number" id="weight" placeholder="Weight (kg)" min="0" value="0" required />
+    <div id="reps-group">
+      <input type="number" min="1" required value="8" />
+      <input type="number" min="1" required value="8" />
+      <input type="number" min="1" required value="8" />
+      <button type="button" id="add-rep-btn" aria-label="Add rep input">＋</button>
     </div>
-
-    <label>Reps (one per box)</label>
-    <div class="reps-group" id="reps-group">
-      <input type="number" min="1" required value="8" />
-      <input type="number" min="1" required value="8" />
-      <input type="number" min="1" required value="8" />
-      <button type="button" class="add-rep-btn" id="add-rep-btn" title="Add another rep input">+ Rep</button>
-    </div>
-
     <button type="submit">Add Workout</button>
   </form>
-
   <section id="workout-list"></section>
 
   <script>
-    // Workout Tracker PWA - Vanilla JS
-
     const form = document.getElementById('workout-form');
     const workoutList = document.getElementById('workout-list');
     const repsGroup = document.getElementById('reps-group');
@@ -193,61 +170,59 @@
 
     function renderWorkouts() {
       workoutList.innerHTML = '';
-      if (workouts.length === 0) {
-        workoutList.innerHTML = '<p>No workouts logged yet.</p>';
+      if (!workouts.length) {
+        workoutList.textContent = 'No workouts logged yet.';
         return;
       }
-
       workouts.forEach((w, i) => {
         const div = document.createElement('div');
         div.className = 'workout-item';
 
         const dateStr = new Date(w.date).toLocaleDateString();
-
-        // Display reps as a comma-separated string
         const repsStr = w.reps.join(', ');
 
         div.innerHTML = `
-          <h3>${w.type} - ${dateStr}</h3>
-          <div class="workout-meta">
-            <strong>Exercise:</strong> ${w.exercise} &nbsp;&nbsp; <strong>Weight:</strong> ${w.weight} kg
+          <div class="workout-header">
+            <div>${w.type} — ${dateStr}</div>
+            <button class="delete-btn" aria-label="Delete workout ${i}" data-index="${i}">✕</button>
           </div>
-          <div class="workout-meta"><strong>Reps per set:</strong> ${repsStr}</div>
-          <button aria-label="Delete workout ${i}" data-index="${i}" style="background:#ff4c4c; border:none; border-radius:4px; color:white; padding:0.3rem 0.6rem; cursor:pointer;">Delete</button>
+          <div class="workout-exercise">
+            <div>${w.exercise}</div>
+            <div>Weight: ${w.weight} kg</div>
+            <div>Reps: ${repsStr}</div>
+          </div>
         `;
+
         workoutList.appendChild(div);
       });
 
-      workoutList.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const index = e.target.getAttribute('data-index');
-          workouts.splice(index, 1);
+      workoutList.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const idx = e.target.getAttribute('data-index');
+          workouts.splice(idx, 1);
           saveWorkouts();
           renderWorkouts();
         });
       });
     }
 
-    // Add new reps input box when + Rep button clicked
     addRepBtn.addEventListener('click', () => {
-      const newRepInput = document.createElement('input');
-      newRepInput.type = 'number';
-      newRepInput.min = '1';
-      newRepInput.required = true;
-      newRepInput.value = '8';
-      repsGroup.insertBefore(newRepInput, addRepBtn);
-      newRepInput.focus();
+      const newInput = document.createElement('input');
+      newInput.type = 'number';
+      newInput.min = '1';
+      newInput.required = true;
+      newInput.value = '8';
+      repsGroup.insertBefore(newInput, addRepBtn);
+      newInput.focus();
     });
 
     form.addEventListener('submit', e => {
       e.preventDefault();
-
-      // Gather reps from all inputs in repsGroup except the button
       const repsInputs = [...repsGroup.querySelectorAll('input[type="number"]')];
-      const repsValues = repsInputs.map(input => parseInt(input.value)).filter(val => !isNaN(val) && val > 0);
+      const repsValues = repsInputs.map(input => parseInt(input.value)).filter(v => v > 0);
 
-      if (repsValues.length === 0) {
-        alert('Please enter at least one valid rep count.');
+      if (!repsValues.length) {
+        alert('Please enter at least one rep count.');
         return;
       }
 
@@ -263,19 +238,18 @@
       saveWorkouts();
       renderWorkouts();
 
-      // Reset form but keep date for convenience
       form.exercise.value = '';
       form.weight.value = '0';
 
-      // Reset reps inputs to default 3 inputs with value 8
+      // Reset reps inputs to default 3 inputs with 8 reps
       repsGroup.querySelectorAll('input[type="number"]').forEach(input => input.remove());
       for (let i = 0; i < 3; i++) {
-        const repInput = document.createElement('input');
-        repInput.type = 'number';
-        repInput.min = '1';
-        repInput.required = true;
-        repInput.value = '8';
-        repsGroup.insertBefore(repInput, addRepBtn);
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '1';
+        input.required = true;
+        input.value = '8';
+        repsGroup.insertBefore(input, addRepBtn);
       }
     });
 
@@ -283,11 +257,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').then(reg => {
-          console.log('Service Worker registered.', reg);
-        }).catch(err => {
-          console.log('Service Worker registration failed:', err);
-        });
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
       });
     }
   </script>
