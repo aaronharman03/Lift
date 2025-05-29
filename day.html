@@ -44,10 +44,53 @@
   #exercisesList {
     font-size: 18px;
     line-height: 1.6;
-    white-space: nowrap;
   }
   .exercise-line {
     margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f7f7f7;
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+  .exercise-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+  }
+  .menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 8px;
+    user-select: none;
+  }
+  /* Dropdown menu style */
+  .menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+    min-width: 100px;
+  }
+  .menu button {
+    background: none;
+    color: #333;
+    width: 100%;
+    padding: 8px 12px;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .menu button:hover {
+    background-color: #eee;
   }
   .btn-back {
     margin-bottom: 15px;
@@ -73,7 +116,8 @@
     <option value="5">5</option>
   </select>
   <div id="repsInputs"></div>
-  <button type="submit">Add Exercise</button>
+  <button type="submit" id="formSubmitBtn">Add Exercise</button>
+  <button type="button" id="cancelEditBtn" style="display:none; margin-left:10px;">Cancel Edit</button>
 </form>
 
 <div id="exercisesList"></div>
@@ -88,8 +132,11 @@
   const form = document.getElementById('exerciseForm');
   const numSetsSelect = document.getElementById('numSets');
   const repsInputsDiv = document.getElementById('repsInputs');
+  const formSubmitBtn = document.getElementById('formSubmitBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
 
   let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
+  let editingIndex = null;
 
   function saveExercises() {
     localStorage.setItem(storageKey, JSON.stringify(exercises));
@@ -102,17 +149,79 @@
       return;
     }
 
-    exercises.forEach(ex => {
+    exercises.forEach((ex, idx) => {
       const repsStr = ex.reps && ex.reps.length
         ? ex.reps.filter(r => r != null && r !== '').join(',')
         : 'N/A';
 
-      const line = `${ex.name} - ${ex.weight || '0'}kg - ${repsStr}`;
       const div = document.createElement('div');
       div.className = 'exercise-line';
-      div.textContent = line;
+
+      const span = document.createElement('span');
+      span.className = 'exercise-text';
+      span.textContent = `${ex.name} - ${ex.weight || '0'}kg - ${repsStr}`;
+
+      const menuBtn = document.createElement('button');
+      menuBtn.className = 'menu-btn';
+      menuBtn.textContent = '⋮';
+      menuBtn.title = 'Options';
+      menuBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        closeAllMenus();
+        openMenu(idx, menuBtn);
+      });
+
+      div.appendChild(span);
+      div.appendChild(menuBtn);
       exercisesListEl.appendChild(div);
     });
+  }
+
+  function openMenu(index, btn) {
+    const menu = document.createElement('div');
+    menu.className = 'menu';
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => {
+      closeAllMenus();
+      startEdit(index);
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.style.color = 'red';
+    deleteBtn.onclick = () => {
+      closeAllMenus();
+      if (confirm('Delete this exercise?')) {
+        exercises.splice(index, 1);
+        saveExercises();
+        renderExercises();
+        if (editingIndex === index) cancelEdit();
+      }
+    };
+
+    menu.appendChild(editBtn);
+    menu.appendChild(deleteBtn);
+
+    document.body.appendChild(menu);
+
+    // Position menu near the button
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    menu.style.left = `${rect.left + window.scrollX - menu.offsetWidth + btn.offsetWidth}px`;
+
+    // Close menu if clicked outside
+    function onClickOutside(event) {
+      if (!menu.contains(event.target) && event.target !== btn) {
+        closeAllMenus();
+      }
+    }
+    document.addEventListener('click', onClickOutside, { once: true });
+  }
+
+  function closeAllMenus() {
+    document.querySelectorAll('.menu').forEach(menu => menu.remove());
   }
 
   numSetsSelect.addEventListener('change', () => {
@@ -157,13 +266,54 @@
       reps.push(val);
     }
 
-    exercises.push({ name, weight, sets, reps });
+    if (editingIndex !== null) {
+      // Save edit
+      exercises[editingIndex] = { name, weight, sets, reps };
+      editingIndex = null;
+      formSubmitBtn.textContent = 'Add Exercise';
+      cancelEditBtn.style.display = 'none';
+    } else {
+      // Add new
+      exercises.push({ name, weight, sets, reps });
+    }
+
     saveExercises();
     renderExercises();
 
     form.reset();
     repsInputsDiv.innerHTML = '';
   });
+
+  function startEdit(index) {
+    const ex = exercises[index];
+    document.getElementById('exerciseName').value = ex.name;
+    document.getElementById('weight').value = ex.weight;
+    numSetsSelect.value = ex.sets;
+    numSetsSelect.dispatchEvent(new Event('change'));
+
+    if (ex.reps && ex.reps.length) {
+      const inputs = repsInputsDiv.querySelectorAll('input');
+      inputs.forEach((input, i) => {
+        input.value = ex.reps[i] || '';
+      });
+    }
+
+    editingIndex = index;
+    formSubmitBtn.textContent = 'Save Edit';
+    cancelEditBtn.style.display = 'inline-block';
+  }
+
+  cancelEditBtn.addEventListener('click', () => {
+    cancelEdit();
+  });
+
+  function cancelEdit() {
+    editingIndex = null;
+    form.reset();
+    repsInputsDiv.innerHTML = '';
+    formSubmitBtn.textContent = 'Add Exercise';
+    cancelEditBtn.style.display = 'none';
+  }
 
   function goBack() {
     location.href = 'index.html';
@@ -174,5 +324,6 @@
 
 </body>
 </html>
+
 
 
