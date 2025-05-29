@@ -23,52 +23,18 @@
   .exercise-line {
     margin-bottom: 8px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
     background: #f7f7f7;
     padding: 8px 12px;
     border-radius: 6px;
-    position: relative;
+    cursor: pointer;
+    user-select: none;
   }
   .exercise-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
-  }
-  .menu-btn {
-    background: transparent;
-    border: none;
-    font-size: 24px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 8px;
-    user-select: none;
-  }
-  /* Dropdown menu style */
-  .menu {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    z-index: 1002;
-    min-width: 100px;
-    right: 10px;
-    top: 38px;
-  }
-  .menu button {
-    background: none;
-    color: #333;
-    width: 100%;
-    padding: 8px 12px;
-    text-align: left;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  .menu button:hover {
-    background-color: #eee;
   }
   .btn-back {
     margin-bottom: 15px;
@@ -140,6 +106,7 @@
   }
   #modalButtons {
     text-align: center;
+    margin-bottom: 10px;
   }
   #modalButtons button {
     padding: 8px 16px;
@@ -161,6 +128,20 @@
     color: white;
   }
   #cancelBtn:hover {
+    opacity: 0.9;
+  }
+
+  #deleteBtn {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  #deleteBtn:hover {
     opacity: 0.9;
   }
 
@@ -217,6 +198,7 @@
       <button type="submit" id="saveBtn">Save</button>
       <button type="button" id="cancelBtn">Cancel</button>
     </div>
+    <button type="button" id="deleteBtn" style="display:none;">Delete</button>
   </form>
 </div>
 
@@ -240,6 +222,7 @@
   const repsInputsDiv = document.getElementById('repsInputs');
   const saveBtn = document.getElementById('saveBtn');
   const cancelBtn = document.getElementById('cancelBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
   const modalTitle = document.getElementById('modalTitle');
 
   let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
@@ -268,63 +251,25 @@
 
       const div = document.createElement('div');
       div.className = 'exercise-line';
+      div.title = 'Click to edit exercise';
+      div.tabIndex = 0; // make focusable for accessibility
+      div.setAttribute('role', 'button');
 
       const span = document.createElement('span');
       span.className = 'exercise-text';
       span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}`;
 
-      const menuBtn = document.createElement('button');
-      menuBtn.className = 'menu-btn';
-      menuBtn.textContent = '⋮';
-      menuBtn.title = 'Options';
-      menuBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        closeAllMenus();
-        openMenu(idx, menuBtn);
+      div.appendChild(span);
+      div.addEventListener('click', () => openModalForEdit(idx));
+      div.addEventListener('keypress', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openModalForEdit(idx);
+        }
       });
 
-      div.appendChild(span);
-      div.appendChild(menuBtn);
       exercisesListEl.appendChild(div);
     });
-  }
-
-  function openMenu(index, btn) {
-    closeAllMenus();
-
-    const menu = document.createElement('div');
-    menu.className = 'menu';
-
-    const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
-    editBtn.onclick = () => {
-      closeAllMenus();
-      openModalForEdit(index);
-    };
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.style.color = 'red';
-    deleteBtn.onclick = () => {
-      closeAllMenus();
-      if (confirm('Delete this exercise?')) {
-        exercises.splice(index, 1);
-        saveExercises();
-        renderExercises();
-        if (editingIndex === index) {
-          closeModal();
-        }
-      }
-    };
-
-    menu.appendChild(editBtn);
-    menu.appendChild(deleteBtn);
-
-    btn.parentElement.appendChild(menu);
-  }
-
-  function closeAllMenus() {
-    document.querySelectorAll('.menu').forEach(m => m.remove());
   }
 
   function openModalForAdd() {
@@ -334,10 +279,10 @@
     repsInputsDiv.innerHTML = '';
     currentWeightUnit = 'kg';
     weightUnitBtn.textContent = currentWeightUnit;
+    deleteBtn.style.display = 'none';
     modal.style.display = 'block';
     modalOverlay.style.display = 'block';
     exerciseNameInput.focus();
-    closeAllMenus();
   }
 
   function openModalForEdit(index) {
@@ -356,74 +301,86 @@
         input.value = ex.reps[i] || '';
       });
     }
+    deleteBtn.style.display = 'block';
     modal.style.display = 'block';
     modalOverlay.style.display = 'block';
     exerciseNameInput.focus();
-    closeAllMenus();
   }
 
   function closeModal() {
     modal.style.display = 'none';
     modalOverlay.style.display = 'none';
+    editingIndex = null;
   }
 
-  addExerciseBtn.addEventListener('click', openModalForAdd);
-  cancelBtn.addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', closeModal);
+  function updateRepsInputs() {
+    const sets = parseInt(numSetsSelect.value);
+    repsInputsDiv.innerHTML = '';
+    if (isNaN(sets) || sets < 1) return;
 
-  // Toggle weight unit button
+    for (let i = 0; i < sets; i++) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.step = '1';
+      input.placeholder = `Reps set ${i + 1}`;
+      input.autocomplete = 'off';
+      repsInputsDiv.appendChild(input);
+    }
+  }
+
   weightUnitBtn.addEventListener('click', () => {
-    currentWeightUnit = currentWeightUnit === 'kg' ? 'lbs' : 'kg';
+    if (currentWeightUnit === 'kg') {
+      currentWeightUnit = 'lbs';
+    } else {
+      currentWeightUnit = 'kg';
+    }
     weightUnitBtn.textContent = currentWeightUnit;
   });
 
-  // Update reps inputs when sets change
-  numSetsSelect.addEventListener('change', () => {
-    const count = parseInt(numSetsSelect.value) || 0;
-    repsInputsDiv.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-      const inp = document.createElement('input');
-      inp.type = 'number';
-      inp.min = '0';
-      inp.placeholder = `Reps set ${i+1}`;
-      inp.autocomplete = 'off';
-      repsInputsDiv.appendChild(inp);
-    }
+  numSetsSelect.addEventListener('change', updateRepsInputs);
+
+  addExerciseBtn.addEventListener('click', openModalForAdd);
+
+  cancelBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeModal();
   });
 
-  exerciseForm.addEventListener('submit', e => {
+  modalOverlay.addEventListener('click', closeModal);
+
+  exerciseForm.addEventListener('submit', (e) => {
     e.preventDefault();
-
     const name = exerciseNameInput.value.trim();
-    const weight = weightInput.value.trim();
-    const sets = numSetsSelect.value;
+    if (!name) return;
 
-    if (!name) {
-      alert('Please enter an exercise name.');
-      return;
-    }
-    if (!sets || !(sets >= 1 && sets <= 5)) {
-      alert('Please select number of sets (1-5).');
+    const sets = parseInt(numSetsSelect.value);
+    if (isNaN(sets) || sets < 1) {
+      alert('Please select the number of sets.');
       return;
     }
 
-    const repsInputs = repsInputsDiv.querySelectorAll('input');
-    let reps = [];
-    for (const input of repsInputs) {
-      let val = input.value.trim();
-      if (val === '') val = null;
-      else if (isNaN(val) || Number(val) < 0) {
-        alert('Reps must be a positive number or blank.');
-        return;
-      }
-      reps.push(val);
+    const repsInputs = [...repsInputsDiv.querySelectorAll('input')];
+    const reps = repsInputs.map(input => input.value.trim() === '' ? null : parseInt(input.value));
+    if (reps.some(r => r !== null && (isNaN(r) || r < 0))) {
+      alert('Reps must be positive numbers or left empty.');
+      return;
     }
+
+    const weightVal = weightInput.value.trim() === '' ? null : parseFloat(weightInput.value);
+
+    const newExercise = {
+      name,
+      sets,
+      reps,
+      weight: weightVal,
+      weightUnit: currentWeightUnit
+    };
 
     if (editingIndex !== null) {
-      exercises[editingIndex] = { name, weight, weightUnit: currentWeightUnit, sets, reps };
-      editingIndex = null;
+      exercises[editingIndex] = newExercise;
     } else {
-      exercises.push({ name, weight, weightUnit: currentWeightUnit, sets, reps });
+      exercises.push(newExercise);
     }
 
     saveExercises();
@@ -431,14 +388,21 @@
     closeModal();
   });
 
-  // Close menus when clicking outside
-  document.body.addEventListener('click', closeAllMenus);
+  deleteBtn.addEventListener('click', () => {
+    if (editingIndex === null) return;
+    if (confirm('Are you sure you want to delete this exercise?')) {
+      exercises.splice(editingIndex, 1);
+      saveExercises();
+      renderExercises();
+      closeModal();
+    }
+  });
 
   function goBack() {
-    location.href = 'index.html'; // Assuming your main page is index.html with day buttons
+    // You can customize this to your needs or adjust the back navigation
+    window.history.back();
   }
 
-  // Initial render
   renderExercises();
 </script>
 
