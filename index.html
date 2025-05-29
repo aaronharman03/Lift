@@ -23,15 +23,16 @@
     background: white;
     border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     margin-bottom: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
   .day-label {
-    font-size: 18px;
+    font-size: 16px;
     flex-grow: 1;
     text-decoration: none;
     color: black;
+    word-break: break-word;
   }
   .day-label[contenteditable="true"] {
     background: #eef5ff;
@@ -45,6 +46,7 @@
     font-size: 20px;
     cursor: pointer;
     padding: 4px;
+    margin-left: 8px;
   }
   .menu {
     position: absolute;
@@ -52,13 +54,14 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    padding: 6px 0;
+    padding: 4px 0;
     z-index: 10;
+    min-width: 120px;
   }
   .menu button {
     display: block;
     width: 100%;
-    padding: 8px 16px;
+    padding: 8px 10px;
     background: none;
     border: none;
     text-align: left;
@@ -163,6 +166,13 @@
         }
       });
 
+      label.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          label.blur();
+        }
+      });
+
       row.appendChild(label);
       row.appendChild(menuBtn);
       daysList.appendChild(row);
@@ -172,8 +182,11 @@
   function toggleMenu(menu, btn) {
     closeMenu();
     const rect = btn.getBoundingClientRect();
-    menu.style.top = rect.bottom + 5 + 'px';
-    menu.style.left = rect.left + 'px';
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const scrollX = window.scrollX || document.documentElement.scrollLeft;
+
+    menu.style.top = (rect.bottom + scrollY + 4) + 'px';
+    menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
     menu.style.display = 'block';
     openMenu = menu;
   }
@@ -195,4 +208,5 @@
 </script>
 </body>
 </html>
+
 
