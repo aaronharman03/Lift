@@ -1,318 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Tracker</title>
-<style>
-  :root {
-    --navy: #001f3f;
-    --white: #fff;
-  }
-  body {
-    margin: 0;
-    font-family: system-ui, sans-serif;
-    background: var(--navy);
-    color: var(--white);
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 {
-    margin-bottom: 1rem;
-    font-weight: 400;
-  }
-  form {
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-  input, select, button {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--white);
-    color: var(--white);
-    font-size: 1rem;
-    padding: 0.25rem 0.25rem 0.5rem 0;
-    outline-offset: 2px;
-  }
-  input::placeholder {
-    color: rgba(255 255 255 / 0.5);
-  }
-  input[type="date"] {
-    flex: 1 1 100%;
-  }
-  select {
-    flex: 1 1 100%;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    cursor: pointer;
-  }
-  #exercise {
-    flex: 2 1 60%;
-  }
-  #weight {
-    flex: 1 1 35%;
-    text-align: right;
-  }
-  #reps-group {
-    flex: 1 1 100%;
-    display: flex;
-    gap: 0.5rem;
-  }
-  #reps-group input {
-    flex: 1 1 30px;
-    text-align: center;
-    border-bottom: 1px solid var(--white);
-    padding: 0.25rem 0;
-    font-size: 1rem;
-  }
-  #add-rep-btn {
-    background: none;
-    border: none;
-    color: var(--white);
-    font-size: 1.5rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0 0.25rem;
-    flex: 0 0 auto;
-    user-select: none;
-  }
-  button[type="submit"] {
-    flex: 1 1 100%;
-    padding: 0.5rem 0;
-    font-weight: 600;
-    cursor: pointer;
-    border-bottom: 1px solid var(--white);
-    background: none;
-    margin-top: 0.5rem;
-  }
-  button[type="submit"]:hover {
-    background: rgba(255 255 255 / 0.1);
-  }
-  #workout-list {
-    width: 100%;
-    max-width: 480px;
-  }
-  .workout-item {
-    border-bottom: 1px solid rgba(255 255 255 / 0.2);
-    padding: 0.5rem 0;
-    font-size: 0.9rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-  .workout-header {
-    font-weight: 600;
-    font-size: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .workout-exercise {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 400;
-  }
-  .reps-edit {
-    display: flex;
-    gap: 0.4rem;
-  }
-  .reps-edit input {
-    width: 30px;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--white);
-    color: var(--white);
-    text-align: center;
-    font-size: 1rem;
-    padding: 0 0 0.25rem 0;
-    outline-offset: 2px;
-  }
-  .delete-btn {
-    background: none;
-    border: none;
-    color: #ff6b6b;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 0;
-    margin-left: 1rem;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Tracker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #001f3f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+    h1 { margin-bottom: 1rem; font-weight: normal; }
+    .calendar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .calendar button {
+      background: none;
+      border: 1px solid white;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+    .form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .form input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid white;
+      color: white;
+      padding: 0.25rem;
+    }
+    .form button {
+      background: none;
+      border: 1px solid white;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+    .exercise {
+      margin-bottom: 1rem;
+      border-bottom: 1px solid white;
+      padding-bottom: 0.5rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    .exercise-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .sets {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+    }
+    .sets input {
+      width: 40px;
+      text-align: center;
+      border: none;
+      border-bottom: 1px solid white;
+      background: transparent;
+      color: white;
+      padding: 0.25rem;
+    }
+    .sets button {
+      background: none;
+      border: 1px solid white;
+      color: white;
+      cursor: pointer;
+      padding: 0.1rem 0.4rem;
+    }
+    .small {
+      font-size: 0.85rem;
+    }
+  </style>
 </head>
 <body>
   <h1>Workout Tracker</h1>
-  <form id="workout-form" autocomplete="off">
-    <input type="date" id="date" required />
-    <select id="type" required>
-      <option value="" disabled selected>Workout type</option>
-      <option>Cardio</option>
-      <option>Strength</option>
-      <option>Flexibility</option>
-      <option>Other</option>
-    </select>
-    <input type="text" id="exercise" placeholder="Exercise name" required />
-    <input type="number" id="weight" placeholder="Weight (kg)" min="0" value="0" required />
-    <div id="reps-group">
-      <input type="number" min="1" required value="8" />
-      <input type="number" min="1" required value="8" />
-      <input type="number" min="1" required value="8" />
-      <button type="button" id="add-rep-btn" aria-label="Add rep input">＋</button>
-    </div>
-    <button type="submit">Add Workout</button>
+  <div class="calendar">
+    <button onclick="changeDate(-1)">←</button>
+    <div id="dateDisplay"></div>
+    <button onclick="changeDate(1)">→</button>
+  </div>
+  <form class="form" onsubmit="addExercise(event)">
+    <input id="exerciseName" placeholder="Exercise" required />
+    <input id="weight" placeholder="Weight" type="number" />
+    <button type="submit">Add</button>
   </form>
-  <section id="workout-list"></section>
+  <div id="workoutList"></div>
 
-<script>
-  const form = document.getElementById('workout-form');
-  const workoutList = document.getElementById('workout-list');
-  const repsGroup = document.getElementById('reps-group');
-  const addRepBtn = document.getElementById('add-rep-btn');
+  <script>
+    const dateDisplay = document.getElementById('dateDisplay');
+    const workoutList = document.getElementById('workoutList');
+    let currentDate = new Date();
+    currentDate.setHours(0,0,0,0);
 
-  let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
+    const getKey = date => date.toISOString().split('T')[0];
+    const load = () => JSON.parse(localStorage.getItem('workouts') || '{}');
+    const save = data => localStorage.setItem('workouts', JSON.stringify(data));
 
-  function saveWorkouts() {
-    localStorage.setItem('workouts', JSON.stringify(workouts));
-  }
+    function render() {
+      const data = load();
+      const key = getKey(currentDate);
+      const workouts = data[key] || [];
+      dateDisplay.textContent = currentDate.toDateString();
+      workoutList.innerHTML = '';
+      workouts.forEach((ex, i) => {
+        const div = document.createElement('div');
+        div.className = 'exercise';
+        div.innerHTML = `
+          <div class="exercise-header">
+            <div><strong>${ex.name}</strong> ${ex.weight ? `- ${ex.weight}kg` : ''}</div>
+            <button class="small" onclick="deleteExercise(${i})">Delete</button>
+          </div>
+          <div class="sets" id="sets-${i}"></div>
+          <button class="small" onclick="addSet(${i})">+ Add Set</button>
+        `;
+        workoutList.appendChild(div);
 
-  // Debounce helper to avoid excessive saves while editing reps inline
-  function debounce(func, delay) {
-    let timer;
-    return function(...args) {
-      clearTimeout(timer);
-      timer = setTimeout(() => func.apply(this, args), delay);
-    };
-  }
-
-  // Save reps inline edit
-  function handleRepsEdit(index, repsInputs) {
-    const newReps = repsInputs.map(input => {
-      const val = parseInt(input.value);
-      return isNaN(val) || val < 1 ? null : val;
-    });
-    workouts[index].reps = newReps;
-    saveWorkouts();
-  }
-
-  function renderWorkouts() {
-    workoutList.innerHTML = '';
-    if (!workouts.length) {
-      workoutList.textContent = 'No workouts logged yet.';
-      return;
-    }
-
-    workouts.forEach((w, i) => {
-      const div = document.createElement('div');
-      div.className = 'workout-item';
-
-      const dateStr = new Date(w.date).toLocaleDateString();
-
-      // Create reps inputs — always 5 sets displayed
-      const repsInputs = [];
-      const repsContainer = document.createElement('div');
-      repsContainer.className = 'reps-edit';
-
-      for (let set = 0; set < 5; set++) {
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.min = '1';
-        input.placeholder = `set ${set + 1}`;
-        input.value = w.reps[set] || '';
-        repsInputs.push(input);
-        repsContainer.appendChild(input);
-      }
-
-      // Debounced save on input
-      const debouncedSave = debounce(() => handleRepsEdit(i, repsInputs), 500);
-      repsInputs.forEach(input => input.addEventListener('input', debouncedSave));
-
-      div.innerHTML = `
-        <div class="workout-header">
-          <div>${w.type} — ${dateStr}</div>
-          <button class="delete-btn" aria-label="Delete workout ${i}" data-index="${i}">✕</button>
-        </div>
-        <div class="workout-exercise">
-          <div>${w.exercise}</div>
-          <div>Weight: ${w.weight} kg</div>
-        </div>
-      `;
-
-      div.querySelector('.workout-exercise').appendChild(repsContainer);
-
-      workoutList.appendChild(div);
-    });
-
-    workoutList.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        const idx = e.target.getAttribute('data-index');
-        workouts.splice(idx, 1);
-        saveWorkouts();
-        renderWorkouts();
+        const setsDiv = document.getElementById(`sets-${i}`);
+        ex.sets.forEach((rep, j) => {
+          const input = document.createElement('input');
+          input.value = rep;
+          input.oninput = () => {
+            ex.sets[j] = input.value;
+            save(data);
+          };
+          setsDiv.appendChild(input);
+        });
       });
-    });
-  }
-
-  addRepBtn.addEventListener('click', () => {
-    const newInput = document.createElement('input');
-    newInput.type = 'number';
-    newInput.min = '1';
-    newInput.required = true;
-    newInput.value = '8';
-    repsGroup.insertBefore(newInput, addRepBtn);
-    newInput.focus();
-  });
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const repsInputs = [...repsGroup.querySelectorAll('input[type="number"]')];
-    const repsValues = repsInputs.map(input => parseInt(input.value)).filter(v => v > 0);
-
-    if (!repsValues.length) {
-      alert('Please enter at least one rep count.');
-      return;
     }
 
-    const workout = {
-      date: form.date.value,
-      type: form.type.value,
-      exercise: form.exercise.value.trim(),
-      weight: parseFloat(form.weight.value),
-      reps: repsValues,
-    };
-
-    workouts.push(workout);
-    saveWorkouts();
-    renderWorkouts();
-
-    form.exercise.value = '';
-    form.weight.value = '0';
-
-    // Reset reps inputs to default 3 inputs with 8 reps
-    repsGroup.querySelectorAll('input[type="number"]').forEach(input => input.remove());
-    for (let i = 0; i < 3; i++) {
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = '1';
-      input.required = true;
-      input.value = '8';
-      repsGroup.insertBefore(input, addRepBtn);
+    function changeDate(offset) {
+      currentDate.setDate(currentDate.getDate() + offset);
+      render();
     }
-  });
 
-  renderWorkouts();
+    function addExercise(e) {
+      e.preventDefault();
+      const name = document.getElementById('exerciseName').value.trim();
+      const weight = document.getElementById('weight').value;
+      if (!name) return;
 
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js').catch(() => {});
-    });
-  }
-</script>
+      const data = load();
+      const key = getKey(currentDate);
+      if (!data[key]) data[key] = [];
+      data[key].push({ name, weight: weight ? parseInt(weight) : null, sets: [] });
+      save(data);
+      document.getElementById('exerciseName').value = '';
+      document.getElementById('weight').value = '';
+      render();
+    }
+
+    function deleteExercise(index) {
+      if (!confirm('Delete this exercise?')) return;
+      const data = load();
+      const key = getKey(currentDate);
+      data[key].splice(index, 1);
+      save(data);
+      render();
+    }
+
+    function addSet(exIndex) {
+      const data = load();
+      const key = getKey(currentDate);
+      data[key][exIndex].sets.push('');
+      save(data);
+      render();
+    }
+
+    render();
+  </script>
 </body>
 </html>
+
