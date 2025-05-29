@@ -15,11 +15,21 @@
     h1 {
       text-align: center;
     }
-    #exerciseSelect {
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    #exerciseSelect,
+    #goalInput {
       font-size: 16px;
-      margin: 20px auto;
-      display: block;
       padding: 8px;
+    }
+    #goalInput {
+      width: 100px;
     }
     canvas {
       margin-top: 20px;
@@ -34,103 +44,133 @@
       padding: 8px 12px;
       border-radius: 5px;
       cursor: pointer;
-      margin-bottom: 20px;
     }
     .btn-back:hover {
       opacity: 0.9;
+    }
+    .goal-label {
+      font-size: 14px;
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
 
-<button class="btn-back" onclick="goBack()">← Back</button>
-<h1>Exercise Progress</h1>
+  <button class="btn-back" onclick="goBack()">← Back</button>
+  <h1>Exercise Progress</h1>
 
-<select id="exerciseSelect">
-  <option value="">Select Exercise</option>
-</select>
+  <div class="controls">
+    <select id="exerciseSelect">
+      <option value="">Select Exercise</option>
+    </select>
 
-<canvas id="progressChart" height="300"></canvas>
+    <div>
+      <label for="goalInput" class="goal-label">Goal Weight:</label>
+      <input type="number" id="goalInput" placeholder="e.g. 100" />
+    </div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
-  const select = document.getElementById('exerciseSelect');
-  const ctx = document.getElementById('progressChart').getContext('2d');
-  let chart;
+  <canvas id="progressChart" height="300"></canvas>
 
-  const exerciseNames = [...new Set(logs.map(log => log.name))];
-  exerciseNames.forEach(name => {
-    const option = document.createElement('option');
-    option.value = name;
-    option.textContent = name;
-    select.appendChild(option);
-  });
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+    let goals = JSON.parse(localStorage.getItem('exercise_goals') || '{}');
 
-  select.addEventListener('change', () => {
-    const selected = select.value;
-    if (!selected) return;
+    const select = document.getElementById('exerciseSelect');
+    const goalInput = document.getElementById('goalInput');
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    let chart;
 
-    const data = logs
-      .filter(log => log.name === selected && log.weight != null)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Populate dropdown
+    const exerciseNames = [...new Set(logs.map(log => log.name))];
+    exerciseNames.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      select.appendChild(option);
+    });
 
-    const labels = data.map(log => log.date);
-    const weights = data.map(log => log.weight);
+    // Handle selection
+    select.addEventListener('change', () => {
+      const selected = select.value;
+      if (!selected) return;
 
-    if (weights.length === 0) return;
+      // Set goal input if saved
+      goalInput.value = goals[selected] || '';
 
-    const startingWeight = weights[0]; // first entry
-    const goalEntry = logs.find(log => log.name === selected && log.goalWeight != null);
-    const goalWeight = goalEntry ? goalEntry.goalWeight : Math.max(...weights);
+      renderChart(selected);
+    });
 
-    const minY = Math.min(startingWeight, goalWeight);
-    const maxY = Math.max(startingWeight, goalWeight);
+    // Save goal and update chart
+    goalInput.addEventListener('change', () => {
+      const selected = select.value;
+      if (!selected) return;
 
-    if (chart) chart.destroy();
+      const goalVal = parseFloat(goalInput.value);
+      if (!isNaN(goalVal)) {
+        goals[selected] = goalVal;
+        localStorage.setItem('exercise_goals', JSON.stringify(goals));
+        renderChart(selected);
+      }
+    });
 
-    chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: `${selected} Weight`,
-          data: weights,
-          borderColor: '#007bff',
-          backgroundColor: 'rgba(0, 123, 255, 0.2)',
-          tension: 0, // straight line segments = zigzag
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: false,
-            min: minY,
-            max: maxY,
-            title: {
-              display: true,
-              text: 'Weight'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Date'
+    function renderChart(exerciseName) {
+      const data = logs
+        .filter(log => log.name === exerciseName && log.weight != null)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (data.length === 0) return;
+
+      const labels = data.map(log => log.date);
+      const weights = data.map(log => log.weight);
+      const startingWeight = weights[0];
+      const goalWeight = goals[exerciseName] || Math.max(...weights);
+
+      const minY = Math.min(startingWeight, goalWeight);
+      const maxY = Math.max(startingWeight, goalWeight);
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: `${exerciseName} Weight`,
+            data: weights,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            tension: 0,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: false,
+              min: minY,
+              max: maxY,
+              title: {
+                display: true,
+                text: 'Weight'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date'
+              }
             }
           }
         }
-      }
-    });
-  });
+      });
+    }
 
-  function goBack() {
-    window.history.back();
-  }
-</script>
-
+    function goBack() {
+      window.history.back();
+    }
+  </script>
 </body>
 </html>
-
-
