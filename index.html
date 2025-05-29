@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Tracker PWA</title>
+  <style>
+    /* Navy and white color scheme */
+    :root {
+      --navy: #001f3f;
+      --white: #ffffff;
+      --light-navy: #003366;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--navy);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    form {
+      background: var(--light-navy);
+      padding: 1rem;
+      border-radius: 8px;
+      max-width: 480px;
+      margin: 0 auto 2rem auto;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.4rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      background-color: var(--white);
+      color: var(--navy);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+    #workout-list {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .workout-item {
+      background: var(--light-navy);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    .workout-item h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    .workout-meta {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 0.5rem;
+    }
+    .exercise-list {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .exercise-list li {
+      margin-bottom: 0.25rem;
+    }
+  </style>
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <h1>Workout Tracker</h1>
+
+  <form id="workout-form">
+    <label for="date">Date</label>
+    <input type="date" id="date" required />
+
+    <label for="type">Workout Type</label>
+    <select id="type" required>
+      <option value="" disabled selected>Select type</option>
+      <option value="Cardio">Cardio</option>
+      <option value="Strength">Strength</option>
+      <option value="Flexibility">Flexibility</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="exercise">Exercise Name</label>
+    <input type="text" id="exercise" placeholder="e.g. Bench Press" required />
+
+    <label for="sets">Sets</label>
+    <input type="number" id="sets" min="1" value="3" required />
+
+    <label for="reps">Reps</label>
+    <input type="number" id="reps" min="1" value="8" required />
+
+    <label for="weight">Weight (kg)</label>
+    <input type="number" id="weight" min="0" value="0" required />
+
+    <button type="submit">Add Workout</button>
+  </form>
+
+  <section id="workout-list"></section>
+
+  <script>
+    // Workout Tracker PWA - Vanilla JS
+    
+    // Get form and list container references
+    const form = document.getElementById('workout-form');
+    const workoutList = document.getElementById('workout-list');
+
+    // Load workouts from localStorage or initialize empty array
+    let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
+
+    // Function to save workouts to localStorage
+    function saveWorkouts() {
+      localStorage.setItem('workouts', JSON.stringify(workouts));
+    }
+
+    // Function to render workout list
+    function renderWorkouts() {
+      workoutList.innerHTML = '';
+      if (workouts.length === 0) {
+        workoutList.innerHTML = '<p>No workouts logged yet.</p>';
+        return;
+      }
+
+      workouts.forEach((w, i) => {
+        const div = document.createElement('div');
+        div.className = 'workout-item';
+
+        const dateStr = new Date(w.date).toLocaleDateString();
+
+        div.innerHTML = `
+          <h3>${w.type} - ${dateStr}</h3>
+          <div class="workout-meta">Exercise: ${w.exercise}</div>
+          <ul class="exercise-list">
+            <li><strong>Sets:</strong> ${w.sets}</li>
+            <li><strong>Reps:</strong> ${w.reps}</li>
+            <li><strong>Weight:</strong> ${w.weight} kg</li>
+          </ul>
+          <button aria-label="Delete workout ${i}" data-index="${i}" style="background:#ff4c4c; border:none; border-radius:4px; color:white; padding:0.3rem 0.6rem; cursor:pointer;">Delete</button>
+        `;
+        workoutList.appendChild(div);
+      });
+
+      // Add delete button event listeners
+      workoutList.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = e.target.getAttribute('data-index');
+          workouts.splice(index, 1);
+          saveWorkouts();
+          renderWorkouts();
+        });
+      });
+    }
+
+    // Handle form submit
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const workout = {
+        date: form.date.value,
+        type: form.type.value,
+        exercise: form.exercise.value.trim(),
+        sets: parseInt(form.sets.value),
+        reps: parseInt(form.reps.value),
+        weight: parseFloat(form.weight.value),
+      };
+
+      workouts.push(workout);
+      saveWorkouts();
+      renderWorkouts();
+
+      // Reset form except date for convenience
+      form.exercise.value = '';
+      form.sets.value = '3';
+      form.reps.value = '8';
+      form.weight.value = '0';
+    });
+
+    // Initial render
+    renderWorkouts();
+
+    // Register service worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').then(reg => {
+          console.log('Service Worker registered.', reg);
+        }).catch(err => {
+          console.log('Service Worker registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
 
