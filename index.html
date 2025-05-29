@@ -87,6 +87,13 @@
 </head>
 <body>
 
+<script>
+  // Auto-skip index.html if user already completed the intro
+  if (localStorage.getItem('hasSeenDietPage')) {
+    window.location.href = 'main.html';
+  }
+</script>
+
 <h1>Let's Get Started</h1>
 
 <form id="userForm">
@@ -134,11 +141,6 @@
 </form>
 
 <script>
-  // If already completed onboarding, skip to main
-  if (localStorage.getItem('hasCompletedOnboarding')) {
-    window.location.href = 'main.html';
-  }
-
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
   }
@@ -189,12 +191,13 @@
       weight = weight * 0.453592;
     }
 
-    // Save user data
     const userData = { sex, age, height, weight, currentBF, goalBF };
     localStorage.setItem('userData', JSON.stringify(userData));
-    localStorage.setItem('hasCompletedOnboarding', 'true');
 
-    // Redirect to main.html
+    // Set flag for first-time completion
+    localStorage.setItem('hasSeenDietPage', 'true');
+
+    // Redirect to main.html instead of diet.html
     window.location.href = 'main.html';
   });
 
