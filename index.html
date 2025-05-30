@@ -3,182 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#4CAF50" />
-  <title>75 Day Tracker</title>
+  <title>75 Day Habit Tracker</title>
   <style>
     body {
       font-family: sans-serif;
       margin: 0;
       padding: 1rem;
-      background: #f9f9f9;
-    }
-    header, footer {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    select {
-      font-size: 1rem;
-      padding: 0.5rem;
+      background: #f0f0f0;
     }
     #dayTitle {
       text-align: center;
       font-size: 1.5rem;
-      margin: 1rem 0;
+      margin-bottom: 1rem;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    select, button {
+      font-size: 1rem;
+      padding: 0.5rem;
     }
     ul {
       list-style: none;
       padding: 0;
     }
     li {
-      margin: 0.5rem 0;
-      display: flex;
-      align-items: center;
-      flex-direction: column;
+      background: #fff;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
     }
-    .habit-main {
-      width: 100%;
+    .habit-header {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
       gap: 0.5rem;
       cursor: pointer;
     }
     .habit-description {
-      width: 100%;
-      background: #e0e0e0;
-      padding: 0.5rem;
-      margin-left: 1.5rem;
-      border-radius: 5px;
+      margin-top: 0.3rem;
+      padding-left: 1.8rem;
+      font-size: 0.9rem;
+      color: #444;
       display: none;
     }
-    button {
-      font-size: 1rem;
+    .add-btn {
+      display: block;
       margin: 1rem auto;
       padding: 0.5rem 1rem;
-      display: block;
+      font-size: 1rem;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <header>
-      <select id="daySelector"></select>
-    </header>
 
-    <div id="dayTitle"></div>
+  <div id="dayTitle">Day 1 of 75</div>
 
-    <main id="checklistContainer"></main>
-
-    <footer>
-      <button id="prevDay">⬅️</button>
-      <button id="nextDay">➡️</button>
-    </footer>
+  <div id="controls">
+    <button id="prevDay">⬅️</button>
+    <select id="daySelect"></select>
+    <button id="nextDay">➡️</button>
   </div>
+
+  <ul id="habitList"></ul>
+
+  <button class="add-btn" id="addHabit">➕ Add Habit</button>
 
   <script>
     const TOTAL_DAYS = 75;
     let currentDay = 1;
 
-    function getDayData(day) {
-      const data = localStorage.getItem(`day-${day}`);
-      return data ? JSON.parse(data) : { habits: [] };
-    }
+    const dayTitle = document.getElementById("dayTitle");
+    const daySelect = document.getElementById("daySelect");
+    const habitList = document.getElementById("habitList");
 
-    function saveDayData(day, data) {
-      localStorage.setItem(`day-${day}`, JSON.stringify(data));
-    }
+    function loadDay(day) {
+      currentDay = day;
+      dayTitle.textContent = `Day ${day} of ${TOTAL_DAYS}`;
+      daySelect.value = day;
 
-    function initUI(totalDays, onDayChange) {
-      const selector = document.getElementById("daySelector");
-      for (let i = 1; i <= totalDays; i++) {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = `Day ${i}`;
-        selector.appendChild(opt);
-      }
-      selector.addEventListener("change", e => onDayChange(parseInt(e.target.value)));
-    }
+      habitList.innerHTML = "";
+      const habits = JSON.parse(localStorage.getItem(`day-${day}`)) || [];
 
-    function renderDay(day) {
-      const selector = document.getElementById("daySelector");
-      selector.value = day;
-      document.getElementById("dayTitle").textContent = `Day ${day} of ${TOTAL_DAYS}`;
-
-      const container = document.getElementById("checklistContainer");
-      const { habits } = getDayData(day);
-      container.innerHTML = "";
-
-      const ul = document.createElement("ul");
       habits.forEach((habit, i) => {
         const li = document.createElement("li");
 
-        const mainRow = document.createElement("div");
-        mainRow.className = "habit-main";
+        const header = document.createElement("div");
+        header.className = "habit-header";
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = habit.done;
         checkbox.addEventListener("change", () => {
           habit.done = checkbox.checked;
-          saveDayData(day, { habits });
+          saveHabits(habits);
         });
 
-        const nameSpan = document.createElement("span");
-        nameSpan.textContent = habit.name;
-        nameSpan.addEventListener("click", () => {
-          descDiv.style.display = descDiv.style.display === "none" ? "block" : "none";
+        const label = document.createElement("span");
+        label.textContent = habit.name;
+        label.addEventListener("click", () => {
+          desc.style.display = desc.style.display === "none" ? "block" : "none";
         });
 
-        const descDiv = document.createElement("div");
-        descDiv.className = "habit-description";
-        descDiv.textContent = habit.description;
-        descDiv.style.display = "none";
+        const desc = document.createElement("div");
+        desc.className = "habit-description";
+        desc.textContent = habit.description;
 
-        mainRow.appendChild(checkbox);
-        mainRow.appendChild(nameSpan);
-        li.appendChild(mainRow);
-        li.appendChild(descDiv);
-        ul.appendChild(li);
+        header.appendChild(checkbox);
+        header.appendChild(label);
+        li.appendChild(header);
+        li.appendChild(desc);
+        habitList.appendChild(li);
       });
-
-      const addButton = document.createElement("button");
-      addButton.textContent = "➕ Add Habit";
-      addButton.onclick = () => {
-        const name = prompt("Habit name?");
-        if (!name) return;
-        const description = prompt("Description?");
-        const newHabit = { name, description, done: false };
-        habits.push(newHabit);
-        saveDayData(day, { habits });
-        renderDay(day);
-      };
-
-      container.appendChild(ul);
-      container.appendChild(addButton);
     }
 
-    function updateDay(day) {
-      currentDay = day;
-      renderDay(currentDay);
+    function saveHabits(habits) {
+      localStorage.setItem(`day-${currentDay}`, JSON.stringify(habits));
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      initUI(TOTAL_DAYS, updateDay);
-      renderDay(currentDay);
+    function addHabit() {
+      const name = prompt("Habit name:");
+      if (!name) return;
+      const description = prompt("Description:");
+      const habits = JSON.parse(localStorage.getItem(`day-${currentDay}`)) || [];
+      habits.push({ name, description, done: false });
+      saveHabits(habits);
+      loadDay(currentDay);
+    }
+
+    function init() {
+      for (let i = 1; i <= TOTAL_DAYS; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `Day ${i}`;
+        daySelect.appendChild(opt);
+      }
+
+      daySelect.addEventListener("change", () => loadDay(Number(daySelect.value)));
 
       document.getElementById("prevDay").addEventListener("click", () => {
-        if (currentDay > 1) updateDay(currentDay - 1);
-      });
-      document.getElementById("nextDay").addEventListener("click", () => {
-        if (currentDay < TOTAL_DAYS) updateDay(currentDay + 1);
+        if (currentDay > 1) loadDay(currentDay - 1);
       });
 
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-      }
-    });
+      document.getElementById("nextDay").addEventListener("click", () => {
+        if (currentDay < TOTAL_DAYS) loadDay(currentDay + 1);
+      });
+
+      document.getElementById("addHabit").addEventListener("click", addHabit);
+
+      loadDay(1);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
   </script>
+
 </body>
 </html>
+
 
