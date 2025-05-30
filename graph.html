@@ -52,66 +52,108 @@
 
 <canvas id="progressChart" height="300"></canvas>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-  const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+  const firebaseConfig = {
+    apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
+    authDomain: "gym-app-4fff1.firebaseapp.com",
+    projectId: "gym-app-4fff1",
+    storageBucket: "gym-app-4fff1.appspot.com",
+    messagingSenderId: "1009678266608",
+    appId: "1:1009678266608:web:430ec88c296133a6b39235",
+    measurementId: "G-E0TDYJLMXH"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  const userId = "demoUser"; // replace with actual user ID if available
+  const dbRef = firebase.database().ref(`users/${userId}/days`);
+
   const select = document.getElementById('exerciseSelect');
   const ctx = document.getElementById('progressChart').getContext('2d');
   let chart;
 
-  const exerciseNames = [...new Set(logs.map(log => log.name))];
-  exerciseNames.forEach(name => {
-    const option = document.createElement('option');
-    option.value = name;
-    option.textContent = name;
-    select.appendChild(option);
-  });
+  dbRef.once('value')
+    .then(snapshot => {
+      const allDays = snapshot.val();
+      const logs = [];
 
-  select.addEventListener('change', () => {
-    const selected = select.value;
-    if (!selected) return;
+      // Aggregate all exercise logs with a 'date' field from each day
+      for (const dayKey in allDays) {
+        const exercises = allDays[dayKey];
+        exercises.forEach(ex => {
+          if (ex.weight != null) {
+            logs.push({
+              ...ex,
+              date: `Day ${dayKey}` // Or use actual date if stored
+            });
+          }
+        });
+      }
 
-    const data = logs
-      .filter(log => log.name === selected && log.weight != null)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Populate dropdown
+      const uniqueNames = [...new Set(logs.map(log => log.name))];
+      uniqueNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
 
-    const labels = data.map(log => log.date);
-    const weights = data.map(log => log.weight);
+      // Add event listener for chart drawing
+      select.addEventListener('change', () => {
+        const selected = select.value;
+        if (!selected) return;
 
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: `${selected} Weight`,
-          data: weights,
-          borderColor: '#007bff',
-          backgroundColor: 'rgba(0, 123, 255, 0.2)',
-          tension: 0.3,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: false,
-            title: {
-              display: true,
-              text: 'Weight'
-            }
+        const data = logs
+          .filter(log => log.name === selected && log.weight != null)
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        const labels = data.map(log => log.date);
+        const weights = data.map(log => log.weight);
+
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: `${selected} Weight`,
+              data: weights,
+              borderColor: '#007bff',
+              backgroundColor: 'rgba(0, 123, 255, 0.2)',
+              tension: 0.3,
+              fill: true
+            }]
           },
-          x: {
-            title: {
-              display: true,
-              text: 'Date'
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: false,
+                title: {
+                  display: true,
+                  text: 'Weight'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Workout Day'
+                }
+              }
             }
           }
-        }
-      }
+        });
+      });
+    })
+    .catch(error => {
+      console.error("Firebase fetch error:", error);
     });
-  });
 
   function goBack() {
     window.history.back();
@@ -120,3 +162,4 @@
 
 </body>
 </html>
+
