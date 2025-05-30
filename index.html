@@ -1,45 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Workout Tracker</title>
   <style>
     body {
       font-family: sans-serif;
-      margin: 2rem;
-      background: #f9f9f9;
-      color: #333;
+      background: #f5f5f5;
+      padding: 2rem;
     }
     .container {
       max-width: 600px;
       margin: auto;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input, button, select {
+    input, button {
       font-size: 1rem;
       padding: 0.5rem;
-      margin: 0.3rem;
-    }
-    .exercise {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.6rem;
-      background: #fff;
-      margin: 0.3rem 0;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .exercise-info {
-      flex: 1;
-    }
-    .sets-inputs {
-      display: flex;
-      flex-wrap: wrap;
+      margin: 0.3rem 0.3rem 0.3rem 0;
     }
     .sets-inputs input {
       width: 60px;
-      margin-right: 0.3rem;
+    }
+    .exercise {
+      background: #f0f0f0;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
     }
     .menu {
       position: relative;
@@ -57,164 +50,168 @@
       top: 100%;
       background: #fff;
       border: 1px solid #ccc;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       border-radius: 4px;
-    }
-    .menu-items button {
-      display: block;
-      width: 100%;
-      background: none;
-      border: none;
-      padding: 0.5rem;
-      text-align: left;
-      cursor: pointer;
     }
     .menu:hover .menu-items {
       display: block;
     }
+    .menu-items button {
+      padding: 0.5rem;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Workout Tracker</h2>
-    <label>Date: <input type="date" id="date" /></label><br/>
-    <label>Workout Name: <input type="text" id="workoutName" placeholder="Push Day, Leg Day..." /></label><br/>
-    <label>Exercise: <input type="text" id="exercise" /></label>
-    <label>Weight (kg): <input type="number" id="weight" /></label><br/>
-    <div class="sets-inputs" id="sets"></div>
-    <button id="addSet">+ Add Set</button>
-    <button id="saveExercise">Save Exercise</button>
+<div class="container">
+  <h2>Workout Tracker</h2>
+  <label>Date: <input type="date" id="date"></label><br>
+  <label>Workout Name: <input type="text" id="workoutName" placeholder="Push Day"></label><br>
+  <hr>
+  <h3>Add Exercise</h3>
+  <input type="text" id="exercise" placeholder="Exercise Name">
+  <input type="number" id="weight" placeholder="Weight (kg)">
+  <div class="sets-inputs" id="sets"></div>
+  <button id="addSet">+ Add Set</button>
+  <button id="saveExercise">Save Exercise</button>
+  <hr>
+  <button id="saveWorkout">💾 Save Workout</button>
+  <h3>Exercises</h3>
+  <div id="log"></div>
+</div>
+<script>
+  const dateEl = document.getElementById('date');
+  const workoutNameEl = document.getElementById('workoutName');
+  const exerciseEl = document.getElementById('exercise');
+  const weightEl = document.getElementById('weight');
+  const setsContainer = document.getElementById('sets');
+  const addSetBtn = document.getElementById('addSet');
+  const saveExerciseBtn = document.getElementById('saveExercise');
+  const saveWorkoutBtn = document.getElementById('saveWorkout');
+  const logEl = document.getElementById('log');
 
-    <h3>Logged Exercises</h3>
-    <div id="log"></div>
-  </div>
+  let sets = [""];
+  let editingIndex = -1;
 
-  <script>
-    const dateEl = document.getElementById('date');
-    const workoutNameEl = document.getElementById('workoutName');
-    const exerciseEl = document.getElementById('exercise');
-    const weightEl = document.getElementById('weight');
-    const setsContainer = document.getElementById('sets');
-    const logEl = document.getElementById('log');
-    const addSetBtn = document.getElementById('addSet');
-    const saveBtn = document.getElementById('saveExercise');
+  const getKey = () => `workout_${dateEl.value}`;
 
-    let sets = [""];
-    let editingIndex = -1;
+  const loadWorkout = () => {
+    const data = JSON.parse(localStorage.getItem(getKey())) || { name: '', exercises: [] };
+    workoutNameEl.value = data.name;
+    return data;
+  };
 
-    const getKey = () => `workout_${dateEl.value}`;
+  const saveWorkout = (data) => {
+    localStorage.setItem(getKey(), JSON.stringify(data));
+  };
 
-    const renderSets = () => {
-      setsContainer.innerHTML = '';
-      sets.forEach((val, idx) => {
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.value = val;
-        input.placeholder = `Set ${idx + 1}`;
-        input.oninput = () => {
-          sets[idx] = input.value;
-        };
-        setsContainer.appendChild(input);
-      });
-    };
+  const renderSets = () => {
+    setsContainer.innerHTML = '';
+    sets.forEach((val, idx) => {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.value = val;
+      input.placeholder = `Set ${idx + 1}`;
+      input.oninput = () => sets[idx] = input.value;
+      setsContainer.appendChild(input);
+    });
+  };
 
-    const renderLog = () => {
-      const data = JSON.parse(localStorage.getItem(getKey())) || { name: '', exercises: [] };
-      workoutNameEl.value = data.name;
-      logEl.innerHTML = '';
-      data.exercises.forEach((ex, i) => {
-        const div = document.createElement('div');
-        div.className = 'exercise';
-
-        const info = document.createElement('div');
-        info.className = 'exercise-info';
-        info.textContent = `${ex.name} - ${ex.weight}kg - ${ex.sets.join(' / ')}`;
-        div.appendChild(info);
-
-        const menu = document.createElement('div');
-        menu.className = 'menu';
-        const btn = document.createElement('button');
-        btn.textContent = '⋮';
-        btn.className = 'menu-btn';
-
-        const menuItems = document.createElement('div');
-        menuItems.className = 'menu-items';
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => {
-          exerciseEl.value = ex.name;
-          weightEl.value = ex.weight;
-          sets = [...ex.sets];
-          renderSets();
-          editingIndex = i;
-        };
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Delete';
-        delBtn.onclick = () => {
-          data.exercises.splice(i, 1);
-          localStorage.setItem(getKey(), JSON.stringify(data));
-          renderLog();
-        };
-        menuItems.append(editBtn, delBtn);
-        menu.append(btn, menuItems);
-        div.append(menu);
-
-        logEl.appendChild(div);
-      });
-    };
-
-    addSetBtn.onclick = () => {
-      if (sets.length < 5) {
-        sets.push("");
+  const renderLog = () => {
+    logEl.innerHTML = '';
+    const data = loadWorkout();
+    data.exercises.forEach((ex, i) => {
+      const div = document.createElement('div');
+      div.className = 'exercise';
+      const info = document.createElement('div');
+      info.textContent = `${ex.name} - ${ex.weight}kg - ${ex.sets.join(' / ')}`;
+      const menu = document.createElement('div');
+      menu.className = 'menu';
+      const btn = document.createElement('button');
+      btn.textContent = '⋮';
+      btn.className = 'menu-btn';
+      const menuItems = document.createElement('div');
+      menuItems.className = 'menu-items';
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => {
+        exerciseEl.value = ex.name;
+        weightEl.value = ex.weight;
+        sets = [...ex.sets];
+        editingIndex = i;
         renderSets();
-      }
-    };
+      };
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = () => {
+        data.exercises.splice(i, 1);
+        saveWorkout(data);
+        renderLog();
+      };
+      menuItems.append(editBtn, deleteBtn);
+      menu.append(btn, menuItems);
+      div.append(info, menu);
+      logEl.appendChild(div);
+    });
+  };
 
-    saveBtn.onclick = () => {
-      const name = exerciseEl.value.trim();
-      const weight = parseFloat(weightEl.value);
-      const workoutName = workoutNameEl.value.trim();
-      const filteredSets = sets.map(s => parseInt(s)).filter(n => !isNaN(n));
+  dateEl.addEventListener('change', () => {
+    sets = [""];
+    editingIndex = -1;
+    renderSets();
+    renderLog();
+  });
 
-      if (!dateEl.value || !name || isNaN(weight) || filteredSets.length === 0 || !workoutName) {
-        alert("Please fill in all fields correctly.");
+  addSetBtn.onclick = () => {
+    if (sets.length < 5) {
+      sets.push("");
+      renderSets();
+    }
+  };
+
+  saveExerciseBtn.onclick = () => {
+    const name = exerciseEl.value.trim();
+    const weight = parseFloat(weightEl.value);
+    const reps = sets.map(r => parseInt(r)).filter(x => !isNaN(x));
+
+    if (!dateEl.value || !name || isNaN(weight) || reps.length === 0) {
+      alert("Fill in all fields correctly.");
+      return;
+    }
+
+    const data = loadWorkout();
+    const newEx = { name, weight, sets: reps };
+    if (editingIndex > -1) {
+      data.exercises[editingIndex] = newEx;
+      editingIndex = -1;
+    } else {
+      if (data.exercises.length >= 10) {
+        alert("Max 10 exercises per workout.");
         return;
       }
-
-      const data = JSON.parse(localStorage.getItem(getKey())) || { name: workoutName, exercises: [] };
-      data.name = workoutName;
-
-      const newExercise = { name, weight, sets: filteredSets };
-      if (editingIndex > -1) {
-        data.exercises[editingIndex] = newExercise;
-        editingIndex = -1;
-      } else {
-        if (data.exercises.length >= 10) {
-          alert("Max 10 exercises per day.");
-          return;
-        }
-        data.exercises.push(newExercise);
-      }
-
-      localStorage.setItem(getKey(), JSON.stringify(data));
-      exerciseEl.value = '';
-      weightEl.value = '';
-      sets = [""];
-      renderSets();
-      renderLog();
-    };
-
-    dateEl.addEventListener('change', () => {
-      sets = [""];
-      exerciseEl.value = '';
-      weightEl.value = '';
-      editingIndex = -1;
-      renderSets();
-      renderLog();
-    });
-
+      data.exercises.push(newEx);
+    }
+    saveWorkout(data);
+    exerciseEl.value = '';
+    weightEl.value = '';
+    sets = [""];
     renderSets();
-  </script>
+    renderLog();
+  };
+
+  saveWorkoutBtn.onclick = () => {
+    const data = loadWorkout();
+    data.name = workoutNameEl.value.trim();
+    saveWorkout(data);
+    alert("Workout saved successfully!");
+  };
+
+  // Init
+  sets = [""];
+  renderSets();
+</script>
 </body>
 </html>
-
