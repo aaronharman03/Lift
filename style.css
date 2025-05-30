@@ -1,1 +1,9 @@
+body {
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+#workout-days {
+  margin-top: 20px;
+}
 
