@@ -1,181 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0d0d0d" />
-  <title>Weekly Schedule</title>
-  <link rel="manifest" href="manifest.json" />
-  <style>
-    :root {
-      --bg: #0d0d0d;
-      --card: #1a1a1a;
-      --accent: #00c6ff;
-      --text: #f0f0f0;
-      --muted: #888;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: var(--card);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-
-    header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    main {
-      flex: 1;
-      padding: 1rem;
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .task {
-      background: var(--card);
-      margin: 0.5rem 0;
-      padding: 1rem;
-      border-radius: 12px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .task.done {
-      opacity: 0.6;
-      text-decoration: line-through;
-    }
-
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 0.4rem 0.7rem;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background: #009fd4;
-    }
-
-    form input,
-    form textarea {
-      width: 100%;
-      margin: 0.4rem 0;
-      padding: 0.6rem;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 1rem;
-    }
-
-    form {
-      margin-top: 1rem;
-    }
-
-    #modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.7);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #modalContent {
-      background: var(--card);
-      padding: 2rem;
-      border-radius: 12px;
-      max-width: 400px;
-      width: 90%;
-      text-align: left;
-    }
-
-    #modal h3 {
-      margin-top: 0;
-    }
-
-    #modal button {
-      margin-top: 1rem;
-      width: 100%;
-    }
-
-    .check-btn {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 1.2rem;
-      cursor: pointer;
-    }
-
-    .menu-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 1.2rem;
-      cursor: pointer;
-    }
-
-    .menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 1.8rem;
-      background: var(--card);
-      border: 1px solid #333;
-      border-radius: 8px;
-      z-index: 10;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-
-    .menu button {
-      display: block;
-      width: 100%;
-      background: none;
-      border: none;
-      color: var(--text);
-      padding: 0.5rem 1rem;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .menu button:hover {
-      background: #222;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0d0d0d" />
+<title>Weekly Schedule</title>
+<link rel="manifest" href="manifest.json" />
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --card: #1a1a1a;
+    --accent: #00c6ff;
+    --text: #f0f0f0;
+    --muted: #888;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--card);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+  header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  main {
+    flex: 1;
+    padding: 1rem;
+  }
+  .page {
+    display: none;
+  }
+  .page.active {
+    display: block;
+  }
+  .task {
+    background: var(--card);
+    margin: 0.5rem 0;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .task.done {
+    opacity: 0.6;
+    text-decoration: line-through;
+  }
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  button:hover {
+    background: #009fd4;
+  }
+  form input,
+  form textarea {
+    width: 100%;
+    margin: 0.4rem 0;
+    padding: 0.6rem;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  form {
+    margin-top: 1rem;
+  }
+  #modal,
+  #editModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  #modalContent,
+  #editModalContent {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    text-align: left;
+  }
+  #modal h3 {
+    margin-top: 0;
+  }
+  #modal button,
+  #editModal button {
+    margin-top: 1rem;
+    width: 100%;
+  }
+  .check-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  .menu-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  .menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 1.8rem;
+    background: var(--card);
+    border: 1px solid #333;
+    border-radius: 8px;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  }
+  .menu button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .menu button:hover {
+    background: #222;
+  }
+</style>
 </head>
 <body>
 
@@ -187,6 +166,7 @@
 
 <main id="pages"></main>
 
+<!-- View Task Details Modal -->
 <div id="modal">
   <div id="modalContent">
     <h3 id="modalTitle"></h3>
@@ -196,11 +176,41 @@
   </div>
 </div>
 
+<!-- Edit Task Modal -->
+<div id="editModal">
+  <div id="editModalContent">
+    <h3>Edit Task</h3>
+    <form id="editForm" onsubmit="saveEdit(event)">
+      <label>
+        Time:<br/>
+        <input type="time" name="time" id="editTime" />
+      </label>
+      <label>
+        Name:<br/>
+        <input type="text" name="name" id="editName" required />
+      </label>
+      <label>
+        Description:<br/>
+        <textarea name="desc" id="editDesc"></textarea>
+      </label>
+      <label id="dateLabel" style="display:none;">
+        Date:<br/>
+        <input type="date" name="date" id="editDate" />
+      </label>
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeEditModal()" style="margin-top:0.5rem; background:#444;">Cancel</button>
+    </form>
+  </div>
+</div>
+
 <script>
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
   if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
+
+  let editIndex = null; // task index being edited
+  let editPage = null;  // page index for editing
 
   function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -208,6 +218,7 @@
 
   function createPages() {
     const main = document.getElementById('pages');
+    main.innerHTML = '';
     pageNames.forEach((day, i) => {
       const page = document.createElement('div');
       page.className = 'page';
@@ -252,7 +263,7 @@
             <div style="position: relative;">
               <button class="menu-btn" onclick="toggleMenu(event, ${i}, ${idx})">⋮</button>
               <div class="menu" id="menu-${i}-${idx}">
-                <button onclick="editTask(${i}, ${idx})">Edit</button>
+                <button onclick="openEditModal(${i}, ${idx})">Edit</button>
                 <button onclick="deleteTask(${i}, ${idx})">Delete</button>
               </div>
             </div>
@@ -308,9 +319,11 @@
   }
 
   function deleteTask(i, idx) {
-    tasks[i].splice(idx, 1);
-    saveTasks();
-    render();
+    if(confirm("Delete this task?")) {
+      tasks[i].splice(idx, 1);
+      saveTasks();
+      render();
+    }
   }
 
   function toggleDone(i, idx) {
@@ -319,17 +332,53 @@
     render();
   }
 
-  function editTask(i, idx) {
+  // OPEN EDIT MODAL
+  function openEditModal(i, idx) {
+    closeAllMenus();
+    editPage = i;
+    editIndex = idx;
     const task = tasks[i][idx];
-    const name = prompt("Edit name:", task.name);
-    if (name !== null) task.name = name;
-    const desc = prompt("Edit description:", task.desc);
-    if (desc !== null) task.desc = desc;
-    if (i === 7) {
-      const date = prompt("Edit date:", task.date);
-      if (date !== null) task.date = date;
+    document.getElementById('editTime').value = task.time || '';
+    document.getElementById('editName').value = task.name || '';
+    document.getElementById('editDesc').value = task.desc || '';
+    if(i === 7) {
+      document.getElementById('dateLabel').style.display = 'block';
+      document.getElementById('editDate').value = task.date || '';
+    } else {
+      document.getElementById('dateLabel').style.display = 'none';
+      document.getElementById('editDate').value = '';
     }
+    document.getElementById('editModal').style.display = 'flex';
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    editPage = null;
+    editIndex = null;
+  }
+
+  function saveEdit(e) {
+    e.preventDefault();
+    if(editPage === null || editIndex === null) return;
+
+    const task = tasks[editPage][editIndex];
+    const time = document.getElementById('editTime').value;
+    const name = document.getElementById('editName').value.trim();
+    const desc = document.getElementById('editDesc').value.trim();
+    const date = document.getElementById('editDate').value;
+
+    if(!name) {
+      alert('Task name cannot be empty');
+      return;
+    }
+
+    task.time = time;
+    task.name = name;
+    task.desc = desc;
+    if(editPage === 7) task.date = date;
+
     saveTasks();
+    closeEditModal();
     render();
   }
 
@@ -347,17 +396,12 @@
     createPages();
     render();
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(() => console.log('✅ Service Worker registered'))
-        .catch(err => console.error('❌ SW failed', err));
+    if (!localStorage.getItem('tasks')) {
+      saveTasks();
     }
   });
 </script>
-
 </body>
 </html>
-
-
 
 
