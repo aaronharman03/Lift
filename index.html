@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Modern Workout Tracker</title>
+  <title>Workout Tracker — Modern Layout</title>
   <style>
-    /* Reset & base */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f5f7fa;
@@ -35,7 +34,7 @@
       transition: border-color 0.3s ease;
       outline-offset: 2px;
       outline-color: transparent;
-      width: 100%;
+      box-sizing: border-box;
     }
     input[type="date"]:focus,
     input[type="text"]:focus,
@@ -51,17 +50,44 @@
       box-shadow: 0 8px 15px rgb(42 127 255 / 0.12);
       margin-bottom: 30px;
     }
-    /* Exercise input row */
-    .exercise-input-row {
-      display: grid;
-      grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr;
-      gap: 12px;
-      align-items: center;
+    /* Row with exercise name and weight */
+    .exercise-top-row {
+      display: flex;
+      gap: 16px;
       margin-bottom: 16px;
     }
-    .exercise-input-row input {
-      width: 100%;
-      box-sizing: border-box;
+    .exercise-top-row input {
+      flex-grow: 1;
+    }
+    .exercise-top-row input#weight {
+      flex-grow: 0;
+      width: 100px;
+    }
+    /* Sets container */
+    .sets-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .sets-row input[type="number"] {
+      width: 60px;
+    }
+    button#addSetBtn {
+      background: #2a7fff;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      height: 38px;
+    }
+    button#addSetBtn:hover {
+      background-color: #1b5fd3;
     }
     /* Save button */
     button#saveExerciseBtn {
@@ -105,14 +131,14 @@
       border-radius: 10px;
       padding: 14px 16px;
       margin-bottom: 10px;
+      user-select: text;
+      position: relative;
+      transition: box-shadow 0.2s ease;
+      font-size: 1rem;
       display: grid;
       grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 40px;
       align-items: center;
       gap: 10px;
-      font-size: 1rem;
-      user-select: text;
-      position: relative;
-      transition: box-shadow 0.2s ease;
     }
     .exercise-item:hover {
       box-shadow: 0 0 15px rgba(42, 127, 255, 0.15);
@@ -180,9 +206,18 @@
     }
     /* Responsive */
     @media (max-width: 480px) {
-      .exercise-input-row, .exercise-item {
+      .exercise-item {
         grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 40px;
         font-size: 0.9rem;
+      }
+      .exercise-top-row {
+        flex-direction: column;
+      }
+      .exercise-top-row input#weight {
+        width: 100%;
+      }
+      .sets-row {
+        justify-content: start;
       }
     }
   </style>
@@ -194,47 +229,68 @@
     <label for="dateInput">Select Date</label>
     <input type="date" id="dateInput" />
 
-    <div class="exercise-input-row" style="margin-top: 16px;">
+    <div class="exercise-top-row" style="margin-top: 16px;">
       <input type="text" id="exerciseName" placeholder="Exercise name" />
       <input type="number" id="weight" placeholder="Weight" min="0" step="0.1" />
-      <input type="number" id="set1" placeholder="Set 1" min="0" />
-      <input type="number" id="set2" placeholder="Set 2" min="0" />
-      <input type="number" id="set3" placeholder="Set 3" min="0" />
     </div>
 
-    <button id="saveExerciseBtn" disabled>Save Exercise</button>
+    <div class="sets-row" id="setsRow">
+      <!-- Set inputs inserted here -->
+    </div>
+
+    <button id="addSetBtn">Add Set</button>
+
+    <button id="saveExerciseBtn" disabled style="margin-top: 20px;">Save Exercise</button>
   </div>
 
   <div class="workout-list" id="workoutList"></div>
 
 <script>
-  // Elements
   const dateInput = document.getElementById('dateInput');
   const exerciseName = document.getElementById('exerciseName');
   const weight = document.getElementById('weight');
-  const setInputs = [
-    document.getElementById('set1'),
-    document.getElementById('set2'),
-    document.getElementById('set3')
-  ];
+  const setsRow = document.getElementById('setsRow');
+  const addSetBtn = document.getElementById('addSetBtn');
   const saveBtn = document.getElementById('saveExerciseBtn');
   const workoutList = document.getElementById('workoutList');
 
-  // State
   let workouts = JSON.parse(localStorage.getItem('workouts')) || {};
   let editing = null; // { date, index }
 
-  // Helpers
+  // Start with 3 sets
+  let setsCount = 3;
+
+  function createSetInput(index, val = '') {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.placeholder = `Set ${index + 1}`;
+    input.value = val;
+    input.style.width = '60px';
+    input.addEventListener('input', validateForm);
+    return input;
+  }
+
+  // Render sets inputs dynamically
+  function renderSetsInputs(values = []) {
+    setsRow.innerHTML = '';
+    for (let i = 0; i < setsCount; i++) {
+      setsRow.appendChild(createSetInput(i, values[i] || ''));
+    }
+  }
+
+  // Validate form inputs
   function isPositiveNumber(val) {
     return !isNaN(val) && Number(val) > 0;
   }
 
-  // Enable save button only if valid inputs
   function validateForm() {
     const validDate = dateInput.value !== '';
     const validExercise = exerciseName.value.trim().length > 0;
     const validWeight = isPositiveNumber(weight.value);
-    const validSets = setInputs.some(input => isPositiveNumber(input.value));
+    // Get all sets inputs
+    const setInputs = setsRow.querySelectorAll('input[type="number"]');
+    const validSets = Array.from(setInputs).some(input => isPositiveNumber(input.value));
     saveBtn.disabled = !(validDate && validExercise && validWeight && validSets);
   }
 
@@ -242,7 +298,8 @@
   function resetForm() {
     exerciseName.value = '';
     weight.value = '';
-    setInputs.forEach(input => input.value = '');
+    setsCount = 3;
+    renderSetsInputs();
     editing = null;
     saveBtn.textContent = 'Save Exercise';
     validateForm();
@@ -287,7 +344,7 @@
         exDiv.appendChild(weightDiv);
 
         // Sets
-        for (let s = 0; s < 3; s++) {
+        for (let s = 0; s < Math.max(3, ex.sets.length); s++) {
           const setDiv = document.createElement('div');
           setDiv.textContent = ex.sets[s] > 0 ? ex.sets[s] : '';
           exDiv.appendChild(setDiv);
@@ -354,9 +411,8 @@
     dateInput.value = date;
     exerciseName.value = ex.name;
     weight.value = ex.weight;
-    for (let i = 0; i < 3; i++) {
-      setInputs[i].value = ex.sets[i] || '';
-    }
+    setsCount = ex.sets.length >= 3 ? ex.sets.length : 3;
+    renderSetsInputs(ex.sets);
     editing = { date, index };
     saveBtn.textContent = 'Update Exercise';
     validateForm();
@@ -367,20 +423,25 @@
   saveBtn.onclick = () => {
     const name = exerciseName.value.trim();
     const w = parseFloat(weight.value);
-    const sets = setInputs.map(input => parseInt(input.value) || 0);
+    const setInputs = setsRow.querySelectorAll('input[type="number"]');
+    const sets = Array.from(setInputs).map(input => parseInt(input.value) || 0);
     const dateVal = dateInput.value;
 
     if (!dateVal || !name || !(w > 0) || sets.every(s => s === 0)) {
-      alert('Please fill in valid exercise data.');
+      alert('Please fill in all fields with valid values.');
       return;
     }
 
-    if (!workouts[dateVal]) {
-      workouts[dateVal] = [];
-    }
+    if (!workouts[dateVal]) workouts[dateVal] = [];
 
     if (editing) {
       workouts[editing.date][editing.index] = { name, weight: w, sets };
+      // If date changed, move entry to new date
+      if (editing.date !== dateVal) {
+        workouts[dateVal].push(workouts[editing.date][editing.index]);
+        workouts[editing.date].splice(editing.index, 1);
+        if (workouts[editing.date].length === 0) delete workouts[editing.date];
+      }
       editing = null;
       saveBtn.textContent = 'Save Exercise';
     } else {
@@ -392,15 +453,22 @@
     resetForm();
   };
 
-  // Close menus on outside click
-  window.addEventListener('click', closeAllMenus);
+  addSetBtn.onclick = () => {
+    setsCount++;
+    renderSetsInputs();
+    validateForm();
+  };
 
-  // Validate on input change
-  [dateInput, exerciseName, weight, ...setInputs].forEach(input => {
-    input.addEventListener('input', validateForm);
-  });
+  // Close menus if clicked outside
+  document.body.addEventListener('click', closeAllMenus);
+
+  // Enable validation on inputs
+  dateInput.addEventListener('change', validateForm);
+  exerciseName.addEventListener('input', validateForm);
+  weight.addEventListener('input', validateForm);
 
   // Initial render
+  renderSetsInputs();
   renderWorkouts();
   validateForm();
 </script>
