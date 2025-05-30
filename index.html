@@ -1,89 +1,211 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Workout Tracker Minimal</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; }
-    #days { margin-top: 1rem; }
-    .day { padding: 8px; border: 1px solid #ccc; margin-bottom: 6px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workout Days</title>
+<style>
+  body {
+    font-family: sans-serif;
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 0 16px;
+    background: #f9f9f9;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .day-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .day-label {
+    font-size: 16px;
+    flex-grow: 1;
+    text-decoration: none;
+    color: black;
+    word-break: break-word;
+  }
+  .day-label[contenteditable="true"] {
+    background: #eef5ff;
+    outline: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .menu-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 8px;
+  }
+  .menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 4px 0;
+    z-index: 10;
+    min-width: 120px;
+  }
+  .menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .menu button:hover {
+    background: #f0f0f0;
+  }
+  #addDayBtn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  #addDayBtn:hover {
+    background-color: #0056b3;
+  }
+</style>
 </head>
 <body>
-  <h1>Workout Tracker</h1>
-  <button id="add-day">+ Add Workout Day</button>
-  <div id="days"></div>
+<h1>Workout Days</h1>
+<div id="daysList"></div>
+<button id="addDayBtn">+ Add Day</button>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import {
-      getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion
-    } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+<script>
+  const storageKey = 'workout_days';
+  let days = JSON.parse(localStorage.getItem(storageKey)) || [
+    { id: 1, name: 'Day 1' },
+    { id: 2, name: 'Day 2' },
+    { id: 3, name: 'Day 3' },
+  ];
 
-    // Replace these with your Firebase project config:
-    const firebaseConfig = {
-       apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  projectId: "gym-app-4fff1",
-    };
+  const daysList = document.getElementById('daysList');
+  const addDayBtn = document.getElementById('addDayBtn');
+  let openMenu = null;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const userId = 'demo-user';
-    const userDocRef = doc(db, 'users', userId);
+  function saveDays() {
+    localStorage.setItem(storageKey, JSON.stringify(days));
+  }
 
-    async function initUserDoc() {
-      const docSnap = await getDoc(userDocRef);
-      if (!docSnap.exists()) {
-        await setDoc(userDocRef, { days: [] });
-      }
-    }
+  function renderDays() {
+    daysList.innerHTML = '';
+    days.forEach((day, index) => {
+      const row = document.createElement('div');
+      row.className = 'day-row';
 
-    async function getDays() {
-      const docSnap = await getDoc(userDocRef);
-      if (!docSnap.exists()) return [];
-      const data = docSnap.data();
-      return data.days || [];
-    }
+      const label = document.createElement('a');
+      label.className = 'day-label';
+      label.textContent = day.name;
+      label.href = `day.html?day=${day.id}`;
 
-    async function addWorkoutDay() {
-      const newDay = {
-        id: Date.now().toString(),
-        name: 'New Workout Day',
-        exercises: []
+      const menuBtn = document.createElement('button');
+      menuBtn.className = 'menu-btn';
+      menuBtn.innerHTML = '⋮';
+
+      const menu = document.createElement('div');
+      menu.className = 'menu';
+      menu.style.display = 'none';
+
+      const rename = document.createElement('button');
+      rename.textContent = 'Rename';
+      rename.onclick = () => {
+        label.contentEditable = true;
+        label.focus();
+        closeMenu();
       };
 
-      // Use arrayUnion to add newDay
-      await updateDoc(userDocRef, {
-        days: arrayUnion(newDay)
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = () => {
+        if (confirm(`Delete "${day.name}"?`)) {
+          days.splice(index, 1);
+          saveDays();
+          renderDays();
+        }
+      };
+
+      menu.appendChild(rename);
+      menu.appendChild(del);
+      document.body.appendChild(menu);
+
+      menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleMenu(menu, menuBtn);
+      };
+
+      label.addEventListener('blur', () => {
+        label.contentEditable = false;
+        const newName = label.textContent.trim();
+        if (newName) {
+          day.name = newName;
+          saveDays();
+        } else {
+          label.textContent = day.name;
+        }
       });
 
-      renderDays();
-    }
-
-    async function renderDays() {
-      const days = await getDays();
-      const container = document.getElementById('days');
-      container.innerHTML = '';
-      days.forEach(day => {
-        const div = document.createElement('div');
-        div.className = 'day';
-        div.textContent = day.name;
-        container.appendChild(div);
+      label.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          label.blur();
+        }
       });
-    }
 
-    document.getElementById('add-day').addEventListener('click', () => {
-      addWorkoutDay().catch(console.error);
+      row.appendChild(label);
+      row.appendChild(menuBtn);
+      daysList.appendChild(row);
     });
+  }
 
-    // Initialize & render on page load
-    initUserDoc().then(renderDays).catch(console.error);
+  function toggleMenu(menu, btn) {
+    closeMenu();
+    const rect = btn.getBoundingClientRect();
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const scrollX = window.scrollX || document.documentElement.scrollLeft;
 
-  </script>
+    menu.style.top = (rect.bottom + scrollY + 4) + 'px';
+    menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
+    menu.style.display = 'block';
+    openMenu = menu;
+  }
+
+  function closeMenu() {
+    if (openMenu) openMenu.style.display = 'none';
+    openMenu = null;
+  }
+
+  addDayBtn.onclick = () => {
+    const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
+    days.push({ id: nextId, name: `Day ${nextId}` });
+    saveDays();
+    renderDays();
+  };
+
+  window.addEventListener('click', closeMenu);
+  renderDays();
+</script>
 </body>
 </html>
-
-
 
