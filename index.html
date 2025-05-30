@@ -26,6 +26,7 @@
     padding: 12px 14px;
     margin-bottom: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    position: relative;
   }
   .day-label {
     font-size: 16px;
@@ -93,33 +94,52 @@
 <div id="daysList"></div>
 <button id="addDayBtn">+ Add Day</button>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
 <script>
-  const storageKey = 'workout_days';
-  let workoutDays = [];
+  // Your Firebase config — replace these with your real values
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DATABASE_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-firebase.database().ref(`users/${userId}/workoutDays`).once('value', snapshot => {
-  const data = snapshot.val();
-  if (data) {
-    workoutDays = data;
-    renderDays(); // Re-render the list with Firebase data
-  }
-});
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-    { id: 1, name: 'Day 1' },
-    { id: 2, name: 'Day 2' },
-    { id: 3, name: 'Day 3' },
-  ];
+  // Temporary user ID for demo/testing
+  const userId = 'defaultUser';
 
   const daysList = document.getElementById('daysList');
   const addDayBtn = document.getElementById('addDayBtn');
-  let openMenu = null;
 
-  function saveDays() {
-    localStorage.setItem(storageKey, JSON.stringify(days));
-    firebase.database().ref(`users/${userId}/workoutDays`).set(workoutDays);
+  // Workout days array — will load from Firebase or start empty
+  let days = [];
 
+  // Load days from Firebase on page load
+  function loadDays() {
+    firebase.database().ref(`users/${userId}/workoutDays`).once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        days = data;
+      } else {
+        days = [];
+      }
+      renderDays();
+    });
   }
 
+  // Save days to Firebase
+  function saveDays() {
+    firebase.database().ref(`users/${userId}/workoutDays`).set(days);
+  }
+
+  // Render the days list in the UI
   function renderDays() {
     daysList.innerHTML = '';
     days.forEach((day, index) => {
@@ -131,25 +151,29 @@ firebase.database().ref(`users/${userId}/workoutDays`).once('value', snapshot =>
       label.textContent = day.name;
       label.href = `day.html?day=${day.id}`;
 
+      // Menu button
       const menuBtn = document.createElement('button');
       menuBtn.className = 'menu-btn';
-      menuBtn.innerHTML = '⋮';
+      menuBtn.textContent = '⋮';
 
+      // Menu container
       const menu = document.createElement('div');
       menu.className = 'menu';
       menu.style.display = 'none';
 
-      const rename = document.createElement('button');
-      rename.textContent = 'Rename';
-      rename.onclick = () => {
+      // Rename button
+      const renameBtn = document.createElement('button');
+      renameBtn.textContent = 'Rename';
+      renameBtn.onclick = () => {
         label.contentEditable = true;
         label.focus();
         closeMenu();
       };
 
-      const del = document.createElement('button');
-      del.textContent = 'Delete';
-      del.onclick = () => {
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = () => {
         if (confirm(`Delete "${day.name}"?`)) {
           days.splice(index, 1);
           saveDays();
@@ -157,23 +181,28 @@ firebase.database().ref(`users/${userId}/workoutDays`).once('value', snapshot =>
         }
       };
 
-      menu.appendChild(rename);
-      menu.appendChild(del);
-      document.body.appendChild(menu);
+      menu.appendChild(renameBtn);
+      menu.appendChild(deleteBtn);
 
+      // Append menu to the row (position: absolute inside row)
+      row.appendChild(menu);
+
+      // Show/hide menu on button click
       menuBtn.onclick = (e) => {
         e.stopPropagation();
         toggleMenu(menu, menuBtn);
       };
 
+      // Handle label editing finish
       label.addEventListener('blur', () => {
+        if (!label.isContentEditable) return;
         label.contentEditable = false;
         const newName = label.textContent.trim();
         if (newName) {
           day.name = newName;
           saveDays();
         } else {
-          label.textContent = day.name;
+          label.textContent = day.name; // revert if empty
         }
       });
 
@@ -190,23 +219,34 @@ firebase.database().ref(`users/${userId}/workoutDays`).once('value', snapshot =>
     });
   }
 
+  let openMenu = null;
+
+  // Show the context menu positioned under the button
   function toggleMenu(menu, btn) {
-    closeMenu();
+    if (openMenu && openMenu !== menu) {
+      openMenu.style.display = 'none';
+    }
+    if (menu.style.display === 'block') {
+      menu.style.display = 'none';
+      openMenu = null;
+      return;
+    }
     const rect = btn.getBoundingClientRect();
     const scrollY = window.scrollY || document.documentElement.scrollTop;
     const scrollX = window.scrollX || document.documentElement.scrollLeft;
-
     menu.style.top = (rect.bottom + scrollY + 4) + 'px';
     menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
     menu.style.display = 'block';
     openMenu = menu;
   }
 
+  // Close any open menu
   function closeMenu() {
     if (openMenu) openMenu.style.display = 'none';
     openMenu = null;
   }
 
+  // Add new day button click
   addDayBtn.onclick = () => {
     const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
     days.push({ id: nextId, name: `Day ${nextId}` });
@@ -214,28 +254,11 @@ firebase.database().ref(`users/${userId}/workoutDays`).once('value', snapshot =>
     renderDays();
   };
 
+  // Close menu when clicking outside
   window.addEventListener('click', closeMenu);
-  renderDays();
-</script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-
-  // Temporary user ID for testing:
-  const userId = 'defaultUser';
+  // Initial load
+  loadDays();
 </script>
 
 </body>
