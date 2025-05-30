@@ -50,12 +50,18 @@
       color: #444;
       display: none;
     }
-    .add-btn {
+    .add-form {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-top: 1rem;
+    }
+    .add-form input, .add-form textarea, .add-form button {
       display: block;
-      margin: 1rem auto;
-      padding: 0.5rem 1rem;
+      width: 100%;
       font-size: 1rem;
-      cursor: pointer;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
     }
   </style>
 </head>
@@ -71,7 +77,11 @@
 
   <ul id="habitList"></ul>
 
-  <button class="add-btn" id="addHabit">➕ Add Habit</button>
+  <div class="add-form">
+    <input type="text" id="habitName" placeholder="Habit name" />
+    <textarea id="habitDesc" placeholder="Description (optional)"></textarea>
+    <button id="addHabit">➕ Add Habit</button>
+  </div>
 
   <script>
     const TOTAL_DAYS = 75;
@@ -80,14 +90,24 @@
     const dayTitle = document.getElementById("dayTitle");
     const daySelect = document.getElementById("daySelect");
     const habitList = document.getElementById("habitList");
+    const habitName = document.getElementById("habitName");
+    const habitDesc = document.getElementById("habitDesc");
+
+    function getHabits() {
+      return JSON.parse(localStorage.getItem(`day-${currentDay}`)) || [];
+    }
+
+    function saveHabits(habits) {
+      localStorage.setItem(`day-${currentDay}`, JSON.stringify(habits));
+    }
 
     function loadDay(day) {
       currentDay = day;
       dayTitle.textContent = `Day ${day} of ${TOTAL_DAYS}`;
       daySelect.value = day;
-
       habitList.innerHTML = "";
-      const habits = JSON.parse(localStorage.getItem(`day-${day}`)) || [];
+
+      const habits = getHabits();
 
       habits.forEach((habit, i) => {
         const li = document.createElement("li");
@@ -112,6 +132,7 @@
         const desc = document.createElement("div");
         desc.className = "habit-description";
         desc.textContent = habit.description;
+        desc.style.display = "none";
 
         header.appendChild(checkbox);
         header.appendChild(label);
@@ -119,17 +140,17 @@
         li.appendChild(desc);
         habitList.appendChild(li);
       });
-    }
 
-    function saveHabits(habits) {
-      localStorage.setItem(`day-${currentDay}`, JSON.stringify(habits));
+      habitName.value = "";
+      habitDesc.value = "";
     }
 
     function addHabit() {
-      const name = prompt("Habit name:");
+      const name = habitName.value.trim();
+      const description = habitDesc.value.trim();
       if (!name) return;
-      const description = prompt("Description:");
-      const habits = JSON.parse(localStorage.getItem(`day-${currentDay}`)) || [];
+
+      const habits = getHabits();
       habits.push({ name, description, done: false });
       saveHabits(habits);
       loadDay(currentDay);
@@ -144,15 +165,12 @@
       }
 
       daySelect.addEventListener("change", () => loadDay(Number(daySelect.value)));
-
       document.getElementById("prevDay").addEventListener("click", () => {
         if (currentDay > 1) loadDay(currentDay - 1);
       });
-
       document.getElementById("nextDay").addEventListener("click", () => {
         if (currentDay < TOTAL_DAYS) loadDay(currentDay + 1);
       });
-
       document.getElementById("addHabit").addEventListener("click", addHabit);
 
       loadDay(1);
@@ -163,5 +181,4 @@
 
 </body>
 </html>
-
 
