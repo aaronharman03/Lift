@@ -1,213 +1,125 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Workout Planner</title>
+  <title>Workout Tracker</title>
   <style>
     body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      height: 100vh;
-      background: #fafafa;
-      color: #222;
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
     }
-    #sidebar {
-      width: 220px;
-      background: #fff;
-      border-right: 1px solid #ddd;
-      overflow-y: auto;
-      padding: 1rem;
-    }
-    #sidebar h2 {
-      margin-top: 0;
-      font-size: 1.2rem;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 0.5rem;
-    }
-    #workoutList {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #workoutList li {
-      padding: 0.4rem 0.6rem;
-      cursor: pointer;
-      border-radius: 4px;
-      user-select: none;
-    }
-    #workoutList li:hover {
-      background: #eee;
-    }
-    #workoutList li.active {
-      background: #007bff;
-      color: white;
-      font-weight: 600;
-    }
-    #main {
-      flex: 1;
-      padding: 1rem 2rem;
-      overflow-y: auto;
-    }
-    .exercise-row {
-      display: flex;
-      gap: 0.6rem;
-      align-items: center;
-      margin-bottom: 0.6rem;
-    }
-    .exercise-row input {
-      width: auto;
-      flex-shrink: 0;
-      padding: 0.3rem 0.4rem;
-      font-size: 0.9rem;
-    }
-    .exercise-row input.name {
-      flex-grow: 1;
-      width: 120px;
-    }
-    .sets input {
-      width: 40px;
-      text-align: center;
-      border-radius: 3px;
+    h1, h2 {
+      margin-bottom: 10px;
     }
     button {
-      padding: 0.5rem 1rem;
-      background: #007bff;
-      border: none;
-      color: white;
-      border-radius: 4px;
+      padding: 8px 12px;
+      margin: 5px 0;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 1rem;
     }
-    .remove-btn {
-      background: #dc3545;
-      font-weight: bold;
-      padding: 0 0.5rem;
-      cursor: pointer;
-      border-radius: 4px;
-      border: none;
-      color: white;
-      user-select: none;
+    .workout-button, .exercise {
+      display: block;
+      margin: 6px 0;
     }
-    .remove-btn:hover {
-      background: #b02a37;
+    .hidden {
+      display: none;
+    }
+    input, textarea {
+      padding: 5px;
+      width: 100%;
+      margin: 5px 0 10px;
     }
   </style>
 </head>
 <body>
-  <div id="sidebar">
-    <h2>My Workouts</h2>
-    <ul id="workoutList"></ul>
-    <button onclick="createWorkout()">+ New Workout</button>
-  </div>
-  <div id="main">
-    <h2 id="workoutTitle">Select a workout</h2>
-    <div id="exerciseContainer"></div>
-    <button onclick="addExercise()">+ Add Exercise</button>
-    <button onclick="saveWorkout()">Save</button>
+
+  <h1>Workout Tracker</h1>
+  <button id="addWorkoutBtn">Add Workout</button>
+  <div id="workoutList"></div>
+
+  <div id="workoutDetail" class="hidden">
+    <h2 id="workoutTitle"></h2>
+    <button id="addExerciseBtn">Add Exercise</button>
+    <div id="exerciseList"></div>
+    <button onclick="goBack()">Back</button>
   </div>
 
   <script>
-    let workouts = JSON.parse(localStorage.getItem('weeklyWorkouts')) || {};
-    let currentWorkout = null;
+    const addWorkoutBtn = document.getElementById("addWorkoutBtn");
+    const workoutList = document.getElementById("workoutList");
+    const workoutDetail = document.getElementById("workoutDetail");
+    const workoutTitle = document.getElementById("workoutTitle");
+    const addExerciseBtn = document.getElementById("addExerciseBtn");
+    const exerciseList = document.getElementById("exerciseList");
 
-    const workoutListEl = document.getElementById('workoutList');
-    const workoutTitleEl = document.getElementById('workoutTitle');
-    const exerciseContainer = document.getElementById('exerciseContainer');
+    let workouts = [];
 
-    function renderWorkoutList() {
-      workoutListEl.innerHTML = '';
-      Object.keys(workouts).forEach(name => {
-        const li = document.createElement('li');
-        li.textContent = name;
-        li.className = name === currentWorkout ? 'active' : '';
-        li.onclick = () => selectWorkout(name);
-        workoutListEl.appendChild(li);
+    addWorkoutBtn.addEventListener("click", () => {
+      const name = prompt("Name this workout:");
+      if (!name) return;
+      const workout = { name, exercises: [] };
+      workouts.push(workout);
+      renderWorkoutButtons();
+    });
+
+    function renderWorkoutButtons() {
+      workoutList.innerHTML = "";
+      workouts.forEach((workout, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = workout.name;
+        btn.className = "workout-button";
+        btn.onclick = () => openWorkout(index);
+        workoutList.appendChild(btn);
       });
     }
 
-    function selectWorkout(name) {
-      currentWorkout = name;
-      workoutTitleEl.textContent = name;
-      renderWorkoutList();
+    let currentWorkoutIndex = null;
+
+    function openWorkout(index) {
+      currentWorkoutIndex = index;
+      workoutTitle.textContent = workouts[index].name;
+      workoutList.style.display = "none";
+      addWorkoutBtn.style.display = "none";
+      workoutDetail.classList.remove("hidden");
       renderExercises();
     }
 
-    function createWorkout() {
-      const name = prompt("Workout name (e.g. Push, Pull, Legs):");
+    addExerciseBtn.addEventListener("click", () => {
+      const name = prompt("Exercise name:");
       if (!name) return;
-      if (!workouts[name]) workouts[name] = [];
-      currentWorkout = name;
-      saveData();
-      renderWorkoutList();
+      const weight = prompt("Weight (kg):");
+      const reps = prompt("Reps (comma-separated, e.g. 6,8,6):");
+      if (!weight || !reps) return;
+
+      const exercise = {
+        name,
+        weight,
+        reps: reps.split(",").map(r => r.trim())
+      };
+
+      workouts[currentWorkoutIndex].exercises.push(exercise);
       renderExercises();
-    }
+    });
 
     function renderExercises() {
-      exerciseContainer.innerHTML = '';
-      const exercises = workouts[currentWorkout] || [];
-      exercises.forEach((ex, idx) => {
-        const row = document.createElement('div');
-        row.className = 'exercise-row';
-
-        const nameInput = document.createElement('input');
-        nameInput.className = 'name';
-        nameInput.placeholder = 'Exercise';
-        nameInput.value = ex.name || '';
-        nameInput.oninput = e => ex.name = e.target.value;
-
-        const weightInput = document.createElement('input');
-        weightInput.type = 'number';
-        weightInput.placeholder = 'Weight';
-        weightInput.value = ex.weight || '';
-        weightInput.oninput = e => ex.weight = e.target.value;
-
-        const setsDiv = document.createElement('div');
-        setsDiv.className = 'sets';
-        ex.sets = ex.sets || ['', '', ''];
-        ex.sets.forEach((val, sidx) => {
-          const setInput = document.createElement('input');
-          setInput.type = 'number';
-          setInput.placeholder = 'Reps';
-          setInput.value = val;
-          setInput.oninput = e => ex.sets[sidx] = e.target.value;
-          setsDiv.appendChild(setInput);
-        });
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = '×';
-        delBtn.className = 'remove-btn';
-        delBtn.onclick = () => {
-          workouts[currentWorkout].splice(idx, 1);
-          renderExercises();
-        };
-
-        row.appendChild(nameInput);
-        row.appendChild(weightInput);
-        row.appendChild(setsDiv);
-        row.appendChild(delBtn);
-        exerciseContainer.appendChild(row);
+      exerciseList.innerHTML = "";
+      const exercises = workouts[currentWorkoutIndex].exercises;
+      exercises.forEach(ex => {
+        const div = document.createElement("div");
+        div.className = "exercise";
+        div.textContent = `${ex.name} - ${ex.weight}kg - ${ex.reps.join(" / ")} reps`;
+        exerciseList.appendChild(div);
       });
     }
 
-    function addExercise() {
-      if (!currentWorkout) return alert('Select a workout first');
-      workouts[currentWorkout].push({ name: '', weight: '', sets: ['', '', ''] });
-      renderExercises();
+    function goBack() {
+      workoutDetail.classList.add("hidden");
+      workoutList.style.display = "";
+      addWorkoutBtn.style.display = "";
     }
-
-    function saveWorkout() {
-      saveData();
-      alert('Workout saved!');
-    }
-
-    function saveData() {
-      localStorage.setItem('weeklyWorkouts', JSON.stringify(workouts));
-    }
-
-    renderWorkoutList();
   </script>
+
 </body>
 </html>
+
