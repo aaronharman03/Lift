@@ -221,39 +221,15 @@
       <button type="button" id="cancelBtn">Cancel</button>
     </div>
     <button type="button" id="deleteBtn" style="display:none;">Delete</button>
-
   </form>
 </div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-  // Your Firebase configuration here (replace with your own config)
-  const firebaseConfig = {
-   apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-
-  // Assuming you have user authentication and userId available, 
-  // if not, for demo, set a static userId here:
-  const userId = "demoUser"; // Replace with real user ID from auth if you have
-
-  // Parse day param
   const params = new URLSearchParams(location.search);
   const day = params.get('day') || '1';
-
   document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
 
+  const storageKey = `workout_day_${day}`;
   const exercisesListEl = document.getElementById('exercisesList');
 
   const modal = document.getElementById('modal');
@@ -272,30 +248,12 @@
   const deleteBtn = document.getElementById('deleteBtn');
   const modalTitle = document.getElementById('modalTitle');
 
-  let exercises = [];
+  let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
   let editingIndex = null;
   let currentWeightUnit = 'kg';
 
-  // Load exercises from Firebase on page load
-  firebase.database().ref(`users/${userId}/days/${day}`).once('value').then(snapshot => {
-    const data = snapshot.val();
-    if (data) {
-      exercises = data;
-    } else {
-      exercises = [];
-    }
-    renderExercises();
-  }).catch(err => {
-    console.error("Firebase load error:", err);
-  });
-
   function saveExercises() {
-    // Save locally for backup or offline (optional)
-    localStorage.setItem(`workout_day_${day}`, JSON.stringify(exercises));
-
-    // Save to Firebase
-    firebase.database().ref(`users/${userId}/days/${day}`).set(exercises)
-      .catch(err => console.error("Firebase save error:", err));
+    localStorage.setItem(storageKey, JSON.stringify(exercises));
   }
 
   function renderExercises() {
@@ -360,7 +318,7 @@
     showModal();
   }
 
-  function generateRepsInputs(num, existingReps = []) {
+  function generateRepsInputs(num, existingReps=[]) {
     repsInputsDiv.innerHTML = '';
     for (let i = 0; i < num; i++) {
       const input = document.createElement('input');
@@ -374,12 +332,94 @@
     }
   }
 
+  function showModal() {
+    modal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+    exerciseNameInput.focus();
+  }
+  function hideModal() {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  }
+
+  addExerciseBtn.addEventListener('click', openModalForAdd);
+
+  cancelBtn.addEventListener('click', e => {
+    e.preventDefault();
+    hideModal();
+  });
+
+  modalOverlay.addEventListener('click', hideModal);
+
   numSetsSelect.addEventListener('change', () => {
-    const sets = parseInt(numSetsSelect.value);
-    if (sets > 0 && sets <= 5) {
-      generateRepsInputs(sets);
+    const num = parseInt(numSetsSelect.value, 10);
+    if (!isNaN(num)) {
+      generateRepsInputs(num);
     } else {
       repsInputsDiv.innerHTML = '';
+    }
+  });
+
+  exerciseForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const name = exerciseNameInput.value.trim();
+    const weight = weightInput.value.trim();
+    const weightVal = weight === '' ? 0 : parseFloat(weight);
+    const weightUnit = currentWeightUnit;
+    const numSets = parseInt(numSetsSelect.value, 10);
+
+    if (!name || isNaN(numSets) || numSets <= 0) {
+      alert('Please enter all required fields.');
+      return;
+    }
+
+    const reps = [];
+    const inputs = repsInputsDiv.querySelectorAll('input');
+    for (const input of inputs) {
+      const val = input.value.trim();
+      if (val === '' || isNaN(parseInt(val, 10))) {
+        alert('Please enter valid reps for all sets.');
+        return;
+      }
+      reps.push(parseInt(val, 10));
+    }
+    const exerciseData = {
+  name,
+  weight: weightVal,
+  weightUnit: currentWeightUnit,
+  reps
+};
+
+if (editingIndex !== null) {
+  exercises[editingIndex] = exerciseData;
+} else {
+  exercises.push(exerciseData);
+}
+
+saveExercises();
+
+// ✅ Add to global exercise log for graphs
+const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+logs.push({
+  name: exerciseData.name,
+  weight: exerciseData.weight,
+  weightUnit: exerciseData.weightUnit || 'kg',
+  reps: exerciseData.reps || [],
+  date: new Date().toISOString().split('T')[0]
+});
+localStorage.setItem('exercise_logs', JSON.stringify(logs));
+
+renderExercises();
+    hideModal();
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    if (editingIndex !== null && confirm('Delete this exercise?')) {
+      exercises.splice(editingIndex, 1);
+      saveExercises();
+      renderExercises();
+      hideModal();
     }
   });
 
@@ -388,103 +428,18 @@
     weightUnitBtn.textContent = currentWeightUnit;
   });
 
-  exerciseForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const name = exerciseNameInput.value.trim();
-    if (!name) {
-      alert('Please enter an exercise name.');
-      return;
-    }
-
-    const weightVal = weightInput.value.trim();
-    const weight = weightVal === '' ? null : parseFloat(weightVal);
-    if (weight !== null && isNaN(weight)) {
-      alert('Weight must be a number or left blank.');
-      return;
-    }
-
-    const sets = parseInt(numSetsSelect.value);
-    if (!(sets >= 1 && sets <= 5)) {
-      alert('Please select number of sets.');
-      return;
-    }
-
-    const repsInputs = repsInputsDiv.querySelectorAll('input');
-    const reps = [];
-    for (const input of repsInputs) {
-      const val = input.value.trim();
-      if (!val) {
-        alert('Please fill all reps fields.');
-        return;
-      }
-      const repNum = parseInt(val);
-      if (isNaN(repNum) || repNum < 0) {
-        alert('Reps must be a non-negative number.');
-        return;
-      }
-      reps.push(repNum);
-    }
-
-    const exerciseData = {
-      name,
-      weight,
-      weightUnit: currentWeightUnit,
-      reps
-    };
-
-    if (editingIndex !== null) {
-      exercises[editingIndex] = exerciseData;
-    } else {
-      exercises.push(exerciseData);
-    }
-
-    saveExercises();
-    renderExercises();
-    closeModal();
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    closeModal();
-  });
-
-  deleteBtn.addEventListener('click', () => {
-    if (editingIndex !== null && confirm('Delete this exercise?')) {
-      exercises.splice(editingIndex, 1);
-      saveExercises();
-      renderExercises();
-      closeModal();
-    }
-  });
-
-  addExerciseBtn.addEventListener('click', openModalForAdd);
-
-  modalOverlay.addEventListener('click', closeModal);
-
-  function showModal() {
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
-    exerciseNameInput.focus();
-  }
-
-  function closeModal() {
-    modal.style.display = 'none';
-    modalOverlay.style.display = 'none';
-  }
-
-  // Back button handler
   function goBack() {
-    window.location.href = 'index.html'; // assuming index.html is your days list
+    location.href = 'index.html'; // Change this path if your main page has a different name or folder
   }
 
-  // View graph button handler - for demo, alert or you can implement later
   viewGraphBtn.addEventListener('click', () => {
-    alert('Progress graph feature is not implemented yet.');
+    // Go to graph page for this day (make sure this page exists)
+    location.href = `graph.html?day=${day}`;
   });
 
+  // Initial render
+  renderExercises();
 </script>
-
 </body>
 </html>
-
 
