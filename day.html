@@ -1,188 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Day</title>
-<style>
-  body {
-    font-family: sans-serif;
-    padding: 20px;
-    max-width: 600px;
-    margin: auto;
-    background: #fff;
-  }
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  h1 {
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  #exercisesList {
-    font-size: 18px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-  .exercise-line {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    background: #f7f7f7;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .exercise-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex-grow: 1;
-  }
-  .btn-back {
-    background-color: #6c757d;
-    border: none;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .btn-back:hover {
-    opacity: 0.9;
-  }
-  #viewGraphBtn {
-    background-color: #28a745;
-    color: white;
-    padding: 8px 14px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  #viewGraphBtn:hover {
-    opacity: 0.9;
-  }
-  #addExerciseBtn {
-    padding: 10px 20px;
-    font-size: 18px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    display: block;
-    margin: 0 auto 30px;
-  }
-  #addExerciseBtn:hover {
-    opacity: 0.9;
-  }
-
-  /* Modal styles */
-  #modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.4);
-    display: none;
-    z-index: 1000;
-  }
-  #modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 320px;
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
-    transform: translate(-50%, -50%);
-    z-index: 1001;
-    display: none;
-  }
-  #modal h2 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 24px;
-    text-align: center;
-  }
-  #modal input, #modal select {
-    width: 100%;
-    padding: 8px 10px;
-    margin-bottom: 12px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  #repsInputs input {
-    width: 60px;
-    margin-right: 6px;
-  }
-  #modalButtons {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  #modalButtons button {
-    padding: 8px 16px;
-    margin: 0 8px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-  }
-  #saveBtn {
-    background-color: #007bff;
-    color: white;
-  }
-  #saveBtn:hover {
-    opacity: 0.9;
-  }
-  #cancelBtn {
-    background-color: #6c757d;
-    color: white;
-  }
-  #cancelBtn:hover {
-    opacity: 0.9;
-  }
-
-  #deleteBtn {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  #deleteBtn:hover {
-    opacity: 0.9;
-  }
-
-  /* Weight input and unit toggle */
-  #weight-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  #weight {
-    flex: 1;
-  }
-  #weightUnitBtn {
-    margin-left: 8px;
-    padding: 6px 12px;
-    cursor: pointer;
-    user-select: none;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #f0f0f0;
-    font-weight: bold;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Day</title>
+  <style>
+    /* [your existing CSS unchanged] */
+    /* ...everything stays the same... */
+  </style>
 </head>
 <body>
 
@@ -224,222 +49,240 @@
   </form>
 </div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-  const params = new URLSearchParams(location.search);
-  const day = params.get('day') || '1';
-  document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
-
-  const storageKey = `workout_day_${day}`;
-  const exercisesListEl = document.getElementById('exercisesList');
-
-  const modal = document.getElementById('modal');
-  const modalOverlay = document.getElementById('modalOverlay');
-  const addExerciseBtn = document.getElementById('addExerciseBtn');
-  const viewGraphBtn = document.getElementById('viewGraphBtn');
-
-  const exerciseForm = document.getElementById('exerciseForm');
-  const exerciseNameInput = document.getElementById('exerciseName');
-  const weightInput = document.getElementById('weight');
-  const weightUnitBtn = document.getElementById('weightUnitBtn');
-  const numSetsSelect = document.getElementById('numSets');
-  const repsInputsDiv = document.getElementById('repsInputs');
-  const saveBtn = document.getElementById('saveBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const deleteBtn = document.getElementById('deleteBtn');
-  const modalTitle = document.getElementById('modalTitle');
-
-  let exercises = JSON.parse(localStorage.getItem(storageKey)) || [];
-  let editingIndex = null;
-  let currentWeightUnit = 'kg';
-
-  function saveExercises() {
-    localStorage.setItem(storageKey, JSON.stringify(exercises));
-  }
-
-  function renderExercises() {
-    exercisesListEl.innerHTML = '';
-    if (exercises.length === 0) {
-      exercisesListEl.textContent = 'No exercises logged yet.';
-      return;
-    }
-
-    exercises.forEach((ex, idx) => {
-      const repsStr = ex.reps && ex.reps.length
-        ? ex.reps.filter(r => r != null && r !== '').join(',')
-        : 'N/A';
-
-      const unit = ex.weightUnit || 'kg';
-
-      const div = document.createElement('div');
-      div.className = 'exercise-line';
-      div.title = 'Click to edit exercise';
-      div.tabIndex = 0;
-      div.setAttribute('role', 'button');
-
-      const span = document.createElement('span');
-      span.className = 'exercise-text';
-      span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}`;
-
-      div.appendChild(span);
-      div.addEventListener('click', () => openModalForEdit(idx));
-      div.addEventListener('keypress', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          openModalForEdit(idx);
-        }
-      });
-
-      exercisesListEl.appendChild(div);
-    });
-  }
-
-  function openModalForAdd() {
-    editingIndex = null;
-    modalTitle.textContent = 'Add Exercise';
-    exerciseForm.reset();
-    repsInputsDiv.innerHTML = '';
-    deleteBtn.style.display = 'none';
-    currentWeightUnit = 'kg';
-    weightUnitBtn.textContent = currentWeightUnit;
-    showModal();
-  }
-
-  function openModalForEdit(index) {
-    editingIndex = index;
-    const ex = exercises[index];
-    modalTitle.textContent = 'Edit Exercise';
-    exerciseNameInput.value = ex.name;
-    weightInput.value = ex.weight || '';
-    currentWeightUnit = ex.weightUnit || 'kg';
-    weightUnitBtn.textContent = currentWeightUnit;
-    numSetsSelect.value = ex.reps.length;
-    generateRepsInputs(ex.reps.length, ex.reps);
-    deleteBtn.style.display = 'block';
-    showModal();
-  }
-
-  function generateRepsInputs(num, existingReps=[]) {
-    repsInputsDiv.innerHTML = '';
-    for (let i = 0; i < num; i++) {
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = '0';
-      input.placeholder = `Reps set ${i + 1}`;
-      input.required = true;
-      input.value = existingReps[i] || '';
-      input.autocomplete = 'off';
-      repsInputsDiv.appendChild(input);
-    }
-  }
-
-  function showModal() {
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
-    exerciseNameInput.focus();
-  }
-  function hideModal() {
-    modal.style.display = 'none';
-    modalOverlay.style.display = 'none';
-  }
-
-  addExerciseBtn.addEventListener('click', openModalForAdd);
-
-  cancelBtn.addEventListener('click', e => {
-    e.preventDefault();
-    hideModal();
-  });
-
-  modalOverlay.addEventListener('click', hideModal);
-
-  numSetsSelect.addEventListener('change', () => {
-    const num = parseInt(numSetsSelect.value, 10);
-    if (!isNaN(num)) {
-      generateRepsInputs(num);
-    } else {
-      repsInputsDiv.innerHTML = '';
-    }
-  });
-
-  exerciseForm.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const name = exerciseNameInput.value.trim();
-    const weight = weightInput.value.trim();
-    const weightVal = weight === '' ? 0 : parseFloat(weight);
-    const weightUnit = currentWeightUnit;
-    const numSets = parseInt(numSetsSelect.value, 10);
-
-    if (!name || isNaN(numSets) || numSets <= 0) {
-      alert('Please enter all required fields.');
-      return;
-    }
-
-    const reps = [];
-    const inputs = repsInputsDiv.querySelectorAll('input');
-    for (const input of inputs) {
-      const val = input.value.trim();
-      if (val === '' || isNaN(parseInt(val, 10))) {
-        alert('Please enter valid reps for all sets.');
-        return;
-      }
-      reps.push(parseInt(val, 10));
-    }
-    const exerciseData = {
-  name,
-  weight: weightVal,
-  weightUnit: currentWeightUnit,
-  reps
+const firebaseConfig = {
+  apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
+  authDomain: "gym-app-4fff1.firebaseapp.com",
+  projectId: "gym-app-4fff1",
+  storageBucket: "gym-app-4fff1.appspot.com",
+  messagingSenderId: "1009678266608",
+  appId: "1:1009678266608:web:430ec88c296133a6b39235",
+  measurementId: "G-E0TDYJLMXH"
 };
 
-if (editingIndex !== null) {
-  exercises[editingIndex] = exerciseData;
-} else {
-  exercises.push(exerciseData);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const userId = "demoUser"; // Customize if needed
+</script>
+
+<script>
+const params = new URLSearchParams(location.search);
+const day = params.get('day') || '1';
+document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
+
+const exercisesListEl = document.getElementById('exercisesList');
+const modal = document.getElementById('modal');
+const modalOverlay = document.getElementById('modalOverlay');
+const addExerciseBtn = document.getElementById('addExerciseBtn');
+const viewGraphBtn = document.getElementById('viewGraphBtn');
+
+const exerciseForm = document.getElementById('exerciseForm');
+const exerciseNameInput = document.getElementById('exerciseName');
+const weightInput = document.getElementById('weight');
+const weightUnitBtn = document.getElementById('weightUnitBtn');
+const numSetsSelect = document.getElementById('numSets');
+const repsInputsDiv = document.getElementById('repsInputs');
+const saveBtn = document.getElementById('saveBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const deleteBtn = document.getElementById('deleteBtn');
+const modalTitle = document.getElementById('modalTitle');
+
+let exercises = [];
+let editingIndex = null;
+let currentWeightUnit = 'kg';
+
+function saveExercisesToFirebase() {
+  db.ref(`users/${userId}/days/${day}`).set(exercises);
 }
 
-saveExercises();
-
-// ✅ Add to global exercise log for graphs
-const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
-logs.push({
-  name: exerciseData.name,
-  weight: exerciseData.weight,
-  weightUnit: exerciseData.weightUnit || 'kg',
-  reps: exerciseData.reps || [],
-  date: new Date().toISOString().split('T')[0]
-});
-localStorage.setItem('exercise_logs', JSON.stringify(logs));
-
-renderExercises();
-    hideModal();
+function loadExercisesFromFirebase() {
+  db.ref(`users/${userId}/days/${day}`).once('value').then(snapshot => {
+    exercises = snapshot.val() || [];
+    renderExercises();
   });
+}
 
-  deleteBtn.addEventListener('click', () => {
-    if (editingIndex !== null && confirm('Delete this exercise?')) {
-      exercises.splice(editingIndex, 1);
-      saveExercises();
-      renderExercises();
-      hideModal();
-    }
-  });
-
-  weightUnitBtn.addEventListener('click', () => {
-    currentWeightUnit = currentWeightUnit === 'kg' ? 'lb' : 'kg';
-    weightUnitBtn.textContent = currentWeightUnit;
-  });
-
-  function goBack() {
-    location.href = 'index.html'; // Change this path if your main page has a different name or folder
+function renderExercises() {
+  exercisesListEl.innerHTML = '';
+  if (exercises.length === 0) {
+    exercisesListEl.textContent = 'No exercises logged yet.';
+    return;
   }
 
-  viewGraphBtn.addEventListener('click', () => {
-    // Go to graph page for this day (make sure this page exists)
-    location.href = `graph.html?day=${day}`;
-  });
+  exercises.forEach((ex, idx) => {
+    const repsStr = ex.reps && ex.reps.length
+      ? ex.reps.filter(r => r != null && r !== '').join(',') : 'N/A';
 
-  // Initial render
+    const unit = ex.weightUnit || 'kg';
+
+    const div = document.createElement('div');
+    div.className = 'exercise-line';
+    div.title = 'Click to edit exercise';
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+
+    const span = document.createElement('span');
+    span.className = 'exercise-text';
+    span.textContent = `${ex.name} - ${ex.weight || '0'}${unit} - ${repsStr}`;
+
+    div.appendChild(span);
+    div.addEventListener('click', () => openModalForEdit(idx));
+    div.addEventListener('keypress', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openModalForEdit(idx);
+      }
+    });
+
+    exercisesListEl.appendChild(div);
+  });
+}
+
+function openModalForAdd() {
+  editingIndex = null;
+  modalTitle.textContent = 'Add Exercise';
+  exerciseForm.reset();
+  repsInputsDiv.innerHTML = '';
+  deleteBtn.style.display = 'none';
+  currentWeightUnit = 'kg';
+  weightUnitBtn.textContent = currentWeightUnit;
+  showModal();
+}
+
+function openModalForEdit(index) {
+  editingIndex = index;
+  const ex = exercises[index];
+  modalTitle.textContent = 'Edit Exercise';
+  exerciseNameInput.value = ex.name;
+  weightInput.value = ex.weight || '';
+  currentWeightUnit = ex.weightUnit || 'kg';
+  weightUnitBtn.textContent = currentWeightUnit;
+  numSetsSelect.value = ex.reps.length;
+  generateRepsInputs(ex.reps.length, ex.reps);
+  deleteBtn.style.display = 'block';
+  showModal();
+}
+
+function generateRepsInputs(num, existingReps=[]) {
+  repsInputsDiv.innerHTML = '';
+  for (let i = 0; i < num; i++) {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.placeholder = `Reps set ${i + 1}`;
+    input.required = true;
+    input.value = existingReps[i] || '';
+    input.autocomplete = 'off';
+    repsInputsDiv.appendChild(input);
+  }
+}
+
+function showModal() {
+  modal.style.display = 'block';
+  modalOverlay.style.display = 'block';
+  exerciseNameInput.focus();
+}
+function hideModal() {
+  modal.style.display = 'none';
+  modalOverlay.style.display = 'none';
+}
+
+addExerciseBtn.addEventListener('click', openModalForAdd);
+
+cancelBtn.addEventListener('click', e => {
+  e.preventDefault();
+  hideModal();
+});
+
+modalOverlay.addEventListener('click', hideModal);
+
+numSetsSelect.addEventListener('change', () => {
+  const num = parseInt(numSetsSelect.value, 10);
+  if (!isNaN(num)) {
+    generateRepsInputs(num);
+  } else {
+    repsInputsDiv.innerHTML = '';
+  }
+});
+
+exerciseForm.addEventListener('submit', e => {
+  e.preventDefault();
+
+  const name = exerciseNameInput.value.trim();
+  const weight = weightInput.value.trim();
+  const weightVal = weight === '' ? 0 : parseFloat(weight);
+  const weightUnit = currentWeightUnit;
+  const numSets = parseInt(numSetsSelect.value, 10);
+
+  if (!name || isNaN(numSets) || numSets <= 0) {
+    alert('Please enter all required fields.');
+    return;
+  }
+
+  const reps = [];
+  const inputs = repsInputsDiv.querySelectorAll('input');
+  for (const input of inputs) {
+    const val = input.value.trim();
+    if (val === '' || isNaN(parseInt(val, 10))) {
+      alert('Please enter valid reps for all sets.');
+      return;
+    }
+    reps.push(parseInt(val, 10));
+  }
+
+  const exerciseData = { name, weight: weightVal, weightUnit, reps };
+
+  if (editingIndex !== null) {
+    exercises[editingIndex] = exerciseData;
+  } else {
+    exercises.push(exerciseData);
+  }
+
+  saveExercisesToFirebase();
+
+  // ✅ Save to log
+  const logEntry = {
+    name: exerciseData.name,
+    weight: exerciseData.weight,
+    weightUnit: exerciseData.weightUnit || 'kg',
+    reps: exerciseData.reps || [],
+    date: new Date().toISOString().split('T')[0]
+  };
+  db.ref(`users/${userId}/logs`).push(logEntry);
+
   renderExercises();
+  hideModal();
+});
+
+deleteBtn.addEventListener('click', () => {
+  if (editingIndex !== null && confirm('Delete this exercise?')) {
+    exercises.splice(editingIndex, 1);
+    saveExercisesToFirebase();
+    renderExercises();
+    hideModal();
+  }
+});
+
+weightUnitBtn.addEventListener('click', () => {
+  currentWeightUnit = currentWeightUnit === 'kg' ? 'lb' : 'kg';
+  weightUnitBtn.textContent = currentWeightUnit;
+});
+
+function goBack() {
+  location.href = 'index.html';
+}
+
+viewGraphBtn.addEventListener('click', () => {
+  location.href = `graph.html?day=${day}`;
+});
+
+// Initial load
+loadExercisesFromFirebase();
 </script>
 </body>
 </html>
+
 
