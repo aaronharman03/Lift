@@ -2,16 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <title>Task Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
     h2 { margin-top: 2rem; }
     ul { list-style: none; padding-left: 0; }
     li { margin: 0.5rem 0; display: flex; align-items: center; justify-content: space-between; }
     label { flex: 1; cursor: pointer; }
-    input[type="text"] { padding: 0.5rem; margin: 0.5rem 0; width: 70%; }
-    button { padding: 0.5rem; margin-left: 0.5rem; }
+    input[type="text"] {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      width: 70%;
+      font-size: 16px; /* prevents zoom on mobile */
+    }
+    button {
+      padding: 0.5rem;
+      margin-left: 0.5rem;
+      font-size: 16px;
+    }
     form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .progress { margin-top: 1rem; font-weight: bold; }
   </style>
@@ -39,6 +50,7 @@
 </div>
 
 <script>
+  // Task logic
   const todayListEl = document.getElementById('today-list');
   const futureListEl = document.getElementById('future-list');
   const todayForm = document.getElementById('today-form');
@@ -138,6 +150,13 @@
   });
 
   renderAll();
+
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+      console.log('Service Worker registered');
+    }).catch(console.error);
+  }
 </script>
 
 </body>
