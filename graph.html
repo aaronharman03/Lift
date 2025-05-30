@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Progress Graph</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      background: #fdfdfd;
+    }
+    h1 {
+      text-align: center;
+    }
+    #exerciseSelect {
+      font-size: 16px;
+      margin: 20px auto;
+      display: block;
+      padding: 8px;
+    }
+    canvas {
+      margin-top: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn-back {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .btn-back:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+<button class="btn-back" onclick="goBack()">← Back</button>
+<h1>Exercise Progress</h1>
+
+<select id="exerciseSelect">
+  <option value="">Select Exercise</option>
+</select>
+
+<canvas id="progressChart" height="300"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+  const select = document.getElementById('exerciseSelect');
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  let chart;
+
+  const exerciseNames = [...new Set(logs.map(log => log.name))];
+  exerciseNames.forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+
+  select.addEventListener('change', () => {
+    const selected = select.value;
+    if (!selected) return;
+
+    const data = logs
+      .filter(log => log.name === selected && log.weight != null)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const labels = data.map(log => log.date);
+    const weights = data.map(log => log.weight);
+
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: `${selected} Weight`,
+          data: weights,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Weight'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          }
+        }
+      }
+    });
+  });
+
+  function goBack() {
+    window.history.back();
+  }
+</script>
+
+</body>
+</html
