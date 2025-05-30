@@ -226,7 +226,16 @@
 </div>
 
 <script>
-  let exerciseGoals = JSON.parse(localStorage.getItem('exerciseGoals')) || {};
+  let exercises = [];
+
+firebase.database().ref(`users/${userId}/days/${day}`).once('value', snapshot => {
+  const data = snapshot.val();
+  if (data) {
+    exercises = data;
+    renderExercises(); // Re-render list from Firebase
+  }
+});
+
 function saveGoals() {
   localStorage.setItem('exerciseGoals', JSON.stringify(exerciseGoals));
 }
@@ -415,6 +424,8 @@ logs.push({
   date: new Date().toISOString().split('T')[0]
 });
 localStorage.setItem('exercise_logs', JSON.stringify(logs));
+firebase.database().ref(`users/${userId}/days/${day}`).set(exercises);
+
 
 renderExercises();
     hideModal();
