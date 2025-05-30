@@ -22,6 +22,11 @@
       font-size: 1rem;
       padding: 0.5rem;
     }
+    #dayTitle {
+      text-align: center;
+      font-size: 1.5rem;
+      margin: 1rem 0;
+    }
     ul {
       list-style: none;
       padding: 0;
@@ -54,6 +59,8 @@
       <select id="daySelector"></select>
     </header>
 
+    <div id="dayTitle"></div>
+
     <main id="checklistContainer"></main>
 
     <footer>
@@ -66,13 +73,23 @@
     const TOTAL_DAYS = 75;
     let currentDay = 1;
 
+    function getDefaultTasks() {
+      return [
+        { text: "Workout", done: false },
+        { text: "Read 10 pages", done: false },
+        { text: "Drink 1 gallon of water", done: false },
+      ];
+    }
+
     function getDayData(day) {
-      const data = localStorage.getItem(\`day-\${day}\`);
-      return data ? JSON.parse(data) : { tasks: [], notes: "" };
+      const data = localStorage.getItem(`day-${day}`);
+      return data
+        ? JSON.parse(data)
+        : { tasks: getDefaultTasks(), notes: "" };
     }
 
     function saveDayData(day, data) {
-      localStorage.setItem(\`day-\${day}\`, JSON.stringify(data));
+      localStorage.setItem(`day-${day}`, JSON.stringify(data));
     }
 
     function initUI(totalDays, onDayChange) {
@@ -80,7 +97,7 @@
       for (let i = 1; i <= totalDays; i++) {
         const opt = document.createElement("option");
         opt.value = i;
-        opt.textContent = \`Day \${i}\`;
+        opt.textContent = `Day ${i}`;
         selector.appendChild(opt);
       }
 
@@ -92,6 +109,9 @@
     function renderDay(day) {
       const selector = document.getElementById("daySelector");
       selector.value = day;
+
+      const dayTitle = document.getElementById("dayTitle");
+      dayTitle.textContent = `Day ${day} of ${TOTAL_DAYS}`;
 
       const container = document.getElementById("checklistContainer");
       const { tasks, notes } = getDayData(day);
@@ -108,16 +128,16 @@
           saveDayData(day, { tasks, notes });
         });
         li.appendChild(checkbox);
-        li.append(\` \${task.text}\`);
+        li.append(` ${task.text}`);
         ul.appendChild(li);
       });
 
       const newTaskInput = document.createElement("input");
-      newTaskInput.placeholder = "New task...";
+      newTaskInput.placeholder = "New task (press Enter to add)";
       newTaskInput.type = "text";
       newTaskInput.addEventListener("keypress", e => {
-        if (e.key === "Enter") {
-          tasks.push({ text: newTaskInput.value, done: false });
+        if (e.key === "Enter" && newTaskInput.value.trim()) {
+          tasks.push({ text: newTaskInput.value.trim(), done: false });
           saveDayData(day, { tasks, notes });
           renderDay(day);
         }
@@ -160,4 +180,5 @@
   </script>
 </body>
 </html>
+
 
