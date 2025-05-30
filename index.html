@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simple Workout Logger</title>
+  <title>Workout Planner</title>
   <style>
     body {
       margin: 0;
@@ -26,21 +26,21 @@
       border-bottom: 1px solid #ddd;
       padding-bottom: 0.5rem;
     }
-    #workoutDates {
+    #workoutList {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-    #workoutDates li {
+    #workoutList li {
       padding: 0.4rem 0.6rem;
       cursor: pointer;
       border-radius: 4px;
       user-select: none;
     }
-    #workoutDates li:hover {
+    #workoutList li:hover {
       background: #eee;
     }
-    #workoutDates li.active {
+    #workoutList li.active {
       background: #007bff;
       color: white;
       font-weight: 600;
@@ -49,29 +49,6 @@
       flex: 1;
       padding: 1rem 2rem;
       overflow-y: auto;
-    }
-    #main h2 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.6rem;
-      font-weight: 600;
-    }
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 0.4rem 0.5rem;
-      margin-bottom: 1rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    .exercises-list {
-      margin-top: 1rem;
-      margin-bottom: 2rem;
     }
     .exercise-row {
       display: flex;
@@ -89,11 +66,7 @@
       flex-grow: 1;
       width: 120px;
     }
-    .exercise-row .sets {
-      display: flex;
-      gap: 0.3rem;
-    }
-    .exercise-row .sets input {
+    .sets input {
       width: 40px;
       text-align: center;
       border-radius: 3px;
@@ -108,15 +81,7 @@
       font-weight: 600;
       font-size: 1rem;
     }
-    button:disabled {
-      background: #ccc;
-      cursor: default;
-    }
-    .add-exercise-btn {
-      margin-top: 1rem;
-      background: #28a745;
-    }
-    .remove-exercise-btn {
+    .remove-btn {
       background: #dc3545;
       font-weight: bold;
       padding: 0 0.5rem;
@@ -126,260 +91,123 @@
       color: white;
       user-select: none;
     }
-    .remove-exercise-btn:hover {
+    .remove-btn:hover {
       background: #b02a37;
-    }
-    @media (max-width: 600px) {
-      body {
-        flex-direction: column;
-      }
-      #sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #ddd;
-      }
     }
   </style>
 </head>
 <body>
   <div id="sidebar">
-    <h2>Workouts</h2>
-    <ul id="workoutDates"></ul>
-    <button id="newWorkoutBtn" style="margin-top:1rem;width:100%;">+ New Workout</button>
+    <h2>My Workouts</h2>
+    <ul id="workoutList"></ul>
+    <button onclick="createWorkout()">+ New Workout</button>
   </div>
   <div id="main">
-    <h2 id="workoutTitle">Select or create a workout</h2>
-    <label>
-      Workout Date:
-      <input type="date" id="workoutDate" />
-    </label>
-    <label>
-      Workout Name:
-      <input type="text" id="workoutName" placeholder="e.g. Push Day" />
-    </label>
-    <div class="exercises-list" id="exercisesList"></div>
-    <button class="add-exercise-btn" id="addExerciseBtn">+ Add Exercise</button>
-    <br />
-    <button id="saveWorkoutBtn" disabled>Save Workout</button>
+    <h2 id="workoutTitle">Select a workout</h2>
+    <div id="exerciseContainer"></div>
+    <button onclick="addExercise()">+ Add Exercise</button>
+    <button onclick="saveWorkout()">Save</button>
   </div>
 
-<script>
-  (() => {
-    const workoutDatesEl = document.getElementById('workoutDates');
-    const workoutDateInput = document.getElementById('workoutDate');
-    const workoutNameInput = document.getElementById('workoutName');
-    const exercisesListEl = document.getElementById('exercisesList');
-    const addExerciseBtn = document.getElementById('addExerciseBtn');
-    const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
-    const newWorkoutBtn = document.getElementById('newWorkoutBtn');
+  <script>
+    let workouts = JSON.parse(localStorage.getItem('weeklyWorkouts')) || {};
+    let currentWorkout = null;
+
+    const workoutListEl = document.getElementById('workoutList');
     const workoutTitleEl = document.getElementById('workoutTitle');
+    const exerciseContainer = document.getElementById('exerciseContainer');
 
-    let workouts = {};
-    let currentWorkoutKey = null;
-
-    // Load from localStorage
-    function loadWorkouts() {
-      const raw = localStorage.getItem('workouts');
-      workouts = raw ? JSON.parse(raw) : {};
-    }
-
-    // Save to localStorage
-    function saveWorkouts() {
-      localStorage.setItem('workouts', JSON.stringify(workouts));
-    }
-
-    // Format date as yyyy-mm-dd
-    function formatDate(date) {
-      return date.toISOString().slice(0, 10);
-    }
-
-    // Populate workoutDates list
-    function renderWorkoutDates() {
-      workoutDatesEl.innerHTML = '';
-      const dates = Object.keys(workouts).sort((a,b) => b.localeCompare(a)); // newest first
-      dates.forEach(date => {
+    function renderWorkoutList() {
+      workoutListEl.innerHTML = '';
+      Object.keys(workouts).forEach(name => {
         const li = document.createElement('li');
-        li.textContent = `${date} - ${workouts[date].name || '(No name)'}`;
-        li.dataset.key = date;
-        li.classList.toggle('active', date === currentWorkoutKey);
-        li.addEventListener('click', () => loadWorkout(date));
-        workoutDatesEl.appendChild(li);
+        li.textContent = name;
+        li.className = name === currentWorkout ? 'active' : '';
+        li.onclick = () => selectWorkout(name);
+        workoutListEl.appendChild(li);
       });
     }
 
-    // Render exercises inputs
+    function selectWorkout(name) {
+      currentWorkout = name;
+      workoutTitleEl.textContent = name;
+      renderWorkoutList();
+      renderExercises();
+    }
+
+    function createWorkout() {
+      const name = prompt("Workout name (e.g. Push, Pull, Legs):");
+      if (!name) return;
+      if (!workouts[name]) workouts[name] = [];
+      currentWorkout = name;
+      saveData();
+      renderWorkoutList();
+      renderExercises();
+    }
+
     function renderExercises() {
-      exercisesListEl.innerHTML = '';
-      if (!currentWorkoutKey) return;
-
-      const workout = workouts[currentWorkoutKey];
-      if (!workout.exercises) workout.exercises = [];
-
-      workout.exercises.forEach((ex, i) => {
-        const div = document.createElement('div');
-        div.className = 'exercise-row';
+      exerciseContainer.innerHTML = '';
+      const exercises = workouts[currentWorkout] || [];
+      exercises.forEach((ex, idx) => {
+        const row = document.createElement('div');
+        row.className = 'exercise-row';
 
         const nameInput = document.createElement('input');
-        nameInput.type = 'text';
         nameInput.className = 'name';
-        nameInput.placeholder = 'Exercise name';
+        nameInput.placeholder = 'Exercise';
         nameInput.value = ex.name || '';
-        nameInput.oninput = () => {
-          workouts[currentWorkoutKey].exercises[i].name = nameInput.value;
-          enableSave();
-        };
+        nameInput.oninput = e => ex.name = e.target.value;
 
         const weightInput = document.createElement('input');
         weightInput.type = 'number';
-        weightInput.min = '0';
         weightInput.placeholder = 'Weight';
         weightInput.value = ex.weight || '';
-        weightInput.oninput = () => {
-          workouts[currentWorkoutKey].exercises[i].weight = weightInput.value;
-          enableSave();
-        };
+        weightInput.oninput = e => ex.weight = e.target.value;
 
-        // Sets input fields (up to 5)
-        const setsContainer = document.createElement('div');
-        setsContainer.className = 'sets';
-        for(let si = 0; si < 5; si++) {
+        const setsDiv = document.createElement('div');
+        setsDiv.className = 'sets';
+        ex.sets = ex.sets || ['', '', ''];
+        ex.sets.forEach((val, sidx) => {
           const setInput = document.createElement('input');
           setInput.type = 'number';
-          setInput.min = '0';
           setInput.placeholder = 'Reps';
-          setInput.value = ex.sets && ex.sets[si] !== undefined ? ex.sets[si] : '';
-          setInput.oninput = () => {
-            workouts[currentWorkoutKey].exercises[i].sets = workouts[currentWorkoutKey].exercises[i].sets || [];
-            workouts[currentWorkoutKey].exercises[i].sets[si] = setInput.value;
-            enableSave();
-          };
-          setsContainer.appendChild(setInput);
-        }
+          setInput.value = val;
+          setInput.oninput = e => ex.sets[sidx] = e.target.value;
+          setsDiv.appendChild(setInput);
+        });
 
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-exercise-btn';
-        removeBtn.textContent = '×';
-        removeBtn.title = 'Remove exercise';
-        removeBtn.onclick = () => {
-          workouts[currentWorkoutKey].exercises.splice(i, 1);
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '×';
+        delBtn.className = 'remove-btn';
+        delBtn.onclick = () => {
+          workouts[currentWorkout].splice(idx, 1);
           renderExercises();
-          enableSave();
         };
 
-        div.appendChild(nameInput);
-        div.appendChild(weightInput);
-        div.appendChild(setsContainer);
-        div.appendChild(removeBtn);
-
-        exercisesListEl.appendChild(div);
+        row.appendChild(nameInput);
+        row.appendChild(weightInput);
+        row.appendChild(setsDiv);
+        row.appendChild(delBtn);
+        exerciseContainer.appendChild(row);
       });
     }
 
-    function enableSave() {
-      saveWorkoutBtn.disabled = false;
-    }
-
-    // Load a workout by date key
-    function loadWorkout(dateKey) {
-      currentWorkoutKey = dateKey;
-      workoutTitleEl.textContent = `Workout on ${dateKey}`;
-      workoutDateInput.value = dateKey;
-
-      const workout = workouts[dateKey];
-      workoutNameInput.value = workout.name || '';
-      renderExercises();
-      saveWorkoutBtn.disabled = true;
-      renderWorkoutDates();
-    }
-
-    // Create a new workout for today or next available date
-    function newWorkout() {
-      const todayKey = formatDate(new Date());
-      if(workouts[todayKey]) {
-        // If today exists, pick next day
-        const nextDate = new Date();
-        nextDate.setDate(nextDate.getDate() + 1);
-        const nextKey = formatDate(nextDate);
-        workouts[nextKey] = { name: '', exercises: [] };
-        saveWorkouts();
-        loadWorkout(nextKey);
-      } else {
-        workouts[todayKey] = { name: '', exercises: [] };
-        saveWorkouts();
-        loadWorkout(todayKey);
-      }
-      renderWorkoutDates();
-    }
-
-    // Add blank exercise row
     function addExercise() {
-      if(!currentWorkoutKey) return alert('Select or create a workout first');
-      workouts[currentWorkoutKey].exercises = workouts[currentWorkoutKey].exercises || [];
-      workouts[currentWorkoutKey].exercises.push({ name: '', weight: '', sets: [] });
+      if (!currentWorkout) return alert('Select a workout first');
+      workouts[currentWorkout].push({ name: '', weight: '', sets: ['', '', ''] });
       renderExercises();
-      enableSave();
     }
 
-    // Save current workout data
     function saveWorkout() {
-      if (!currentWorkoutKey) return alert('Select or create a workout first');
-      const dateVal = workoutDateInput.value;
-      if(!dateVal) return alert('Please select a date');
-      if(dateVal !== currentWorkoutKey) {
-        // If date changed, move workout data to new key
-        workouts[dateVal] = workouts[currentWorkoutKey];
-        delete workouts[currentWorkoutKey];
-        currentWorkoutKey = dateVal;
-      }
-      workouts[currentWorkoutKey].name = workoutNameInput.value.trim();
-
-      // Clean sets: remove empty reps and convert to numbers
-      workouts[currentWorkoutKey].exercises.forEach(ex => {
-        ex.sets = ex.sets.filter(s => s !== '' && s !== null).map(s => Number(s));
-      });
-
-      saveWorkouts();
-      saveWorkoutBtn.disabled = true;
-      renderWorkoutDates();
-      workoutTitleEl.textContent = `Workout on ${currentWorkoutKey}`;
+      saveData();
       alert('Workout saved!');
     }
 
-    // On date input change, load workout or create blank
-    workoutDateInput.addEventListener('change', e => {
-      const dateVal = e.target.value;
-      if(!dateVal) return;
-      if(workouts[dateVal]) {
-        loadWorkout(dateVal);
-      } else {
-        // New workout for this date
-        workouts[dateVal] = { name: '', exercises: [] };
-        saveWorkouts();
-        loadWorkout(dateVal);
-        renderWorkoutDates();
-      }
-    });
-
-    addExerciseBtn.addEventListener('click', addExercise);
-    saveWorkoutBtn.addEventListener('click', saveWorkout);
-    newWorkoutBtn.addEventListener('click', newWorkout);
-
-    // Initial load
-    loadWorkouts();
-    // Load today workout if exists or create new
-    const todayKey = formatDate(new Date());
-    if(workouts[todayKey]) loadWorkout(todayKey);
-    else {
-      workouts[todayKey] = { name: '', exercises: [] };
-      saveWorkouts();
-      loadWorkout(todayKey);
-      renderWorkoutDates();
+    function saveData() {
+      localStorage.setItem('weeklyWorkouts', JSON.stringify(workouts));
     }
-    renderWorkoutDates();
 
-  })();
-</script>
-
+    renderWorkoutList();
+  </script>
 </body>
 </html>
-
