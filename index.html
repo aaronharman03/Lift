@@ -1,455 +1,383 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Collapsible Workout Dashboard</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f9f9f9;
-    margin: 0; padding: 1rem;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  h1 {
-    text-align: center;
-  }
-  .panel {
-    background: white;
-    border-radius: 5px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
-  }
-  .panel-header {
-    padding: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .panel-header:hover {
-    background: #e6f0ff;
-  }
-  .panel-header .toggle-icon {
-    font-size: 1.3rem;
-    transition: transform 0.3s ease;
-  }
-  .panel-header.collapsed .toggle-icon {
-    transform: rotate(-90deg);
-  }
-  .panel-content {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.3s ease, padding 0.3s ease;
-    padding: 0 1rem;
-  }
-  .panel-content.open {
-    padding: 1rem;
-  }
-
-  /* Calendar table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th, td {
-    width: 14.28%;
-    text-align: center;
-    padding: 0.3rem 0;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  th {
-    color: #666;
-    font-weight: normal;
-  }
-  td:hover {
-    background: #eef6ff;
-  }
-  td.today {
-    border: 2px solid #007bff;
-  }
-  td.hasWorkout {
-    background: #d1e7dd;
-  }
-  td.selected {
-    background: #007bff;
-    color: white;
-  }
-
-  label {
-    display: block;
-    margin: 0.5rem 0 0.2rem;
-  }
-  input[type=text], input[type=number], input[type=date] {
-    width: 100%;
-    padding: 0.4rem;
-    font-size: 1rem;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 1rem;
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
-    cursor: pointer;
-    background: #007bff;
-    border: none;
-    color: white;
-    border-radius: 4px;
-  }
-  button:disabled {
-    background: #aaa;
-    cursor: not-allowed;
-  }
-
-  .exercises-list {
-    margin-top: 1rem;
-  }
-  .exercise {
-    background: #f1f1f1;
-    margin-bottom: 0.8rem;
-    padding: 0.6rem;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .exercise-info {
-    flex-grow: 1;
-  }
-  .sets {
-    margin-top: 0.3rem;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  .exercise-actions button {
-    background: none;
-    border: none;
-    color: #007bff;
-    font-weight: bold;
-    cursor: pointer;
-    margin-left: 0.7rem;
-  }
-  .add-set-btn {
-    margin-left: 0.5rem;
-    background: #28a745;
-    border-radius: 4px;
-    font-weight: normal;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simple Workout Logger</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #fafafa;
+      color: #222;
+    }
+    #sidebar {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    #sidebar h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+    #workoutDates {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #workoutDates li {
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      border-radius: 4px;
+      user-select: none;
+    }
+    #workoutDates li:hover {
+      background: #eee;
+    }
+    #workoutDates li.active {
+      background: #007bff;
+      color: white;
+      font-weight: 600;
+    }
+    #main {
+      flex: 1;
+      padding: 1rem 2rem;
+      overflow-y: auto;
+    }
+    #main h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 0.4rem 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .exercises-list {
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+    }
+    .exercise-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+    .exercise-row input {
+      width: auto;
+      flex-shrink: 0;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.9rem;
+    }
+    .exercise-row input.name {
+      flex-grow: 1;
+      width: 120px;
+    }
+    .exercise-row .sets {
+      display: flex;
+      gap: 0.3rem;
+    }
+    .exercise-row .sets input {
+      width: 40px;
+      text-align: center;
+      border-radius: 3px;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      background: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: default;
+    }
+    .add-exercise-btn {
+      margin-top: 1rem;
+      background: #28a745;
+    }
+    .remove-exercise-btn {
+      background: #dc3545;
+      font-weight: bold;
+      padding: 0 0.5rem;
+      cursor: pointer;
+      border-radius: 4px;
+      border: none;
+      color: white;
+      user-select: none;
+    }
+    .remove-exercise-btn:hover {
+      background: #b02a37;
+    }
+    @media (max-width: 600px) {
+      body {
+        flex-direction: column;
+      }
+      #sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<h1>Workout Dashboard</h1>
-
-<div class="panel" id="calendarPanel">
-  <div class="panel-header" id="calendarHeader">
-    Calendar <span class="toggle-icon">&#9660;</span>
+  <div id="sidebar">
+    <h2>Workouts</h2>
+    <ul id="workoutDates"></ul>
+    <button id="newWorkoutBtn" style="margin-top:1rem;width:100%;">+ New Workout</button>
   </div>
-  <div class="panel-content" id="calendarContent">
-    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:0.5rem;">
-      <button id="prevMonth">&lt;</button>
-      <div id="monthYear" style="font-weight:bold;"></div>
-      <button id="nextMonth">&gt;</button>
-    </div>
-    <table>
-      <thead>
-        <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
-      </thead>
-      <tbody id="calendarBody"></tbody>
-    </table>
-  </div>
-</div>
-
-<div class="panel" id="workoutPanel">
-  <div class="panel-header" id="workoutHeader">
-    Workout Details <span class="toggle-icon">&#9660;</span>
-  </div>
-  <div class="panel-content" id="workoutContent">
-    <label for="workoutDate">Date:</label>
-    <input type="date" id="workoutDate" />
-
-    <label for="workoutName">Workout Name:</label>
-    <input type="text" id="workoutName" placeholder="e.g. Leg Day" />
-
-    <button id="saveWorkoutBtn">Save Workout</button>
-  </div>
-</div>
-
-<div class="panel" id="exercisePanel">
-  <div class="panel-header" id="exerciseHeader">
-    Exercises <span class="toggle-icon">&#9660;</span>
-  </div>
-  <div class="panel-content" id="exerciseContent">
-    <h3>Add / Edit Exercise</h3>
-    <label for="exerciseName">Exercise Name:</label>
-    <input type="text" id="exerciseName" placeholder="e.g. Squat" />
-
-    <label for="exerciseWeight">Weight (kg):</label>
-    <input type="number" id="exerciseWeight" min="0" step="0.1" />
-
-    <label>Sets (Reps per set):</label>
-    <div id="setsInputs"></div>
-    <button id="addSet" class="add-set-btn" title="Add another set">+ Add Set</button>
-
-    <button id="saveExerciseBtn">Save Exercise</button>
-
-    <hr />
-
+  <div id="main">
+    <h2 id="workoutTitle">Select or create a workout</h2>
+    <label>
+      Workout Date:
+      <input type="date" id="workoutDate" />
+    </label>
+    <label>
+      Workout Name:
+      <input type="text" id="workoutName" placeholder="e.g. Push Day" />
+    </label>
     <div class="exercises-list" id="exercisesList"></div>
+    <button class="add-exercise-btn" id="addExerciseBtn">+ Add Exercise</button>
+    <br />
+    <button id="saveWorkoutBtn" disabled>Save Workout</button>
   </div>
-</div>
 
 <script>
-(() => {
-  const STORAGE_KEY = 'workoutTrackerWorkouts';
+  (() => {
+    const workoutDatesEl = document.getElementById('workoutDates');
+    const workoutDateInput = document.getElementById('workoutDate');
+    const workoutNameInput = document.getElementById('workoutName');
+    const exercisesListEl = document.getElementById('exercisesList');
+    const addExerciseBtn = document.getElementById('addExerciseBtn');
+    const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
+    const newWorkoutBtn = document.getElementById('newWorkoutBtn');
+    const workoutTitleEl = document.getElementById('workoutTitle');
 
-  // Panels and toggle icons
-  const panels = [
-    { header: document.getElementById('calendarHeader'), content: document.getElementById('calendarContent') },
-    { header: document.getElementById('workoutHeader'), content: document.getElementById('workoutContent') },
-    { header: document.getElementById('exerciseHeader'), content: document.getElementById('exerciseContent') }
-  ];
-  // Setup toggle handlers
-  panels.forEach(({header, content}) => {
-    header.addEventListener('click', () => {
-      const isOpen = content.classList.contains('open');
-      if(isOpen){
-        content.style.maxHeight = null;
-        content.classList.remove('open');
-        header.classList.add('collapsed');
-      } else {
-        content.style.maxHeight = content.scrollHeight + 'px';
-        content.classList.add('open');
-        header.classList.remove('collapsed');
-      }
-    });
-  });
+    let workouts = {};
+    let currentWorkoutKey = null;
 
-  // Expand all by default
-  panels.forEach(({header, content}) => {
-    content.style.maxHeight = content.scrollHeight + 'px';
-    content.classList.add('open');
-    header.classList.remove('collapsed');
-  });
-
-  // Elements
-  const monthYearEl = document.getElementById('monthYear');
-  const calendarBody = document.getElementById('calendarBody');
-  const prevMonthBtn = document.getElementById('prevMonth');
-  const nextMonthBtn = document.getElementById('nextMonth');
-
-  const workoutDateInput = document.getElementById('workoutDate');
-  const workoutNameInput = document.getElementById('workoutName');
-
-  const exerciseNameInput = document.getElementById('exerciseName');
-  const exerciseWeightInput = document.getElementById('exerciseWeight');
-  const setsInputsDiv = document.getElementById('setsInputs');
-  const addSetBtn = document.getElementById('addSet');
-  const saveExerciseBtn = document.getElementById('saveExerciseBtn');
-
-  const exercisesListDiv = document.getElementById('exercisesList');
-  const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
-
-  // State
-  let currentDate = new Date();
-  let displayedYear = currentDate.getFullYear();
-  let displayedMonth = currentDate.getMonth();
-
-  let workouts = {};
-  let currentWorkoutDate = null;
-  let editingExerciseIndex = -1;
-  let currentSets = [null];
-
-  function loadWorkouts() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    workouts = raw ? JSON.parse(raw) : {};
-  }
-  function saveWorkouts() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
-  }
-  function formatDate(date) {
-    return date.toISOString().slice(0,10);
-  }
-
-  function renderCalendar() {
-    monthYearEl.textContent = new Date(displayedYear, displayedMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
-    calendarBody.innerHTML = '';
-    const firstDay = new Date(displayedYear, displayedMonth, 1).getDay();
-    const daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
-
-    let day = 1;
-    for(let row=0; row<6; row++) {
-      const tr = document.createElement('tr');
-      for(let col=0; col<7; col++) {
-        const td = document.createElement('td');
-        if(row === 0 && col < firstDay) {
-          td.textContent = '';
-          td.classList.add('empty');
-        } else if(day <= daysInMonth) {
-          td.textContent = day;
-          const dateStr = `${displayedYear}-${String(displayedMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-          td.dataset.date = dateStr;
-
-          if(dateStr === formatDate(new Date())) td.classList.add('today');
-          if(workouts[dateStr]) td.classList.add('hasWorkout');
-          if(dateStr === currentWorkoutDate) td.classList.add('selected');
-
-          td.addEventListener('click', () => {
-            loadWorkout(dateStr);
-            // Open workout and exercises panel if collapsed
-            panels[1].content.classList.add('open');
-            panels[1].content.style.maxHeight = panels[1].content.scrollHeight + 'px';
-            panels[1].header.classList.remove('collapsed');
-            panels[2].content.classList.add('open');
-            panels[2].content.style.maxHeight = panels[2].content.scrollHeight + 'px';
-            panels[2].header.classList.remove('collapsed');
-          });
-          day++;
-        } else {
-          td.textContent = '';
-          td.classList.add('empty');
-        }
-        tr.appendChild(td);
-      }
-      calendarBody.appendChild(tr);
+    // Load from localStorage
+    function loadWorkouts() {
+      const raw = localStorage.getItem('workouts');
+      workouts = raw ? JSON.parse(raw) : {};
     }
-  }
 
-  function renderSets() {
-    setsInputsDiv.innerHTML = '';
-    currentSets.forEach((val, idx) => {
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = 0;
-      input.placeholder = `Set ${idx + 1} reps`;
-      input.value = val === null ? '' : val;
-      input.style.width = '60px';
-      input.style.marginRight = '5px';
-      input.addEventListener('input', () => {
-        const v = parseInt(input.value);
-        currentSets[idx] = isNaN(v) ? null : v;
+    // Save to localStorage
+    function saveWorkouts() {
+      localStorage.setItem('workouts', JSON.stringify(workouts));
+    }
+
+    // Format date as yyyy-mm-dd
+    function formatDate(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    // Populate workoutDates list
+    function renderWorkoutDates() {
+      workoutDatesEl.innerHTML = '';
+      const dates = Object.keys(workouts).sort((a,b) => b.localeCompare(a)); // newest first
+      dates.forEach(date => {
+        const li = document.createElement('li');
+        li.textContent = `${date} - ${workouts[date].name || '(No name)'}`;
+        li.dataset.key = date;
+        li.classList.toggle('active', date === currentWorkoutKey);
+        li.addEventListener('click', () => loadWorkout(date));
+        workoutDatesEl.appendChild(li);
       });
-      setsInputsDiv.appendChild(input);
-    });
-  }
-  addSetBtn.addEventListener('click', () => {
-    if(currentSets.length < 5) {
-      currentSets.push(null);
-      renderSets();
     }
-  });
 
-  function clearExerciseInputs() {
-    exerciseNameInput.value = '';
-    exerciseWeightInput.value = '';
-    currentSets = [null];
-    editingExerciseIndex = -1;
-    renderSets();
-  }
+    // Render exercises inputs
+    function renderExercises() {
+      exercisesListEl.innerHTML = '';
+      if (!currentWorkoutKey) return;
 
-  function renderExercises() {
-    exercisesListDiv.innerHTML = '';
-    if(!currentWorkoutDate || !workouts[currentWorkoutDate]) return;
+      const workout = workouts[currentWorkoutKey];
+      if (!workout.exercises) workout.exercises = [];
 
-    const exs = workouts[currentWorkoutDate].exercises || [];
-    exs.forEach((ex, i) => {
-      const div = document.createElement('div');
-      div.className = 'exercise';
+      workout.exercises.forEach((ex, i) => {
+        const div = document.createElement('div');
+        div.className = 'exercise-row';
 
-      const info = document.createElement('div');
-      info.className = 'exercise-info';
-      info.innerHTML = `<strong>${ex.name}</strong> - ${ex.weight}kg<br><span class="sets">Sets: ${ex.sets.join(' / ')}</span>`;
-      div.appendChild(info);
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'name';
+        nameInput.placeholder = 'Exercise name';
+        nameInput.value = ex.name || '';
+        nameInput.oninput = () => {
+          workouts[currentWorkoutKey].exercises[i].name = nameInput.value;
+          enableSave();
+        };
 
-      const actions = document.createElement('div');
-      actions.className = 'exercise-actions';
+        const weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.min = '0';
+        weightInput.placeholder = 'Weight';
+        weightInput.value = ex.weight || '';
+        weightInput.oninput = () => {
+          workouts[currentWorkoutKey].exercises[i].weight = weightInput.value;
+          enableSave();
+        };
 
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
-      editBtn.onclick = () => {
-        exerciseNameInput.value = ex.name;
-        exerciseWeightInput.value = ex.weight;
-        currentSets = ex.sets.slice();
-        editingExerciseIndex = i;
-        renderSets();
-        // Open exercise panel if collapsed
-        panels[2].content.classList.add('open');
-        panels[2].content.style.maxHeight = panels[2].content.scrollHeight + 'px';
-        panels[2].header.classList.remove('collapsed');
-      };
-      actions.appendChild(editBtn);
-
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'Delete';
-      delBtn.onclick = () => {
-        if(confirm('Delete this exercise?')) {
-          workouts[currentWorkoutDate].exercises.splice(i, 1);
-          saveWorkouts();
-          renderExercises();
-          if(editingExerciseIndex === i) clearExerciseInputs();
+        // Sets input fields (up to 5)
+        const setsContainer = document.createElement('div');
+        setsContainer.className = 'sets';
+        for(let si = 0; si < 5; si++) {
+          const setInput = document.createElement('input');
+          setInput.type = 'number';
+          setInput.min = '0';
+          setInput.placeholder = 'Reps';
+          setInput.value = ex.sets && ex.sets[si] !== undefined ? ex.sets[si] : '';
+          setInput.oninput = () => {
+            workouts[currentWorkoutKey].exercises[i].sets = workouts[currentWorkoutKey].exercises[i].sets || [];
+            workouts[currentWorkoutKey].exercises[i].sets[si] = setInput.value;
+            enableSave();
+          };
+          setsContainer.appendChild(setInput);
         }
-      };
-      actions.appendChild(delBtn);
 
-      div.appendChild(actions);
-      exercisesListDiv.appendChild(div);
-    });
-  }
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-exercise-btn';
+        removeBtn.textContent = '×';
+        removeBtn.title = 'Remove exercise';
+        removeBtn.onclick = () => {
+          workouts[currentWorkoutKey].exercises.splice(i, 1);
+          renderExercises();
+          enableSave();
+        };
 
-  function loadWorkout(dateStr) {
-    currentWorkoutDate = dateStr;
-    workoutDateInput.value = dateStr;
+        div.appendChild(nameInput);
+        div.appendChild(weightInput);
+        div.appendChild(setsContainer);
+        div.appendChild(removeBtn);
 
-    const workout = workouts[dateStr] || { name: '', exercises: [] };
-    workoutNameInput.value = workout.name || '';
-    if(!workouts[dateStr]) {
-      workouts[dateStr] = workout;
+        exercisesListEl.appendChild(div);
+      });
+    }
+
+    function enableSave() {
+      saveWorkoutBtn.disabled = false;
+    }
+
+    // Load a workout by date key
+    function loadWorkout(dateKey) {
+      currentWorkoutKey = dateKey;
+      workoutTitleEl.textContent = `Workout on ${dateKey}`;
+      workoutDateInput.value = dateKey;
+
+      const workout = workouts[dateKey];
+      workoutNameInput.value = workout.name || '';
+      renderExercises();
+      saveWorkoutBtn.disabled = true;
+      renderWorkoutDates();
+    }
+
+    // Create a new workout for today or next available date
+    function newWorkout() {
+      const todayKey = formatDate(new Date());
+      if(workouts[todayKey]) {
+        // If today exists, pick next day
+        const nextDate = new Date();
+        nextDate.setDate(nextDate.getDate() + 1);
+        const nextKey = formatDate(nextDate);
+        workouts[nextKey] = { name: '', exercises: [] };
+        saveWorkouts();
+        loadWorkout(nextKey);
+      } else {
+        workouts[todayKey] = { name: '', exercises: [] };
+        saveWorkouts();
+        loadWorkout(todayKey);
+      }
+      renderWorkoutDates();
+    }
+
+    // Add blank exercise row
+    function addExercise() {
+      if(!currentWorkoutKey) return alert('Select or create a workout first');
+      workouts[currentWorkoutKey].exercises = workouts[currentWorkoutKey].exercises || [];
+      workouts[currentWorkoutKey].exercises.push({ name: '', weight: '', sets: [] });
+      renderExercises();
+      enableSave();
+    }
+
+    // Save current workout data
+    function saveWorkout() {
+      if (!currentWorkoutKey) return alert('Select or create a workout first');
+      const dateVal = workoutDateInput.value;
+      if(!dateVal) return alert('Please select a date');
+      if(dateVal !== currentWorkoutKey) {
+        // If date changed, move workout data to new key
+        workouts[dateVal] = workouts[currentWorkoutKey];
+        delete workouts[currentWorkoutKey];
+        currentWorkoutKey = dateVal;
+      }
+      workouts[currentWorkoutKey].name = workoutNameInput.value.trim();
+
+      // Clean sets: remove empty reps and convert to numbers
+      workouts[currentWorkoutKey].exercises.forEach(ex => {
+        ex.sets = ex.sets.filter(s => s !== '' && s !== null).map(s => Number(s));
+      });
+
       saveWorkouts();
+      saveWorkoutBtn.disabled = true;
+      renderWorkoutDates();
+      workoutTitleEl.textContent = `Workout on ${currentWorkoutKey}`;
+      alert('Workout saved!');
     }
-    clearExerciseInputs();
-    renderExercises();
-    renderCalendar();
-  }
 
-  saveWorkoutBtn.addEventListener('click', () => {
-    if(!currentWorkoutDate) return alert('Select a date first');
-    workouts[currentWorkoutDate].name = workoutNameInput.value.trim();
-    saveWorkouts();
-    renderCalendar();
-    alert('Workout saved!');
-  });
+    // On date input change, load workout or create blank
+    workoutDateInput.addEventListener('change', e => {
+      const dateVal = e.target.value;
+      if(!dateVal) return;
+      if(workouts[dateVal]) {
+        loadWorkout(dateVal);
+      } else {
+        // New workout for this date
+        workouts[dateVal] = { name: '', exercises: [] };
+        saveWorkouts();
+        loadWorkout(dateVal);
+        renderWorkoutDates();
+      }
+    });
 
-  saveExerciseBtn.addEventListener('click', () => {
-    if(!currentWorkoutDate) return alert('Select a date first');
-    const name = exerciseNameInput.value.trim();
-    if(!name) return alert('Exercise name required');
-    const weight = parseFloat(exerciseWeightInput.value);
-    if(isNaN(weight) || weight < 0) return alert('Valid weight required');
-    const sets = currentSets.filter(s => s !== null && s >= 0);
-    if(sets.length === 0) return alert('At least one set with reps required');
+    addExerciseBtn.addEventListener('click', addExercise);
+    saveWorkoutBtn.addEventListener('click', saveWorkout);
+    newWorkoutBtn.addEventListener('click', newWorkout);
 
-    const newExercise = { name, weight, sets };
-
-    if(editingExerciseIndex >= 0) {
-      workouts[currentWorkoutDate].exercises[editingExerciseIndex] = newExercise;
-    } else {
-      workouts[currentWorkoutDate].exercises.push(newExercise);
+    // Initial load
+    loadWorkouts();
+    // Load today workout if exists or create new
+    const todayKey = formatDate(new Date());
+    if(workouts[todayKey]) loadWorkout(todayKey);
+    else {
+      workouts[todayKey] = { name: '', exercises: [] };
+      saveWorkouts();
+      loadWorkout(todayKey);
+      renderWorkoutDates();
     }
-    saveWorkouts();
-    renderExercises();
-    clearExerciseInputs();
-  });
+    renderWorkoutDates();
 
-  // Initialize
-  loadWorkouts();
-  loadWorkout(formatDate(currentDate));
-  renderCalendar();
-})();
+  })();
 </script>
 
 </body>
