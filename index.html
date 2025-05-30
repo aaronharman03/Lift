@@ -20,6 +20,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
+    position: relative;
   }
   header h2 {
     margin: 0;
@@ -29,6 +30,7 @@
   main {
     flex: 1;
     padding: 1rem;
+    overflow-y: auto;
   }
   .page {
     display: none;
@@ -59,72 +61,13 @@
   button:hover {
     text-decoration: underline;
   }
-  form input,
-  form textarea {
-    width: 100%;
-    margin: 0.3rem 0;
-    padding: 0.3rem;
-    background: #000;
-    border: none;
-    border-bottom: 1px solid #fff;
-    color: #fff;
-    font-size: 1rem;
-  }
-  form textarea {
-    resize: vertical;
-  }
-  form {
-    margin-top: 1rem;
-  }
-  #modal,
-  #editModal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.85);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 1rem;
-  }
-  #modalContent,
-  #editModalContent {
-    background: #000;
-    padding: 1.5rem;
-    max-width: 90vw;
-    width: 90vw;
-    max-height: 80vh;
-    overflow-y: auto;
-    color: #fff;
-  }
-  #modalDesc {
-    white-space: pre-wrap;
-    margin-top: 1rem;
-    line-height: 1.4;
-  }
-  #modalContent button,
-  #editModalContent button {
-    width: 100%;
-    padding: 0.7rem;
-    margin-top: 1rem;
-    border: none;
-    background: none;
-    color: #fff;
-    cursor: pointer;
-    font-weight: normal;
-    border-top: 1px solid #fff;
-  }
-  #modalContent button:hover,
-  #editModalContent button:hover {
-    background: #222;
-  }
   .check-btn {
     font-size: 1.1rem;
     background: none;
     border: none;
     color: #fff;
     cursor: pointer;
+    margin-right: 0.5rem;
   }
   .menu-btn {
     font-size: 1.2rem;
@@ -154,6 +97,77 @@
   .menu button:hover {
     background: #222;
   }
+  #editModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+  #editModalContent {
+    background: #000;
+    padding: 1.5rem;
+    max-width: 90vw;
+    width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #fff;
+  }
+  #editModalContent label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  #editModalContent input[type="text"],
+  #editModalContent input[type="time"],
+  #editModalContent input[type="date"],
+  #editModalContent textarea {
+    width: 100%;
+    padding: 0.3rem;
+    background: #000;
+    border: none;
+    border-bottom: 1px solid #fff;
+    color: #fff;
+    font-size: 1rem;
+    margin-top: 0.2rem;
+  }
+  #editModalContent textarea {
+    resize: vertical;
+    min-height: 6rem;
+  }
+  #editModalContent button {
+    width: 100%;
+    padding: 0.7rem;
+    margin-top: 1rem;
+    border: none;
+    background: none;
+    color: #fff;
+    cursor: pointer;
+    font-weight: normal;
+    border-top: 1px solid #fff;
+  }
+  #editModalContent button:hover {
+    background: #222;
+  }
+  #addTaskBtn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #fff;
+    color: #000;
+    border-radius: 50%;
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 2rem;
+    line-height: 3.5rem;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 0 10px #fff88;
+  }
 </style>
 </head>
 <body>
@@ -166,20 +180,10 @@
 
 <main id="pages"></main>
 
-<!-- View Task Details Modal -->
-<div id="modal">
-  <div id="modalContent">
-    <h3 id="modalTitle"></h3>
-    <p id="modalTimeDate"></p>
-    <div id="modalDesc"></div>
-    <button onclick="closeModal()">Close</button>
-  </div>
-</div>
-
-<!-- Edit Task Modal -->
+<!-- Edit Task Modal (used for add and edit) -->
 <div id="editModal">
   <div id="editModalContent">
-    <h3>Edit Task</h3>
+    <h3 id="editModalTitle">Add Task</h3>
     <form id="editForm" onsubmit="saveEdit(event)">
       <label>
         Time:<br/>
@@ -203,6 +207,9 @@
   </div>
 </div>
 
+<!-- Floating Add Task Button -->
+<div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
+
 <script>
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
@@ -223,16 +230,7 @@
       const page = document.createElement('div');
       page.className = 'page';
       page.id = `page${i}`;
-      page.innerHTML = `
-        <div id="taskList${i}"></div>
-        <form onsubmit="addTask(event, ${i})">
-          ${i !== 7 ? '<input type="time" name="time" />' : ''}
-          <input type="text" name="name" placeholder="Task name" required />
-          <textarea name="desc" placeholder="Description (optional)"></textarea>
-          ${i === 7 ? '<input type="date" name="date" required />' : ''}
-          <button type="submit">Add Task</button>
-        </form>
-      `;
+      page.innerHTML = `<div id="taskList${i}"></div>`;
       main.appendChild(page);
     });
   }
@@ -254,13 +252,13 @@
         div.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-grow:1;">
-              <button onclick="toggleDone(${i}, ${idx})" class="check-btn">${task.done ? '✔' : '◻'}</button>
-              <div onclick="showDetails(tasks[${i}][${idx}])" style="flex-grow: 1; cursor: pointer;">
+              <button onclick="toggleDone(${i}, ${idx})" class="check-btn" title="Toggle done">${task.done ? '✔' : '◻'}</button>
+              <div onclick="openEditModal(${i}, ${idx})" style="flex-grow: 1; cursor: pointer;">
                 <strong>${task.time || ''} ${task.name}</strong>
               </div>
             </div>
             <div style="position: relative;">
-              <button class="menu-btn" onclick="toggleMenu(event, ${i}, ${idx})">⋮</button>
+              <button class="menu-btn" onclick="toggleMenu(event, ${i}, ${idx})" title="Options">⋮</button>
               <div class="menu" id="menu-${i}-${idx}">
                 <button onclick="openEditModal(${i}, ${idx})">Edit</button>
                 <button onclick="deleteTask(${i}, ${idx})">Delete</button>
@@ -289,49 +287,11 @@
     document.querySelectorAll('.menu').forEach(menu => (menu.style.display = 'none'));
   };
 
-  function showDetails(task) {
-    document.getElementById('modalTitle').textContent = task.name;
-    document.getElementById('modalTimeDate').textContent = (task.time ? task.time + ' ' : '') + (task.date || '');
-    document.getElementById('modalDesc').textContent = task.desc || 'No description';
-    document.getElementById('modal').style.display = 'flex';
-  }
-
-  function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-  }
-
-  function addTask(event, pageIndex) {
-    event.preventDefault();
-    const form = event.target;
-    const time = form.time ? form.time.value : '';
-    const name = form.name.value.trim();
-    const desc = form.desc.value.trim();
-    const date = form.date ? form.date.value : '';
-
-    if (!name) return;
-
-    tasks[pageIndex].push({ time, name, desc, date, done: false });
-    saveTasks();
-    form.reset();
-    render();
-  }
-
-  function toggleDone(pageIndex, taskIndex) {
-    tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
-    saveTasks();
-    render();
-  }
-
-  function deleteTask(pageIndex, taskIndex) {
-    tasks[pageIndex].splice(taskIndex, 1);
-    saveTasks();
-    render();
-  }
-
   function openEditModal(pageIndex, taskIndex) {
     editIndex = taskIndex;
     editPage = pageIndex;
     const task = tasks[pageIndex][taskIndex];
+    document.getElementById('editModalTitle').textContent = 'Edit Task';
     document.getElementById('editTime').value = task.time || '';
     document.getElementById('editName').value = task.name || '';
     document.getElementById('editDesc').value = task.desc || '';
@@ -339,6 +299,24 @@
     if(pageIndex === 7) {
       dateLabel.style.display = 'block';
       document.getElementById('editDate').value = task.date || '';
+    } else {
+      dateLabel.style.display = 'none';
+      document.getElementById('editDate').value = '';
+    }
+    document.getElementById('editModal').style.display = 'flex';
+  }
+
+  function openAddModal() {
+    editIndex = null;
+    editPage = currentPage;
+    document.getElementById('editModalTitle').textContent = 'Add Task';
+    document.getElementById('editTime').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editDesc').value = '';
+    const dateLabel = document.getElementById('dateLabel');
+    if(currentPage === 7) {
+      dateLabel.style.display = 'block';
+      document.getElementById('editDate').value = '';
     } else {
       dateLabel.style.display = 'none';
       document.getElementById('editDate').value = '';
@@ -361,9 +339,27 @@
 
     if (!name) return;
 
-    tasks[editPage][editIndex] = { time, name, desc, date, done: tasks[editPage][editIndex].done };
+    if (editIndex === null) {
+      // Add new
+      tasks[editPage].push({ time, name, desc, date, done: false });
+    } else {
+      // Edit existing
+      tasks[editPage][editIndex] = { time, name, desc, date, done: tasks[editPage][editIndex].done };
+    }
     saveTasks();
     closeEditModal();
+    render();
+  }
+
+  function toggleDone(pageIndex, taskIndex) {
+    tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
+    saveTasks();
+    render();
+  }
+
+  function deleteTask(pageIndex, taskIndex) {
+    tasks[pageIndex].splice(taskIndex, 1);
+    saveTasks();
     render();
   }
 
