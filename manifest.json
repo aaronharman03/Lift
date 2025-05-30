@@ -1,20 +1,16 @@
 {
-  "name": "Exercise Progress",
-  "short_name": "Progress",
+  "name": "75 Day Challenge",
+  "short_name": "75Days",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#007bff",
+  "theme_color": "#4CAF50",
   "icons": [
     {
-      "src": "icons/icon-192.png",   // Change path if needed
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512.png",   // Change path if needed
-      "sizes": "512x512",
       "type": "image/png"
     }
   ]
 }
+
