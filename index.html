@@ -3,209 +3,71 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Days</title>
+<title>Workouts</title>
 <style>
   body {
-    font-family: sans-serif;
+    font-family: Arial, sans-serif;
     max-width: 500px;
-    margin: 40px auto;
-    padding: 0 16px;
-    background: #f9f9f9;
+    margin: 30px auto;
+    padding: 0 15px;
   }
   h1 {
-    text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
-  .day-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  .day-label {
+  #addWorkoutBtn {
+    display: inline-block;
+    padding: 10px 15px;
     font-size: 16px;
-    flex-grow: 1;
-    text-decoration: none;
-    color: black;
-    word-break: break-word;
-  }
-  .day-label[contenteditable="true"] {
-    background: #eef5ff;
-    outline: none;
-    padding: 2px 4px;
-    border-radius: 4px;
-  }
-  .menu-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
     cursor: pointer;
-    padding: 4px;
-    margin-left: 8px;
-  }
-  .menu {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    padding: 4px 0;
-    z-index: 10;
-    min-width: 120px;
-  }
-  .menu button {
-    display: block;
-    width: 100%;
-    padding: 8px 10px;
-    background: none;
-    border: none;
-    text-align: left;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  .menu button:hover {
-    background: #f0f0f0;
-  }
-  #addDayBtn {
-    display: block;
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 8px;
-    background-color: #007bff;
+    background-color: #2d89ef;
     color: white;
     border: none;
-    cursor: pointer;
+    border-radius: 5px;
+    margin-bottom: 20px;
   }
-  #addDayBtn:hover {
-    background-color: #0056b3;
+  #workoutsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .workout-input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 2px solid #2d89ef;
+    border-radius: 5px;
+    outline: none;
+    cursor: text;
+  }
+  .workout-input::placeholder {
+    color: #999;
   }
 </style>
 </head>
 <body>
-<h1>Workout Days</h1>
-<div id="daysList"></div>
-<button id="addDayBtn">+ Add Day</button>
+
+<h1>Workouts:</h1>
+<button id="addWorkoutBtn">+ add workout</button>
+
+<div id="workoutsContainer">
+  <!-- New workout inputs will appear here -->
+</div>
 
 <script>
-  const storageKey = 'workout_days';
-  let days = JSON.parse(localStorage.getItem(storageKey)) || [
-    { id: 1, name: 'Day 1' },
-    { id: 2, name: 'Day 2' },
-    { id: 3, name: 'Day 3' },
-  ];
+  const addWorkoutBtn = document.getElementById('addWorkoutBtn');
+  const workoutsContainer = document.getElementById('workoutsContainer');
 
-  const daysList = document.getElementById('daysList');
-  const addDayBtn = document.getElementById('addDayBtn');
-  let openMenu = null;
-
-  function saveDays() {
-    localStorage.setItem(storageKey, JSON.stringify(days));
-  }
-
-  function renderDays() {
-    daysList.innerHTML = '';
-    days.forEach((day, index) => {
-      const row = document.createElement('div');
-      row.className = 'day-row';
-
-      const label = document.createElement('a');
-      label.className = 'day-label';
-      label.textContent = day.name;
-      label.href = `day.html?day=${day.id}`;
-
-      const menuBtn = document.createElement('button');
-      menuBtn.className = 'menu-btn';
-      menuBtn.innerHTML = '⋮';
-
-      const menu = document.createElement('div');
-      menu.className = 'menu';
-      menu.style.display = 'none';
-
-      const rename = document.createElement('button');
-      rename.textContent = 'Rename';
-      rename.onclick = () => {
-        label.contentEditable = true;
-        label.focus();
-        closeMenu();
-      };
-
-      const del = document.createElement('button');
-      del.textContent = 'Delete';
-      del.onclick = () => {
-        if (confirm(`Delete "${day.name}"?`)) {
-          days.splice(index, 1);
-          saveDays();
-          renderDays();
-        }
-      };
-
-      menu.appendChild(rename);
-      menu.appendChild(del);
-      document.body.appendChild(menu);
-
-      menuBtn.onclick = (e) => {
-        e.stopPropagation();
-        toggleMenu(menu, menuBtn);
-      };
-
-      label.addEventListener('blur', () => {
-        label.contentEditable = false;
-        const newName = label.textContent.trim();
-        if (newName) {
-          day.name = newName;
-          saveDays();
-        } else {
-          label.textContent = day.name;
-        }
-      });
-
-      label.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          label.blur();
-        }
-      });
-
-      row.appendChild(label);
-      row.appendChild(menuBtn);
-      daysList.appendChild(row);
-    });
-  }
-
-  function toggleMenu(menu, btn) {
-    closeMenu();
-    const rect = btn.getBoundingClientRect();
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-    const scrollX = window.scrollX || document.documentElement.scrollLeft;
-
-    menu.style.top = (rect.bottom + scrollY + 4) + 'px';
-    menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
-    menu.style.display = 'block';
-    openMenu = menu;
-  }
-
-  function closeMenu() {
-    if (openMenu) openMenu.style.display = 'none';
-    openMenu = null;
-  }
-
-  addDayBtn.onclick = () => {
-    const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
-    days.push({ id: nextId, name: `Day ${nextId}` });
-    saveDays();
-    renderDays();
-  };
-
-  window.addEventListener('click', closeMenu);
-  renderDays();
+  addWorkoutBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Name your workout...';
+    input.className = 'workout-input';
+    workoutsContainer.appendChild(input);
+    input.focus();
+  });
 </script>
+
 </body>
 </html>
+
 
