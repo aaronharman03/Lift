@@ -224,7 +224,6 @@
       page.className = 'page';
       page.id = `page${i}`;
       page.innerHTML = `
-        <h3>${day} Tasks</h3>
         <div id="taskList${i}"></div>
         <form onsubmit="addTask(event, ${i})">
           ${i !== 7 ? '<input type="time" name="time" />' : ''}
@@ -272,49 +271,28 @@
         container.appendChild(div);
       });
     });
-    closeAllMenus();
   }
 
-  function toggleMenu(event, i, idx) {
+  function toggleMenu(event, pageIndex, taskIndex) {
     event.stopPropagation();
-    closeAllMenus();
-    const menu = document.getElementById(`menu-${i}-${idx}`);
-    if (menu) menu.style.display = 'block';
-    document.addEventListener('click', closeAllMenus, { once: true });
+    // close other menus
+    document.querySelectorAll('.menu').forEach(menu => {
+      if (menu.id !== `menu-${pageIndex}-${taskIndex}`) {
+        menu.style.display = 'none';
+      }
+    });
+    const menu = document.getElementById(`menu-${pageIndex}-${taskIndex}`);
+    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
   }
 
-  function closeAllMenus() {
-    document.querySelectorAll('.menu').forEach(menu => {
-      menu.style.display = 'none';
-    });
-  }
+  window.onclick = function() {
+    document.querySelectorAll('.menu').forEach(menu => (menu.style.display = 'none'));
+  };
 
   function showDetails(task) {
     document.getElementById('modalTitle').textContent = task.name;
-    document.getElementById('modalTimeDate').textContent =
-      (task.time ? `Time: ${task.time}` : '') + (task.date ? ` | Date: ${task.date}` : '');
-
-    const desc = task.desc || 'No description.';
-    const modalDesc = document.getElementById('modalDesc');
-
-    if (/^(\s*[-*]\s+)/m.test(desc)) {
-      const lines = desc.split('\n');
-      let html = '<ul style="padding-left:1.2rem; margin:0;">';
-      for (const line of lines) {
-        if (/^\s*[-*]\s+/.test(line)) {
-          html += `<li>${line.replace(/^\s*[-*]\s+/, '')}</li>`;
-        } else if(line.trim() === '') {
-          // skip empty lines inside list
-        } else {
-          html += `<p>${line}</p>`;
-        }
-      }
-      html += '</ul>';
-      modalDesc.innerHTML = html;
-    } else {
-      modalDesc.textContent = desc;
-    }
-
+    document.getElementById('modalTimeDate').textContent = (task.time ? task.time + ' ' : '') + (task.date || '');
+    document.getElementById('modalDesc').textContent = task.desc || 'No description';
     document.getElementById('modal').style.display = 'flex';
   }
 
@@ -404,5 +382,4 @@
 
 </body>
 </html>
-
 
