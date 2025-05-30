@@ -1,303 +1,471 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Tracker</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 0 20px;
-  }
-  h1, h2, h3, h4 {
-    color: #333;
-  }
-  label {
-    display: block;
-    margin-top: 10px;
-  }
-  input[type="text"], input[type="number"], input[type="date"] {
-    padding: 6px;
-    margin-top: 4px;
-    width: 100%;
-    max-width: 300px;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 10px;
-    padding: 8px 12px;
-    cursor: pointer;
-  }
-  .exercise {
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  .exercise h4 {
-    margin: 0 0 6px 0;
-  }
-  .sets-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 6px;
-    align-items: center;
-  }
-  .sets-row input {
-    width: 80px;
-  }
-  .sets-row button {
-    padding: 4px 8px;
-    font-size: 14px;
-  }
-  .workout-list {
-    list-style: none;
-    padding: 0;
-  }
-  .workout-item {
-    border: 1px solid #ccc;
-    padding: 12px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    background-color: #fefefe;
-  }
-  .workout-item:hover {
-    background-color: #f0f8ff;
-  }
-  .workout-details {
-    margin-top: 10px;
-  }
-  .remove-btn {
-    background: #e74c3c;
-    color: white;
-    border: none;
-  }
-  .remove-btn:hover {
-    background: #c0392b;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minimalist Workout Tracker</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fafafa;
+      color: #222;
+    }
 
-  /* Prevent zoom on input focus on mobile */
-  input, select, textarea, button {
-    font-size: 16px;
-  }
-</style>
+    main {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-weight: 600;
+      font-size: 1.8rem;
+      text-align: center;
+      user-select: none;
+    }
+
+    /* Hide all views except active */
+    section.page {
+      display: none;
+    }
+    section.page.active {
+      display: block;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline-offset: 2px;
+      outline-color: #88b7ff;
+      transition: outline-color 0.15s ease-in-out;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus {
+      outline-color: #2a7fff;
+      border-color: #2a7fff;
+    }
+
+    button {
+      cursor: pointer;
+      background: #2a7fff;
+      border: none;
+      padding: 12px 20px;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      margin-top: 10px;
+      width: 100%;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover,
+    button:focus {
+      background: #1a5cd1;
+      outline: none;
+    }
+    button:disabled {
+      background: #9bb8ff;
+      cursor: default;
+    }
+
+    /* Exercises */
+    .exercise {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: white;
+    }
+    .exercise label {
+      margin-bottom: 6px;
+    }
+
+    .sets-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+    .sets-row input {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .sets-row button {
+      flex: 0 0 auto;
+      background: #e74c3c;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      margin-top: 0;
+    }
+    .sets-row button:hover {
+      background: #c0392b;
+    }
+    .add-set-btn,
+    .remove-exercise-btn {
+      margin-top: 10px;
+      width: auto;
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+    .add-set-btn {
+      background: #28a745;
+    }
+    .add-set-btn:hover {
+      background: #1f7a31;
+    }
+    .remove-exercise-btn {
+      background: #e74c3c;
+      float: right;
+    }
+    .remove-exercise-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Past Workouts list */
+    #workouts-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .workout-item {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease-in-out;
+    }
+    .workout-item:hover {
+      background-color: #f0f8ff;
+    }
+    .workout-details {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.3;
+    }
+
+    /* Bottom nav menu */
+    nav#menu {
+      display: flex;
+      justify-content: space-around;
+      background: white;
+      border-top: 1px solid #ccc;
+      padding: 8px 0;
+      user-select: none;
+    }
+    nav#menu button {
+      flex: 1;
+      background: none;
+      color: #666;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 0;
+      margin: 0;
+      padding: 10px 0;
+      border: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    nav#menu button.active {
+      background-color: #2a7fff;
+      color: white;
+      border-radius: 8px 8px 0 0;
+      font-weight: 700;
+    }
+    nav#menu button:hover:not(.active),
+    nav#menu button:focus:not(.active) {
+      background: #dde8ff;
+      color: #2a7fff;
+      outline: none;
+    }
+
+  </style>
 </head>
 <body>
+  <h1>Workout Tracker</h1>
 
-<h1>Workout Tracker</h1>
+  <main>
+    <!-- Add Workout Page -->
+    <section id="page-add" class="page active">
+      <form id="workout-form">
+        <label for="workout-date">Date:</label>
+        <input type="date" id="workout-date" required />
 
-<section id="add-workout-section">
-  <h2>Add Workout</h2>
-  <form id="workout-form">
-    <label>
-      Date:
-      <input type="date" id="workout-date" required />
-    </label>
-    <label>
-      Workout Type:
-      <input type="text" id="workout-type" placeholder="e.g., Workout A, Legs" required />
-    </label>
+        <label for="workout-type">Workout Type:</label>
+        <input
+          type="text"
+          id="workout-type"
+          placeholder="e.g., Workout A, Legs"
+          required
+        />
 
-    <div id="exercises-container">
-      <h3>Exercises</h3>
-    </div>
-
-    <button type="button" id="add-exercise-btn">Add Exercise</button>
-    <br/>
-    <button type="submit">Save Workout</button>
-  </form>
-</section>
-
-<section>
-  <h2>Past Workouts</h2>
-  <ul id="workouts-list" class="workout-list"></ul>
-</section>
-
-<script>
-  // Storage key
-  const STORAGE_KEY = "workoutTrackerData";
-
-  // Elements
-  const workoutForm = document.getElementById("workout-form");
-  const workoutDateInput = document.getElementById("workout-date");
-  const workoutTypeInput = document.getElementById("workout-type");
-  const exercisesContainer = document.getElementById("exercises-container");
-  const addExerciseBtn = document.getElementById("add-exercise-btn");
-  const workoutsList = document.getElementById("workouts-list");
-
-  // Load workouts from localStorage
-  let workouts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-  // Render workouts list with updated format
-  function renderWorkouts() {
-    workoutsList.innerHTML = "";
-    if (workouts.length === 0) {
-      workoutsList.innerHTML = "<li>No workouts logged yet.</li>";
-      return;
-    }
-    workouts.forEach((workout, index) => {
-      const li = document.createElement("li");
-      li.className = "workout-item";
-
-      li.innerHTML = `
-        <strong>${workout.date}</strong> — ${workout.workoutType}
-        <div class="workout-details" style="display:none;">
-          ${workout.exercises
-            .map(ex => {
-              const weight = ex.sets.length ? ex.sets[0].weight : "-";
-              const repsList = ex.sets.map(s => s.reps).join(", ");
-              return `<div>${ex.name} - Weight: ${weight} - Sets: ${repsList}</div>`;
-            }).join("")}
+        <div id="exercises-container">
+          <h3>Exercises</h3>
         </div>
+
+        <button type="button" id="add-exercise-btn">Add Exercise</button>
+        <button type="submit">Save Workout</button>
+      </form>
+    </section>
+
+    <!-- View Workouts Page -->
+    <section id="page-view" class="page">
+      <h2>Past Workouts</h2>
+      <ul id="workouts-list"></ul>
+    </section>
+
+    <!-- About Page -->
+    <section id="page-about" class="page">
+      <h2>About</h2>
+      <p>
+        Simple minimalist workout tracker.<br />
+        Track your exercises, weights, reps and review past workouts.<br />
+        Made just for personal use.
+      </p>
+    </section>
+  </main>
+
+  <nav id="menu">
+    <button id="btn-add" class="active" aria-label="Add Workout">Add</button>
+    <button id="btn-view" aria-label="View Workouts">View</button>
+    <button id="btn-about" aria-label="About">About</button>
+  </nav>
+
+  <script>
+    const STORAGE_KEY = "workoutTrackerData";
+
+    // Elements
+    const pages = {
+      add: document.getElementById("page-add"),
+      view: document.getElementById("page-view"),
+      about: document.getElementById("page-about"),
+    };
+    const menuButtons = {
+      add: document.getElementById("btn-add"),
+      view: document.getElementById("btn-view"),
+      about: document.getElementById("btn-about"),
+    };
+
+    const workoutForm = document.getElementById("workout-form");
+    const workoutDateInput = document.getElementById("workout-date");
+    const workoutTypeInput = document.getElementById("workout-type");
+    const exercisesContainer = document.getElementById("exercises-container");
+    const addExerciseBtn = document.getElementById("add-exercise-btn");
+    const workoutsList = document.getElementById("workouts-list");
+
+    let workouts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    // Show page helper
+    function showPage(pageKey) {
+      for (const key in pages) {
+        pages[key].classList.toggle("active", key === pageKey);
+        menuButtons[key].classList.toggle("active", key === pageKey);
+      }
+      if (pageKey === "view") {
+        renderWorkouts();
+      }
+    }
+
+    // Menu buttons events
+    menuButtons.add.addEventListener("click", () => showPage("add"));
+    menuButtons.view.addEventListener("click", () => showPage("view"));
+    menuButtons.about.addEventListener("click", () => showPage("about"));
+
+    // Render workouts list with improved display
+    function renderWorkouts() {
+      workoutsList.innerHTML = "";
+      if (workouts.length === 0) {
+        workoutsList.innerHTML = "<li>No workouts logged yet.</li>";
+        return;
+      }
+      workouts.forEach((workout) => {
+        const li = document.createElement("li");
+        li.className = "workout-item";
+
+        li.innerHTML = `
+          <strong>${workout.date}</strong> — ${workout.workoutType}
+          <div class="workout-details" style="display:none;">
+            ${workout.exercises
+              .map((ex) => {
+                const weight = ex.sets.length ? ex.sets[0].weight : "-";
+                const repsList = ex.sets.map((s) => s.reps).join(", ");
+                return `<div>${ex.name} - Weight: ${weight} - Sets: ${repsList}</div>`;
+              })
+              .join("")}
+          </div>
+        `;
+
+        li.addEventListener("click", () => {
+          const details = li.querySelector(".workout-details");
+          details.style.display = details.style.display === "none" ? "block" : "none";
+        });
+
+        workoutsList.appendChild(li);
+      });
+    }
+
+    // Create new exercise block
+    function createExerciseBlock() {
+      const exerciseDiv = document.createElement("div");
+      exerciseDiv.className = "exercise";
+
+      exerciseDiv.innerHTML = `
+        <label>
+          Exercise Name:
+          <input type="text" class="exercise-name" required />
+        </label>
+        <div class="sets-container">
+          <h4>Sets</h4>
+        </div>
+        <button type="button" class="add-set-btn">Add Set</button>
+        <button type="button" class="remove-exercise-btn">Remove Exercise</button>
       `;
 
-      li.addEventListener("click", () => {
-        const details = li.querySelector(".workout-details");
-        details.style.display = details.style.display === "none" ? "block" : "none";
+      const setsContainer = exerciseDiv.querySelector(".sets-container");
+      addSetRow(setsContainer);
+
+      exerciseDiv.querySelector(".add-set-btn").addEventListener("click", () => {
+        addSetRow(setsContainer);
       });
 
-      workoutsList.appendChild(li);
-    });
-  }
+      exerciseDiv.querySelector(".remove-exercise-btn").addEventListener("click", () => {
+        exerciseDiv.remove();
+      });
 
-  renderWorkouts();
+      return exerciseDiv;
+    }
 
-  // Add a new exercise input block
-  function createExerciseBlock() {
-    const exerciseDiv = document.createElement("div");
-    exerciseDiv.className = "exercise";
+    // Add a set input row
+    function addSetRow(container) {
+      const div = document.createElement("div");
+      div.className = "sets-row";
 
-    exerciseDiv.innerHTML = `
-      <label>
-        Exercise Name:
-        <input type="text" class="exercise-name" required />
-      </label>
-      <div class="sets-container">
-        <h4>Sets</h4>
-      </div>
-      <button type="button" class="add-set-btn">Add Set</button>
-      <button type="button" class="remove-exercise-btn remove-btn">Remove Exercise</button>
-    `;
+      div.innerHTML = `
+        <input type="number" min="0" step="0.1" placeholder="Weight" class="set-weight" required />
+        <input type="number" min="1" step="1" placeholder="Reps" class="set-reps" required />
+        <button type="button" class="remove-set-btn">Remove Set</button>
+      `;
 
-    // Add initial set row
-    const setsContainer = exerciseDiv.querySelector(".sets-container");
-    addSetRow(setsContainer);
+      div.querySelector(".remove-set-btn").addEventListener("click", () => {
+        div.remove();
+      });
 
-    // Add event to add set button
-    exerciseDiv.querySelector(".add-set-btn").addEventListener("click", () => {
-      addSetRow(setsContainer);
+      container.appendChild(div);
+    }
+
+    // Add exercise button
+    addExerciseBtn.addEventListener("click", () => {
+      exercisesContainer.appendChild(createExerciseBlock());
     });
 
-    // Remove exercise button event
-    exerciseDiv.querySelector(".remove-exercise-btn").addEventListener("click", () => {
-      exerciseDiv.remove();
+    // Handle form submission
+    workoutForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const date = workoutDateInput.value;
+      const workoutType = workoutTypeInput.value.trim();
+
+      if (!date) {
+        alert("Please select a date");
+        return;
+      }
+      if (!workoutType) {
+        alert("Please enter workout type");
+        return;
+      }
+
+      const exerciseDivs = exercisesContainer.querySelectorAll(".exercise");
+      if (exerciseDivs.length === 0) {
+        alert("Please add at least one exercise");
+        return;
+      }
+
+      const exercises = [];
+
+      for (const exerciseDiv of exerciseDivs) {
+        const nameInput = exerciseDiv.querySelector(".exercise-name");
+        const exerciseName = nameInput.value.trim();
+        if (!exerciseName) {
+          alert("Exercise name cannot be empty");
+          return;
+        }
+
+        const setsContainer = exerciseDiv.querySelector(".sets-container");
+        const setRows = setsContainer.querySelectorAll(".sets-row");
+        if (setRows.length === 0) {
+          alert(`Please add at least one set for exercise "${exerciseName}"`);
+          return;
+        }
+
+        const sets = [];
+        for (const row of setRows) {
+          const weightInput = row.querySelector(".set-weight");
+          const repsInput = row.querySelector(".set-reps");
+          const weight = parseFloat(weightInput.value);
+          const reps = parseInt(repsInput.value, 10);
+
+          if (isNaN(weight) || weight <= 0) {
+            alert(`Please enter a valid weight for exercise "${exerciseName}"`);
+            return;
+          }
+          if (isNaN(reps) || reps <= 0) {
+            alert(`Please enter valid reps for exercise "${exerciseName}"`);
+            return;
+          }
+          sets.push({ weight, reps });
+        }
+
+        exercises.push({ name: exerciseName, sets });
+      }
+
+      workouts.unshift({ date, workoutType, exercises });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
+
+      workoutForm.reset();
+      exercisesContainer.innerHTML = "";
+      exercisesContainer.appendChild(createExerciseBlock());
+
+      alert("Workout saved!");
     });
 
-    return exerciseDiv;
-  }
-
-  // Add a single set input row to sets container
-  function addSetRow(container) {
-    const div = document.createElement("div");
-    div.className = "sets-row";
-
-    div.innerHTML = `
-      <input type="number" min="0" step="0.1" placeholder="Weight" class="set-weight" required />
-      <input type="number" min="1" step="1" placeholder="Reps" class="set-reps" required />
-      <button type="button" class="remove-set-btn remove-btn">Remove Set</button>
-    `;
-
-    // Remove set button event
-    div.querySelector(".remove-set-btn").addEventListener("click", () => {
-      div.remove();
-    });
-
-    container.appendChild(div);
-  }
-
-  // Handle Add Exercise button
-  addExerciseBtn.addEventListener("click", () => {
+    // On load, add one exercise block by default
     exercisesContainer.appendChild(createExerciseBlock());
-  });
-
-  // Handle form submit
-  workoutForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const date = workoutDateInput.value;
-    const workoutType = workoutTypeInput.value.trim();
-
-    if (!date) {
-      alert("Please select a date");
-      return;
-    }
-    if (!workoutType) {
-      alert("Please enter workout type");
-      return;
-    }
-
-    // Gather exercises
-    const exerciseDivs = exercisesContainer.querySelectorAll(".exercise");
-    if (exerciseDivs.length === 0) {
-      alert("Please add at least one exercise");
-      return;
-    }
-
-    const exercises = [];
-
-    for (const exerciseDiv of exerciseDivs) {
-      const nameInput = exerciseDiv.querySelector(".exercise-name");
-      const exerciseName = nameInput.value.trim();
-      if (!exerciseName) {
-        alert("Exercise name cannot be empty");
-        return;
-      }
-
-      const setsContainer = exerciseDiv.querySelector(".sets-container");
-      const setRows = setsContainer.querySelectorAll(".sets-row");
-      if (setRows.length === 0) {
-        alert(`Please add at least one set for exercise "${exerciseName}"`);
-        return;
-      }
-
-      const sets = [];
-      for (const row of setRows) {
-        const weightInput = row.querySelector(".set-weight");
-        const repsInput = row.querySelector(".set-reps");
-        const weight = parseFloat(weightInput.value);
-        const reps = parseInt(repsInput.value, 10);
-
-        if (isNaN(weight) || weight <= 0) {
-          alert(`Please enter a valid weight for exercise "${exerciseName}"`);
-          return;
-        }
-        if (isNaN(reps) || reps <= 0) {
-          alert(`Please enter valid reps for exercise "${exerciseName}"`);
-          return;
-        }
-        sets.push({ weight, reps });
-      }
-
-      exercises.push({ name: exerciseName, sets });
-    }
-
-    // Add workout to list and save
-    workouts.unshift({ date, workoutType, exercises });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
-
-    // Reset form
-    workoutForm.reset();
-    exercisesContainer.innerHTML = "";
-    renderWorkouts();
-  });
-
-  // Add one initial exercise block on page load
-  exercisesContainer.appendChild(createExerciseBlock());
-</script>
-
+  </script>
 </body>
 </html>
+
 
 
 
