@@ -51,6 +51,7 @@
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 4px;
+      z-index: 10;
     }
     .menu:hover .menu-items {
       display: block;
@@ -99,12 +100,13 @@
   const getKey = () => `workout_${dateEl.value}`;
 
   const loadWorkout = () => {
-    const data = JSON.parse(localStorage.getItem(getKey())) || { name: '', exercises: [] };
+    const raw = localStorage.getItem(getKey());
+    const data = raw ? JSON.parse(raw) : { name: '', exercises: [] };
     workoutNameEl.value = data.name;
     return data;
   };
 
-  const saveWorkout = (data) => {
+  const saveWorkoutData = (data) => {
     localStorage.setItem(getKey(), JSON.stringify(data));
   };
 
@@ -122,6 +124,7 @@
 
   const renderLog = () => {
     logEl.innerHTML = '';
+    if (!dateEl.value) return;
     const data = loadWorkout();
     data.exercises.forEach((ex, i) => {
       const div = document.createElement('div');
@@ -148,7 +151,7 @@
       deleteBtn.textContent = 'Delete';
       deleteBtn.onclick = () => {
         data.exercises.splice(i, 1);
-        saveWorkout(data);
+        saveWorkoutData(data);
         renderLog();
       };
       menuItems.append(editBtn, deleteBtn);
@@ -159,10 +162,13 @@
   };
 
   dateEl.addEventListener('change', () => {
-    sets = [""];
-    editingIndex = -1;
-    renderSets();
-    renderLog();
+    if (dateEl.value) {
+      localStorage.setItem('lastDate', dateEl.value);
+      sets = [""];
+      editingIndex = -1;
+      renderSets();
+      renderLog();
+    }
   });
 
   addSetBtn.onclick = () => {
@@ -194,7 +200,7 @@
       }
       data.exercises.push(newEx);
     }
-    saveWorkout(data);
+    saveWorkoutData(data);
     exerciseEl.value = '';
     weightEl.value = '';
     sets = [""];
@@ -203,11 +209,25 @@
   };
 
   saveWorkoutBtn.onclick = () => {
+    if (!dateEl.value) {
+      alert("Please select a date.");
+      return;
+    }
     const data = loadWorkout();
     data.name = workoutNameEl.value.trim();
-    saveWorkout(data);
+    saveWorkoutData(data);
+    renderLog();
     alert("Workout saved successfully!");
   };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const lastDate = localStorage.getItem('lastDate');
+    if (lastDate) {
+      dateEl.value = lastDate;
+      renderSets();
+      renderLog();
+    }
+  });
 
   // Init
   sets = [""];
