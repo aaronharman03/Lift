@@ -14,52 +14,76 @@
       margin-bottom: 10px;
     }
     button {
-      padding: 8px 12px;
-      margin: 5px 0;
+      padding: 6px 12px;
       cursor: pointer;
     }
     .workout-button, .exercise {
-      display: block;
       margin: 6px 0;
     }
     .hidden {
       display: none;
     }
-    input, textarea {
-      padding: 5px;
-      width: 100%;
-      margin: 5px 0 10px;
+    input {
+      padding: 6px;
+      margin: 5px 0;
+      width: calc(100% - 12px);
+    }
+    .form-group {
+      margin: 10px 0;
+    }
+    .divider {
+      margin: 15px 0;
+      border-top: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
 
   <h1>Workout Tracker</h1>
-  <button id="addWorkoutBtn">Add Workout</button>
+
+  <div class="form-group">
+    <input id="workoutNameInput" type="text" placeholder="Workout name (e.g., Push, Pull)" />
+    <button id="addWorkoutBtn">Add Workout</button>
+  </div>
+
   <div id="workoutList"></div>
 
   <div id="workoutDetail" class="hidden">
     <h2 id="workoutTitle"></h2>
-    <button id="addExerciseBtn">Add Exercise</button>
+
+    <div class="form-group">
+      <input id="exerciseNameInput" type="text" placeholder="Exercise name (e.g., Bench Press)" />
+      <input id="exerciseWeightInput" type="number" placeholder="Weight (kg)" />
+      <input id="exerciseRepsInput" type="text" placeholder="Reps (e.g., 6,8,6)" />
+      <button id="addExerciseBtn">Add Exercise</button>
+    </div>
+
     <div id="exerciseList"></div>
-    <button onclick="goBack()">Back</button>
+    <div class="divider"></div>
+    <button onclick="goBack()">Back to Workouts</button>
   </div>
 
   <script>
+    const workoutNameInput = document.getElementById("workoutNameInput");
     const addWorkoutBtn = document.getElementById("addWorkoutBtn");
     const workoutList = document.getElementById("workoutList");
+
     const workoutDetail = document.getElementById("workoutDetail");
     const workoutTitle = document.getElementById("workoutTitle");
+    const exerciseNameInput = document.getElementById("exerciseNameInput");
+    const exerciseWeightInput = document.getElementById("exerciseWeightInput");
+    const exerciseRepsInput = document.getElementById("exerciseRepsInput");
     const addExerciseBtn = document.getElementById("addExerciseBtn");
     const exerciseList = document.getElementById("exerciseList");
 
     let workouts = [];
+    let currentWorkoutIndex = null;
 
     addWorkoutBtn.addEventListener("click", () => {
-      const name = prompt("Name this workout:");
+      const name = workoutNameInput.value.trim();
       if (!name) return;
-      const workout = { name, exercises: [] };
-      workouts.push(workout);
+      workouts.push({ name, exercises: [] });
+      workoutNameInput.value = "";
       renderWorkoutButtons();
     });
 
@@ -74,31 +98,33 @@
       });
     }
 
-    let currentWorkoutIndex = null;
-
     function openWorkout(index) {
       currentWorkoutIndex = index;
-      workoutTitle.textContent = workouts[index].name;
+      const workout = workouts[index];
+      workoutTitle.textContent = workout.name;
       workoutList.style.display = "none";
+      workoutNameInput.style.display = "none";
       addWorkoutBtn.style.display = "none";
       workoutDetail.classList.remove("hidden");
       renderExercises();
     }
 
     addExerciseBtn.addEventListener("click", () => {
-      const name = prompt("Exercise name:");
-      if (!name) return;
-      const weight = prompt("Weight (kg):");
-      const reps = prompt("Reps (comma-separated, e.g. 6,8,6):");
-      if (!weight || !reps) return;
+      const name = exerciseNameInput.value.trim();
+      const weight = exerciseWeightInput.value.trim();
+      const reps = exerciseRepsInput.value.trim();
 
-      const exercise = {
+      if (!name || !weight || !reps) return;
+
+      workouts[currentWorkoutIndex].exercises.push({
         name,
         weight,
         reps: reps.split(",").map(r => r.trim())
-      };
+      });
 
-      workouts[currentWorkoutIndex].exercises.push(exercise);
+      exerciseNameInput.value = "";
+      exerciseWeightInput.value = "";
+      exerciseRepsInput.value = "";
       renderExercises();
     });
 
@@ -116,10 +142,10 @@
     function goBack() {
       workoutDetail.classList.add("hidden");
       workoutList.style.display = "";
+      workoutNameInput.style.display = "";
       addWorkoutBtn.style.display = "";
     }
   </script>
 
 </body>
 </html>
-
