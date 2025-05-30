@@ -1,65 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simple Task Tracker</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-  h2 { margin-top: 2rem; }
-  ul { list-style: none; padding-left: 0; }
-  li { margin: 0.5rem 0; }
-  label { cursor: pointer; }
-  button { margin-top: 1rem; padding: 0.5rem 1rem; }
-  .progress { margin-top: 1rem; font-weight: bold; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Task Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+    h2 { margin-top: 2rem; }
+    ul { list-style: none; padding-left: 0; }
+    li { margin: 0.5rem 0; display: flex; align-items: center; justify-content: space-between; }
+    label { flex: 1; cursor: pointer; }
+    input[type="text"] { width: 100%; padding: 0.5rem; margin: 0.5rem 0; }
+    button { margin-left: 0.5rem; }
+    .progress { margin-top: 1rem; font-weight: bold; }
+  </style>
 </head>
 <body>
 
-<h1>Simple Task Tracker</h1>
+<h1>Task Tracker</h1>
 
 <div>
   <h2>Today’s Tasks <span id="progress">0/0 done</span></h2>
+  <form id="today-form">
+    <input type="text" id="today-input" placeholder="Add new Today task" />
+  </form>
   <ul id="today-list"></ul>
 </div>
 
 <div>
   <h2>Future Tasks</h2>
+  <form id="future-form">
+    <input type="text" id="future-input" placeholder="Add new Future task" />
+  </form>
   <ul id="future-list"></ul>
-  <button id="move-btn">Move All Future Tasks to Today</button>
 </div>
 
 <script>
   const todayListEl = document.getElementById('today-list');
   const futureListEl = document.getElementById('future-list');
-  const moveBtn = document.getElementById('move-btn');
+  const todayForm = document.getElementById('today-form');
+  const futureForm = document.getElementById('future-form');
+  const todayInput = document.getElementById('today-input');
+  const futureInput = document.getElementById('future-input');
   const progressEl = document.getElementById('progress');
 
-  // Load saved data or start fresh
   let data = JSON.parse(localStorage.getItem('taskData')) || {
-    today: [
-      { text: 'Example task 1', done: false },
-      { text: 'Example task 2', done: false }
-    ],
-    future: [
-      { text: 'Future task 1', done: false },
-      { text: 'Future task 2', done: false }
-    ]
+    today: [],
+    future: []
   };
 
-  // Save data to localStorage
   function saveData() {
     localStorage.setItem('taskData', JSON.stringify(data));
   }
 
-  // Update progress counter
   function updateProgress() {
-    const doneCount = data.today.filter(t => t.done).length;
+    const done = data.today.filter(t => t.done).length;
     const total = data.today.length;
-    progressEl.textContent = `${doneCount}/${total} done`;
+    progressEl.textContent = `${done}/${total} done`;
   }
 
-  // Render tasks list
   function renderList(listEl, tasks, listName) {
     listEl.innerHTML = '';
     tasks.forEach((task, i) => {
@@ -67,34 +66,73 @@
       const id = `${listName}-${i}`;
       li.innerHTML = `
         <label for="${id}">
-          <input type="checkbox" id="${id}" ${task.done ? 'checked' : ''}/>
+          <input type="checkbox" id="${id}" ${task.done ? 'checked' : ''}>
           ${task.text}
         </label>
       `;
+
       const checkbox = li.querySelector('input');
       checkbox.addEventListener('change', () => {
         task.done = checkbox.checked;
         saveData();
         if (listName === 'today') updateProgress();
       });
+
+      const controls = document.createElement('div');
+
+      if (listName === 'future') {
+        const moveBtn = document.createElement('button');
+        moveBtn.textContent = '→ Today';
+        moveBtn.addEventListener('click', () => {
+          data.today.push({ ...task, done: false });
+          data[listName].splice(i, 1);
+          saveData();
+          renderAll();
+        });
+        controls.appendChild(moveBtn);
+      }
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑';
+      delBtn.addEventListener('click', () => {
+        data[listName].splice(i, 1);
+        saveData();
+        renderAll();
+      });
+
+      controls.appendChild(delBtn);
+      li.appendChild(controls);
       listEl.appendChild(li);
     });
   }
 
-  // Move all future tasks to today
-  moveBtn.addEventListener('click', () => {
-    data.today = data.today.concat(data.future);
-    data.future = [];
-    saveData();
-    renderAll();
-  });
-
-  // Render both lists and progress
   function renderAll() {
     renderList(todayListEl, data.today, 'today');
     renderList(futureListEl, data.future, 'future');
     updateProgress();
   }
+
+  todayForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = todayInput.value.trim();
+    if (val) {
+      data.today.push({ text: val, done: false });
+      todayInput.value = '';
+      saveData();
+      renderAll();
+    }
+  });
+
+  futureForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = futureInput.value.trim();
+    if (val) {
+      data.future.push({ text: val, done: false });
+      futureInput.value = '';
+      saveData();
+      renderAll();
+    }
+  });
 
   renderAll();
 </script>
