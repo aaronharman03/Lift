@@ -2,228 +2,178 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>Task Tracker</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#121212">
+  <title>Weekly Schedule</title>
+  <link rel="manifest" href="manifest.json">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-    h2 { margin-top: 2rem; }
-    ul { list-style: none; padding-left: 0; }
-    li { margin: 0.5rem 0; display: flex; align-items: center; justify-content: space-between; }
-    label { flex: 1; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
-    input[type="text"] {
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #121212;
+      color: #eee;
+    }
+    header, footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem;
+      background: #1e1e1e;
+    }
+    .page {
+      display: none;
+      padding: 1rem;
+    }
+    .page.active {
+      display: block;
+    }
+    .task {
+      border: 1px solid #333;
       padding: 0.5rem;
       margin: 0.5rem 0;
-      width: 70%;
-      font-size: 16px; /* prevents zoom on mobile */
+      background: #1e1e1e;
+    }
+    .task.done {
+      text-decoration: line-through;
+      opacity: 0.6;
     }
     button {
-      padding: 0.5rem;
-      margin-left: 0.5rem;
-      font-size: 16px;
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      margin: 0.2rem;
+      cursor: pointer;
     }
-    form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-
-    /* Modal styling */
-    #modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #0008;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    #modal > div {
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      max-width: 400px;
-      width: 90%;
-    }
-    #modal textarea {
+    input, textarea {
+      background: #222;
+      color: #eee;
+      border: 1px solid #444;
+      margin: 0.3rem 0;
       width: 100%;
-      font-size: 14px;
-    }
-    .edit-icon {
-      font-size: 14px;
-      color: #666;
     }
   </style>
 </head>
 <body>
 
-<h1>Task Tracker</h1>
+<header>
+  <button onclick="prevPage()">←</button>
+  <h2 id="pageTitle">Monday</h2>
+  <button onclick="nextPage()">→</button>
+</header>
 
-<div>
-  <h2>Today’s Tasks</h2>
-  <form id="today-form">
-    <input type="text" id="today-input" placeholder="Add new Today task" />
-    <button type="submit">Add</button>
-  </form>
-  <ul id="today-list"></ul>
-</div>
-
-<div>
-  <h2>Future Tasks</h2>
-  <form id="future-form">
-    <input type="text" id="future-input" placeholder="Add new Future task" />
-    <button type="submit">Add</button>
-  </form>
-  <ul id="future-list"></ul>
-</div>
-
-<!-- 🆕 Description Modal -->
-<div id="modal">
-  <div>
-    <h3>Edit Description</h3>
-    <textarea id="desc" rows="5"></textarea>
-    <div style="margin-top:1rem; text-align:right;">
-      <button id="cancel">Cancel</button>
-      <button id="save">Save</button>
-    </div>
-  </div>
+<div id="pages">
+  <!-- 7 Day Pages + 1 List Page -->
+  ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','List']
+    .map((day, i) => `
+      <div class="page" id="page${i}">
+        <h3>${day} Tasks</h3>
+        <div id="taskList${i}"></div>
+        <form onsubmit="addTask(event, ${i})">
+          <input type="time" name="time" />
+          <input type="text" name="name" placeholder="Task name" required />
+          <textarea name="desc" placeholder="Description (optional)"></textarea>
+          ${i === 7 ? '<input type="date" name="date" required />' : ''}
+          <button type="submit">Add Task</button>
+        </form>
+      </div>
+    `).join('')}
 </div>
 
 <script>
-  const todayListEl = document.getElementById('today-list');
-  const futureListEl = document.getElementById('future-list');
-  const todayForm = document.getElementById('today-form');
-  const futureForm = document.getElementById('future-form');
-  const todayInput = document.getElementById('today-input');
-  const futureInput = document.getElementById('future-input');
+  let currentPage = 0;
+  const titles = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
 
-  let data = JSON.parse(localStorage.getItem('taskData')) || {
-    today: [],
-    future: []
-  };
-
-  function saveData() {
-    localStorage.setItem('taskData', JSON.stringify(data));
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
   }
 
-  function renderList(listEl, tasks, listName) {
-    listEl.innerHTML = '';
-    tasks.forEach((task, i) => {
-      const li = document.createElement('li');
-      const id = `${listName}-${i}`;
-      li.innerHTML = `
-        <label for="${id}" class="task-label">
-          <input type="checkbox" id="${id}" ${task.done ? 'checked' : ''}>
-          <span>${task.text}</span>
-          ${task.description ? '<span class="edit-icon">✏️</span>' : ''}
-        </label>
-      `;
+  function loadTasks() {
+    const data = localStorage.getItem('tasks');
+    return data ? JSON.parse(data) : Array(8).fill([]).map(() => []);
+  }
 
-      const checkbox = li.querySelector('input');
-      checkbox.addEventListener('change', () => {
-        task.done = checkbox.checked;
-        saveData();
+  let tasks = loadTasks();
+
+  function render() {
+    document.querySelectorAll('.page').forEach((p, i) => {
+      p.classList.toggle('active', i === currentPage);
+    });
+    document.getElementById('pageTitle').textContent = titles[currentPage];
+    tasks.forEach((taskList, i) => {
+      const container = document.getElementById(`taskList${i}`);
+      container.innerHTML = '';
+      let sorted = [...taskList];
+      if (i === 7) sorted.sort((a,b) => new Date(a.date) - new Date(b.date));
+      sorted.forEach((task, idx) => {
+        const div = document.createElement('div');
+        div.className = 'task' + (task.done ? ' done' : '');
+        div.innerHTML = `
+          <strong>${task.time || ''} ${task.name}</strong><br/>
+          ${task.desc || ''}<br/>
+          ${task.date ? `<small>${task.date}</small><br/>` : ''}
+          <button onclick="toggleDone(${i}, ${idx})">✔</button>
+          <button onclick="editTask(${i}, ${idx})">✏️</button>
+          <button onclick="deleteTask(${i}, ${idx})">🗑</button>
+        `;
+        container.appendChild(div);
       });
-
-      const label = li.querySelector('.task-label');
-      label.addEventListener('click', (e) => {
-        if (e.target.tagName !== 'INPUT') {
-          e.preventDefault();
-          openModal(listName, i);
-        }
-      });
-
-      const controls = document.createElement('div');
-
-      if (listName === 'future') {
-        const moveBtn = document.createElement('button');
-        moveBtn.textContent = '→ Today';
-        moveBtn.addEventListener('click', () => {
-          data.today.push({ ...task, done: false });
-          data[listName].splice(i, 1);
-          saveData();
-          renderAll();
-        });
-        controls.appendChild(moveBtn);
-      }
-
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '🗑';
-      delBtn.addEventListener('click', () => {
-        data[listName].splice(i, 1);
-        saveData();
-        renderAll();
-      });
-
-      controls.appendChild(delBtn);
-      li.appendChild(controls);
-      listEl.appendChild(li);
     });
   }
 
-  function renderAll() {
-    renderList(todayListEl, data.today, 'today');
-    renderList(futureListEl, data.future, 'future');
-  }
-
-  todayForm.addEventListener('submit', (e) => {
+  function addTask(e, i) {
     e.preventDefault();
-    const val = todayInput.value.trim();
-    if (val) {
-      data.today.push({ text: val, done: false });
-      todayInput.value = '';
-      saveData();
-      renderAll();
+    const form = e.target;
+    const task = {
+      time: form.time?.value || '',
+      name: form.name.value,
+      desc: form.desc.value,
+      date: form.date?.value || '',
+      done: false
+    };
+    tasks[i].push(task);
+    form.reset();
+    saveTasks();
+    render();
+  }
+
+  function deleteTask(i, idx) {
+    tasks[i].splice(idx, 1);
+    saveTasks();
+    render();
+  }
+
+  function toggleDone(i, idx) {
+    tasks[i][idx].done = !tasks[i][idx].done;
+    saveTasks();
+    render();
+  }
+
+  function editTask(i, idx) {
+    const task = tasks[i][idx];
+    const name = prompt("Edit name:", task.name);
+    if (name !== null) task.name = name;
+    const desc = prompt("Edit description:", task.desc);
+    if (desc !== null) task.desc = desc;
+    if (i === 7) {
+      const date = prompt("Edit date:", task.date);
+      if (date !== null) task.date = date;
     }
-  });
-
-  futureForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const val = futureInput.value.trim();
-    if (val) {
-      data.future.push({ text: val, done: false });
-      futureInput.value = '';
-      saveData();
-      renderAll();
-    }
-  });
-
-  // 🆕 Modal logic
-  const modal = document.getElementById('modal');
-  const descTextarea = document.getElementById('desc');
-  const cancelBtn = document.getElementById('cancel');
-  const saveBtn = document.getElementById('save');
-
-  let currentEdit = { list: '', index: -1 };
-
-  function openModal(listName, index) {
-    currentEdit = { list: listName, index };
-    const task = data[listName][index];
-    descTextarea.value = task.description || '';
-    modal.style.display = 'flex';
-    descTextarea.focus();
+    saveTasks();
+    render();
   }
 
-  function closeModal() {
-    modal.style.display = 'none';
+  function prevPage() {
+    currentPage = (currentPage + 7) % 8;
+    render();
   }
 
-  cancelBtn.onclick = closeModal;
-
-  saveBtn.onclick = () => {
-    const { list, index } = currentEdit;
-    data[list][index].description = descTextarea.value.trim();
-    saveData();
-    renderAll();
-    closeModal();
-  };
-
-  renderAll();
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
-      console.log('Service Worker registered');
-    }).catch(console.error);
+  function nextPage() {
+    currentPage = (currentPage + 1) % 8;
+    render();
   }
+
+  window.addEventListener('load', render);
 </script>
 
 </body>
 </html>
-
