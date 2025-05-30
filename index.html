@@ -95,7 +95,16 @@
 
 <script>
   const storageKey = 'workout_days';
-  let days = JSON.parse(localStorage.getItem(storageKey)) || [
+  let workoutDays = [];
+
+firebase.database().ref(`users/${userId}/workoutDays`).once('value', snapshot => {
+  const data = snapshot.val();
+  if (data) {
+    workoutDays = data;
+    renderDays(); // Re-render the list with Firebase data
+  }
+});
+
     { id: 1, name: 'Day 1' },
     { id: 2, name: 'Day 2' },
     { id: 3, name: 'Day 3' },
