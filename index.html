@@ -30,17 +30,61 @@
     flex-direction: column;
     gap: 10px;
   }
-  .workout-input {
-    width: 100%;
+  .workout-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #2d89ef;
+    color: white;
     padding: 12px 15px;
-    font-size: 16px;
-    border: 2px solid #2d89ef;
     border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .workout-name {
+    flex-grow: 1;
     outline: none;
+  }
+  .workout-name[contenteditable="true"] {
+    background: white;
+    color: black;
+    border-radius: 3px;
+    padding: 2px 5px;
     cursor: text;
   }
-  .workout-input::placeholder {
-    color: #999;
+  .menu-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 8px;
+  }
+  .menu {
+    position: absolute;
+    top: 40px;
+    right: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    display: none;
+    z-index: 10;
+  }
+  .menu.show {
+    display: block;
+  }
+  .menu button {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .menu button:hover {
+    background-color: #f0f0f0;
   }
 </style>
 </head>
@@ -49,25 +93,141 @@
 <h1>Workouts:</h1>
 <button id="addWorkoutBtn">+ add workout</button>
 
-<div id="workoutsContainer">
-  <!-- New workout inputs will appear here -->
-</div>
+<div id="workoutsContainer"></div>
 
 <script>
   const addWorkoutBtn = document.getElementById('addWorkoutBtn');
   const workoutsContainer = document.getElementById('workoutsContainer');
 
+  // Load workouts from localStorage or initialize empty array
+  let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
+
+  function saveWorkouts() {
+    localStorage.setItem('workouts', JSON.stringify(workouts));
+  }
+
+  // Render all workouts
+  function renderWorkouts() {
+    workoutsContainer.innerHTML = '';
+    workouts.forEach((name, index) => {
+      const item = document.createElement('div');
+      item.className = 'workout-item';
+
+      // Workout name div (contenteditable for rename)
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'workout-name';
+      nameDiv.textContent = name;
+      nameDiv.title = "Click workout to open exercises";
+
+      // Clicking workout name navigates to day.html with workout name in query param
+      nameDiv.addEventListener('click', () => {
+        if (nameDiv.isContentEditable) return; // disable navigation while editing
+        const encodedName = encodeURIComponent(nameDiv.textContent.trim());
+        window.location.href = `day.html?workout=${encodedName}`;
+      });
+
+      // 3-dot menu button
+      const menuBtn = document.createElement('button');
+      menuBtn.className = 'menu-btn';
+      menuBtn.textContent = '⋮';
+      menuBtn.title = 'Options';
+
+      // Create menu container
+      const menu = document.createElement('div');
+      menu.className = 'menu';
+
+      // Rename button
+      const renameBtn = document.createElement('button');
+      renameBtn.textContent = 'Rename';
+      renameBtn.addEventListener('click', () => {
+        menu.classList.remove('show');
+        nameDiv.contentEditable = "true";
+        nameDiv.focus();
+        // Put cursor at end
+        document.execCommand('selectAll', false, null);
+        document.getSelection().collapseToEnd();
+      });
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', () => {
+        menu.classList.remove('show');
+        if (confirm(`Delete workout "${nameDiv.textContent}"?`)) {
+          workouts.splice(index, 1);
+          saveWorkouts();
+          renderWorkouts();
+        }
+      });
+
+      menu.appendChild(renameBtn);
+      menu.appendChild(deleteBtn);
+
+      // Toggle menu visibility
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close all other menus
+        document.querySelectorAll('.menu.show').forEach(m => {
+          if (m !== menu) m.classList.remove('show');
+        });
+        menu.classList.toggle('show');
+      });
+
+      // Close menu if clicking outside
+      document.addEventListener('click', () => {
+        menu.classList.remove('show');
+      });
+
+      // When renaming ends (blur or Enter key)
+      nameDiv.addEventListener('blur', () => {
+        if (nameDiv.isContentEditable) {
+          nameDiv.contentEditable = "false";
+          const newName = nameDiv.textContent.trim();
+          if (newName === '') {
+            alert('Workout name cannot be empty');
+            nameDiv.textContent = workouts[index]; // revert
+          } else {
+            workouts[index] = newName;
+            saveWorkouts();
+            renderWorkouts(); // refresh to avoid conflicts
+          }
+        }
+      });
+      nameDiv.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && nameDiv.isContentEditable) {
+          e.preventDefault();
+          nameDiv.blur();
+        }
+      });
+
+      item.appendChild(nameDiv);
+      item.appendChild(menuBtn);
+      item.appendChild(menu);
+      workoutsContainer.appendChild(item);
+    });
+  }
+
+  // Add workout button click
   addWorkoutBtn.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Name your workout...';
-    input.className = 'workout-input';
-    workoutsContainer.appendChild(input);
-    input.focus();
+    workouts.push('New Workout');
+    saveWorkouts();
+    renderWorkouts();
+    // Focus on the newly added workout for immediate rename
+    setTimeout(() => {
+      const lastItem = workoutsContainer.lastChild;
+      const nameDiv = lastItem.querySelector('.workout-name');
+      nameDiv.contentEditable = "true";
+      nameDiv.focus();
+      document.execCommand('selectAll', false, null);
+    }, 0);
   });
+
+  // Initial render
+  renderWorkouts();
 </script>
 
 </body>
 </html>
+
 
 
