@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0d0d" />
   <title>Weekly Schedule</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json" />
   <style>
     :root {
       --bg: #0d0d0d;
@@ -35,7 +35,7 @@
       align-items: center;
       padding: 1rem;
       background: var(--card);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
     header h2 {
@@ -61,7 +61,7 @@
       margin: 0.5rem 0;
       padding: 1rem;
       border-radius: 12px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
       transition: all 0.3s ease;
     }
 
@@ -75,7 +75,7 @@
     }
 
     .task-buttons button {
-      margin: 0 0.3rem;
+      margin: 0;
     }
 
     button {
@@ -83,7 +83,7 @@
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.7rem;
       cursor: pointer;
       font-weight: bold;
       transition: background 0.2s;
@@ -166,13 +166,17 @@
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
         div.innerHTML = `
-          <strong>${task.time || ''} ${task.name}</strong><br/>
-          ${task.desc || ''}<br/>
-          ${task.date ? `<small>${task.date}</small><br/>` : ''}
-          <div class="task-buttons">
-            <button onclick="toggleDone(${i}, ${idx})">✔</button>
-            <button onclick="editTask(${i}, ${idx})">✏️</button>
-            <button onclick="deleteTask(${i}, ${idx})">🗑</button>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${task.time || ''} ${task.name}</strong><br/>
+              ${task.desc || ''}<br/>
+              ${task.date ? `<small>${task.date}</small>` : ''}
+            </div>
+            <div class="task-buttons" style="display: flex; gap: 0.3rem; margin-left: 1rem;">
+              <button onclick="toggleDone(${i}, ${idx})">✔</button>
+              <button onclick="editTask(${i}, ${idx})">✏️</button>
+              <button onclick="deleteTask(${i}, ${idx})">🗑</button>
+            </div>
           </div>
         `;
         container.appendChild(div);
@@ -238,11 +242,12 @@
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./service-worker.js')
-        .then(reg => console.log('Service Worker registered ✅'))
-        .catch(err => console.error('Service Worker failed', err));
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ SW failed', err));
     }
   });
 </script>
 </body>
 </html>
+
 
