@@ -2,150 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Workout Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#4CAF50" />
+  <link rel="manifest" href="manifest.json" />
+  <title>75 Day Tracker</title>
   <style>
     body {
       font-family: sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+      margin: 0;
+      padding: 1rem;
+      background: #f9f9f9;
     }
-    h1, h2 {
-      margin-bottom: 10px;
+    header, footer {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    select {
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 0.5rem 0;
+      display: flex;
+      align-items: center;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    textarea {
+      min-height: 80px;
     }
     button {
-      padding: 6px 12px;
-      cursor: pointer;
-    }
-    .workout-button, .exercise {
-      margin: 6px 0;
-    }
-    .hidden {
-      display: none;
-    }
-    input {
-      padding: 6px;
-      margin: 5px 0;
-      width: calc(100% - 12px);
-    }
-    .form-group {
-      margin: 10px 0;
-    }
-    .divider {
-      margin: 15px 0;
-      border-top: 1px solid #ccc;
+      font-size: 1.2rem;
+      margin: 0 0.5rem;
+      padding: 0.5rem 1rem;
     }
   </style>
 </head>
 <body>
+  <div id="app">
+    <header>
+      <select id="daySelector"></select>
+    </header>
 
-  <h1>Workout Tracker</h1>
+    <main id="checklistContainer"></main>
 
-  <div class="form-group">
-    <input id="workoutNameInput" type="text" placeholder="Workout name (e.g., Push, Pull)" />
-    <button id="addWorkoutBtn">Add Workout</button>
-  </div>
-
-  <div id="workoutList"></div>
-
-  <div id="workoutDetail" class="hidden">
-    <h2 id="workoutTitle"></h2>
-
-    <div class="form-group">
-      <input id="exerciseNameInput" type="text" placeholder="Exercise name (e.g., Bench Press)" />
-      <input id="exerciseWeightInput" type="number" placeholder="Weight (kg)" />
-      <input id="exerciseRepsInput" type="text" placeholder="Reps (e.g., 6,8,6)" />
-      <button id="addExerciseBtn">Add Exercise</button>
-    </div>
-
-    <div id="exerciseList"></div>
-    <div class="divider"></div>
-    <button onclick="goBack()">Back to Workouts</button>
+    <footer>
+      <button id="prevDay">⬅️</button>
+      <button id="nextDay">➡️</button>
+    </footer>
   </div>
 
   <script>
-    const workoutNameInput = document.getElementById("workoutNameInput");
-    const addWorkoutBtn = document.getElementById("addWorkoutBtn");
-    const workoutList = document.getElementById("workoutList");
+    const TOTAL_DAYS = 75;
+    let currentDay = 1;
 
-    const workoutDetail = document.getElementById("workoutDetail");
-    const workoutTitle = document.getElementById("workoutTitle");
-    const exerciseNameInput = document.getElementById("exerciseNameInput");
-    const exerciseWeightInput = document.getElementById("exerciseWeightInput");
-    const exerciseRepsInput = document.getElementById("exerciseRepsInput");
-    const addExerciseBtn = document.getElementById("addExerciseBtn");
-    const exerciseList = document.getElementById("exerciseList");
+    function getDayData(day) {
+      const data = localStorage.getItem(\`day-\${day}\`);
+      return data ? JSON.parse(data) : { tasks: [], notes: "" };
+    }
 
-    let workouts = [];
-    let currentWorkoutIndex = null;
+    function saveDayData(day, data) {
+      localStorage.setItem(\`day-\${day}\`, JSON.stringify(data));
+    }
 
-    addWorkoutBtn.addEventListener("click", () => {
-      const name = workoutNameInput.value.trim();
-      if (!name) return;
-      workouts.push({ name, exercises: [] });
-      workoutNameInput.value = "";
-      renderWorkoutButtons();
+    function initUI(totalDays, onDayChange) {
+      const selector = document.getElementById("daySelector");
+      for (let i = 1; i <= totalDays; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = \`Day \${i}\`;
+        selector.appendChild(opt);
+      }
+
+      selector.addEventListener("change", e => {
+        onDayChange(parseInt(e.target.value));
+      });
+    }
+
+    function renderDay(day) {
+      const selector = document.getElementById("daySelector");
+      selector.value = day;
+
+      const container = document.getElementById("checklistContainer");
+      const { tasks, notes } = getDayData(day);
+      container.innerHTML = "";
+
+      const ul = document.createElement("ul");
+      tasks.forEach((task, i) => {
+        const li = document.createElement("li");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.done;
+        checkbox.addEventListener("change", () => {
+          task.done = checkbox.checked;
+          saveDayData(day, { tasks, notes });
+        });
+        li.appendChild(checkbox);
+        li.append(\` \${task.text}\`);
+        ul.appendChild(li);
+      });
+
+      const newTaskInput = document.createElement("input");
+      newTaskInput.placeholder = "New task...";
+      newTaskInput.type = "text";
+      newTaskInput.addEventListener("keypress", e => {
+        if (e.key === "Enter") {
+          tasks.push({ text: newTaskInput.value, done: false });
+          saveDayData(day, { tasks, notes });
+          renderDay(day);
+        }
+      });
+
+      const noteInput = document.createElement("textarea");
+      noteInput.value = notes || "";
+      noteInput.placeholder = "Add notes...";
+      noteInput.addEventListener("blur", () => {
+        saveDayData(day, { tasks, notes: noteInput.value });
+      });
+
+      container.appendChild(ul);
+      container.appendChild(newTaskInput);
+      container.appendChild(noteInput);
+    }
+
+    function updateDay(day) {
+      currentDay = day;
+      renderDay(currentDay);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initUI(TOTAL_DAYS, updateDay);
+      renderDay(currentDay);
+
+      document.getElementById("prevDay").addEventListener("click", () => {
+        if (currentDay > 1) updateDay(currentDay - 1);
+      });
+
+      document.getElementById("nextDay").addEventListener("click", () => {
+        if (currentDay < TOTAL_DAYS) updateDay(currentDay + 1);
+      });
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+      }
     });
-
-    function renderWorkoutButtons() {
-      workoutList.innerHTML = "";
-      workouts.forEach((workout, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = workout.name;
-        btn.className = "workout-button";
-        btn.onclick = () => openWorkout(index);
-        workoutList.appendChild(btn);
-      });
-    }
-
-    function openWorkout(index) {
-      currentWorkoutIndex = index;
-      const workout = workouts[index];
-      workoutTitle.textContent = workout.name;
-      workoutList.style.display = "none";
-      workoutNameInput.style.display = "none";
-      addWorkoutBtn.style.display = "none";
-      workoutDetail.classList.remove("hidden");
-      renderExercises();
-    }
-
-    addExerciseBtn.addEventListener("click", () => {
-      const name = exerciseNameInput.value.trim();
-      const weight = exerciseWeightInput.value.trim();
-      const reps = exerciseRepsInput.value.trim();
-
-      if (!name || !weight || !reps) return;
-
-      workouts[currentWorkoutIndex].exercises.push({
-        name,
-        weight,
-        reps: reps.split(",").map(r => r.trim())
-      });
-
-      exerciseNameInput.value = "";
-      exerciseWeightInput.value = "";
-      exerciseRepsInput.value = "";
-      renderExercises();
-    });
-
-    function renderExercises() {
-      exerciseList.innerHTML = "";
-      const exercises = workouts[currentWorkoutIndex].exercises;
-      exercises.forEach(ex => {
-        const div = document.createElement("div");
-        div.className = "exercise";
-        div.textContent = `${ex.name} - ${ex.weight}kg - ${ex.reps.join(" / ")} reps`;
-        exerciseList.appendChild(div);
-      });
-    }
-
-    function goBack() {
-      workoutDetail.classList.add("hidden");
-      workoutList.style.display = "";
-      workoutNameInput.style.display = "";
-      addWorkoutBtn.style.display = "";
-    }
   </script>
-
 </body>
 </html>
+
