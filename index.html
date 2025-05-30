@@ -82,21 +82,29 @@
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 1rem;
   }
   #modalContent,
   #editModalContent {
     background: #000;
     padding: 1.5rem;
-    max-width: 400px;
-    width: 90%;
+    max-width: 90vw;
+    width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
     color: #fff;
   }
-  #modal button,
-  #editModal button {
+  #modalDesc {
+    white-space: pre-wrap;
+    margin-top: 1rem;
+    line-height: 1.4;
+  }
+  #modalContent button,
+  #editModalContent button {
     width: 100%;
     padding: 0.7rem;
     margin-top: 1rem;
@@ -107,8 +115,8 @@
     font-weight: normal;
     border-top: 1px solid #fff;
   }
-  #modal button:hover,
-  #editModal button:hover {
+  #modalContent button:hover,
+  #editModalContent button:hover {
     background: #222;
   }
   .check-btn {
@@ -163,7 +171,7 @@
   <div id="modalContent">
     <h3 id="modalTitle"></h3>
     <p id="modalTimeDate"></p>
-    <p id="modalDesc"></p>
+    <div id="modalDesc"></div>
     <button onclick="closeModal()">Close</button>
   </div>
 </div>
@@ -285,7 +293,28 @@
     document.getElementById('modalTitle').textContent = task.name;
     document.getElementById('modalTimeDate').textContent =
       (task.time ? `Time: ${task.time}` : '') + (task.date ? ` | Date: ${task.date}` : '');
-    document.getElementById('modalDesc').textContent = task.desc || 'No description.';
+
+    const desc = task.desc || 'No description.';
+    const modalDesc = document.getElementById('modalDesc');
+
+    if (/^(\s*[-*]\s+)/m.test(desc)) {
+      const lines = desc.split('\n');
+      let html = '<ul style="padding-left:1.2rem; margin:0;">';
+      for (const line of lines) {
+        if (/^\s*[-*]\s+/.test(line)) {
+          html += `<li>${line.replace(/^\s*[-*]\s+/, '')}</li>`;
+        } else if(line.trim() === '') {
+          // skip empty lines inside list
+        } else {
+          html += `<p>${line}</p>`;
+        }
+      }
+      html += '</ul>';
+      modalDesc.innerHTML = html;
+    } else {
+      modalDesc.textContent = desc;
+    }
+
     document.getElementById('modal').style.display = 'flex';
   }
 
@@ -293,49 +322,47 @@
     document.getElementById('modal').style.display = 'none';
   }
 
-  function addTask(e, i) {
-    e.preventDefault();
-    const form = e.target;
-    const task = {
-      time: form.time?.value || '',
-      name: form.name.value,
-      desc: form.desc.value,
-      date: form.date?.value || '',
-      done: false
-    };
-    tasks[i].push(task);
+  function addTask(event, pageIndex) {
+    event.preventDefault();
+    const form = event.target;
+    const time = form.time ? form.time.value : '';
+    const name = form.name.value.trim();
+    const desc = form.desc.value.trim();
+    const date = form.date ? form.date.value : '';
+
+    if (!name) return;
+
+    tasks[pageIndex].push({ time, name, desc, date, done: false });
+    saveTasks();
     form.reset();
+    render();
+  }
+
+  function toggleDone(pageIndex, taskIndex) {
+    tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
     saveTasks();
     render();
   }
 
-  function deleteTask(i, idx) {
-    if(confirm("Delete this task?")) {
-      tasks[i].splice(idx, 1);
-      saveTasks();
-      render();
-    }
-  }
-
-  function toggleDone(i, idx) {
-    tasks[i][idx].done = !tasks[i][idx].done;
+  function deleteTask(pageIndex, taskIndex) {
+    tasks[pageIndex].splice(taskIndex, 1);
     saveTasks();
     render();
   }
 
-  function openEditModal(i, idx) {
-    closeAllMenus();
-    editPage = i;
-    editIndex = idx;
-    const task = tasks[i][idx];
+  function openEditModal(pageIndex, taskIndex) {
+    editIndex = taskIndex;
+    editPage = pageIndex;
+    const task = tasks[pageIndex][taskIndex];
     document.getElementById('editTime').value = task.time || '';
     document.getElementById('editName').value = task.name || '';
     document.getElementById('editDesc').value = task.desc || '';
-    if(i === 7) {
-      document.getElementById('dateLabel').style.display = 'block';
+    const dateLabel = document.getElementById('dateLabel');
+    if(pageIndex === 7) {
+      dateLabel.style.display = 'block';
       document.getElementById('editDate').value = task.date || '';
     } else {
-      document.getElementById('dateLabel').style.display = 'none';
+      dateLabel.style.display = 'none';
       document.getElementById('editDate').value = '';
     }
     document.getElementById('editModal').style.display = 'flex';
@@ -343,53 +370,38 @@
 
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
-    editPage = null;
     editIndex = null;
+    editPage = null;
   }
 
-  function saveEdit(e) {
-    e.preventDefault();
-    if(editPage === null || editIndex === null) return;
-
-    const task = tasks[editPage][editIndex];
-    const time = document.getElementById('editTime').value;
+  function saveEdit(event) {
+    event.preventDefault();
+    const time = document.getElementById('editTime').value.trim();
     const name = document.getElementById('editName').value.trim();
     const desc = document.getElementById('editDesc').value.trim();
-    const date = document.getElementById('editDate').value;
+    const date = document.getElementById('editDate').value.trim();
 
-    if(!name) {
-      alert('Task name cannot be empty');
-      return;
-    }
+    if (!name) return;
 
-    task.time = time;
-    task.name = name;
-    task.desc = desc;
-    if(editPage === 7) task.date = date;
-
+    tasks[editPage][editIndex] = { time, name, desc, date, done: tasks[editPage][editIndex].done };
     saveTasks();
     closeEditModal();
     render();
   }
 
   function prevPage() {
-    currentPage = (currentPage + 7) % 8;
+    currentPage = (currentPage + pageNames.length - 1) % pageNames.length;
     render();
   }
-
   function nextPage() {
-    currentPage = (currentPage + 1) % 8;
+    currentPage = (currentPage + 1) % pageNames.length;
     render();
   }
 
-  window.addEventListener('load', () => {
-    createPages();
-    render();
-    if (!localStorage.getItem('tasks')) {
-      saveTasks();
-    }
-  });
+  createPages();
+  render();
 </script>
+
 </body>
 </html>
 
