@@ -24,7 +24,6 @@
       font-size: 16px;
     }
     form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-    .progress { margin-top: 1rem; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -32,7 +31,7 @@
 <h1>Task Tracker</h1>
 
 <div>
-  <h2>Today’s Tasks <span id="progress">0/0 done</span></h2>
+  <h2>Today’s Tasks</h2>
   <form id="today-form">
     <input type="text" id="today-input" placeholder="Add new Today task" />
     <button type="submit">Add</button>
@@ -50,14 +49,12 @@
 </div>
 
 <script>
-  // Task logic
   const todayListEl = document.getElementById('today-list');
   const futureListEl = document.getElementById('future-list');
   const todayForm = document.getElementById('today-form');
   const futureForm = document.getElementById('future-form');
   const todayInput = document.getElementById('today-input');
   const futureInput = document.getElementById('future-input');
-  const progressEl = document.getElementById('progress');
 
   let data = JSON.parse(localStorage.getItem('taskData')) || {
     today: [],
@@ -66,12 +63,6 @@
 
   function saveData() {
     localStorage.setItem('taskData', JSON.stringify(data));
-  }
-
-  function updateProgress() {
-    const done = data.today.filter(t => t.done).length;
-    const total = data.today.length;
-    progressEl.textContent = `${done}/${total} done`;
   }
 
   function renderList(listEl, tasks, listName) {
@@ -90,7 +81,6 @@
       checkbox.addEventListener('change', () => {
         task.done = checkbox.checked;
         saveData();
-        if (listName === 'today') updateProgress();
       });
 
       const controls = document.createElement('div');
@@ -124,7 +114,6 @@
   function renderAll() {
     renderList(todayListEl, data.today, 'today');
     renderList(futureListEl, data.future, 'future');
-    updateProgress();
   }
 
   todayForm.addEventListener('submit', (e) => {
@@ -151,7 +140,6 @@
 
   renderAll();
 
-  // Register service worker for PWA
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => {
       console.log('Service Worker registered');
@@ -161,5 +149,3 @@
 
 </body>
 </html>
-
-
