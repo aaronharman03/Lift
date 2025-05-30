@@ -3,262 +3,494 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Days</title>
+<title>Workout Day</title>
 <style>
+  /* ... your existing styles ... */
   body {
     font-family: sans-serif;
-    max-width: 500px;
-    margin: 40px auto;
-    padding: 0 16px;
-    background: #f9f9f9;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
   h1 {
+    margin-bottom: 20px;
     text-align: center;
-    margin-bottom: 30px;
   }
-  .day-row {
+  #exercisesList {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .exercise-line {
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  .day-label {
-    font-size: 16px;
-    flex-grow: 1;
-    text-decoration: none;
-    color: black;
-    word-break: break-word;
-  }
-  .day-label[contenteditable="true"] {
-    background: #eef5ff;
-    outline: none;
-    padding: 2px 4px;
-    border-radius: 4px;
-  }
-  .menu-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px;
-    margin-left: 8px;
-  }
-  .menu {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
+    background: #f7f7f7;
+    padding: 8px 12px;
     border-radius: 6px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    padding: 4px 0;
-    z-index: 10;
-    min-width: 120px;
+    cursor: pointer;
+    user-select: none;
   }
-  .menu button {
-    display: block;
-    width: 100%;
-    padding: 8px 10px;
-    background: none;
+  .exercise-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+  }
+  .btn-back {
+    background-color: #6c757d;
     border: none;
-    text-align: left;
-    font-size: 14px;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
     cursor: pointer;
   }
-  .menu button:hover {
-    background: #f0f0f0;
+  .btn-back:hover {
+    opacity: 0.9;
   }
-  #addDayBtn {
-    display: block;
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px;
+  #viewGraphBtn {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 14px;
     font-size: 16px;
-    border-radius: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  #viewGraphBtn:hover {
+    opacity: 0.9;
+  }
+  #addExerciseBtn {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
     background-color: #007bff;
     color: white;
     border: none;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto 30px;
+  }
+  #addExerciseBtn:hover {
+    opacity: 0.9;
+  }
+
+  /* Modal styles */
+  #modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    z-index: 1000;
+  }
+  #modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 320px;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    display: none;
+  }
+  #modal h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 24px;
+    text-align: center;
+  }
+  #modal input, #modal select {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  #repsInputs input {
+    width: 60px;
+    margin-right: 6px;
+  }
+  #modalButtons {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  #modalButtons button {
+    padding: 8px 16px;
+    margin: 0 8px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+  }
+  #saveBtn {
+    background-color: #007bff;
+    color: white;
+  }
+  #saveBtn:hover {
+    opacity: 0.9;
+  }
+  #cancelBtn {
+    background-color: #6c757d;
+    color: white;
+  }
+  #cancelBtn:hover {
+    opacity: 0.9;
+  }
+
+  #deleteBtn {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
   }
-  #addDayBtn:hover {
-    background-color: #0056b3;
+  #deleteBtn:hover {
+    opacity: 0.9;
+  }
+
+  /* Weight input and unit toggle */
+  #weight-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  #weight {
+    flex: 1;
+  }
+  #weightUnitBtn {
+    margin-left: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f0f0f0;
+    font-weight: bold;
   }
 </style>
 </head>
 <body>
-<h1>Workout Days</h1>
-<div id="daysList"></div>
-<button id="addDayBtn">+ Add Day</button>
 
-<!-- Firebase App (the core Firebase SDK) -->
+<header>
+  <button class="btn-back" onclick="goBack()">← Back to Days</button>
+  <button id="viewGraphBtn">View Progress Graph</button>
+</header>
+
+<h1 id="dayTitle">Workout Day</h1>
+
+<div id="exercisesList"></div>
+
+<button id="addExerciseBtn">Add Exercise</button>
+
+<!-- Modal -->
+<div id="modalOverlay"></div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <h2 id="modalTitle">Add Exercise</h2>
+  <form id="exerciseForm">
+    <input type="text" id="exerciseName" placeholder="Exercise Name" required autocomplete="off" />
+    <div id="weight-container">
+      <input type="number" id="weight" placeholder="Weight" min="0" step="0.25" autocomplete="off" />
+      <button type="button" id="weightUnitBtn">kg</button>
+    </div>
+    <select id="numSets" required>
+      <option value="">Select Sets</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <div id="repsInputs" style="margin-bottom: 15px;"></div>
+    <div id="modalButtons">
+      <button type="submit" id="saveBtn">Save</button>
+      <button type="button" id="cancelBtn">Cancel</button>
+    </div>
+    <button type="button" id="deleteBtn" style="display:none;">Delete</button>
+  </form>
+</div>
+
+<!-- Firebase SDK scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<!-- Firebase Firestore SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-  // TODO: Replace with your own Firebase config
+  // Your Firebase config here — replace with your actual config!
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
     projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    // add other config if needed
   };
 
+  // Initialize Firebase and Firestore
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const daysList = document.getElementById('daysList');
-  const addDayBtn = document.getElementById('addDayBtn');
-  let openMenu = null;
+  // Dummy user ID - replace this with actual auth user ID if you add Firebase Auth
+  const userId = "demoUser";
 
-  let days = []; // will hold data from Firestore
+  const params = new URLSearchParams(location.search);
+  const day = params.get('day') || '1';
+  document.getElementById('dayTitle').textContent = `Workout Day ${day}`;
 
-  // Fetch days from Firestore
-  async function fetchDays() {
+  const exercisesListEl = document.getElementById('exercisesList');
+
+  const modal = document.getElementById('modal');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const addExerciseBtn = document.getElementById('addExerciseBtn');
+  const viewGraphBtn = document.getElementById('viewGraphBtn');
+
+  const exerciseForm = document.getElementById('exerciseForm');
+  const exerciseNameInput = document.getElementById('exerciseName');
+  const weightInput = document.getElementById('weight');
+  const weightUnitBtn = document.getElementById('weightUnitBtn');
+  const numSetsSelect = document.getElementById('numSets');
+  const repsInputsDiv = document.getElementById('repsInputs');
+  const saveBtn = document.getElementById('saveBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const modalTitle = document.getElementById('modalTitle');
+
+  let exercises = [];
+  let editingIndex = null;
+  let currentWeightUnit = 'kg';
+
+  // Firestore doc ref for this day
+  const workoutDayDoc = db
+    .collection("users")
+    .doc(userId)
+    .collection("workoutDays")
+    .doc(day);
+
+  // Load exercises from Firestore on page load
+  async function loadExercises() {
     try {
-      const snapshot = await db.collection('workout_days').orderBy('id').get();
-      if (snapshot.empty) {
-        // Initialize default days if none exist
-        days = [
-          { id: 1, name: 'Day 1' },
-          { id: 2, name: 'Day 2' },
-          { id: 3, name: 'Day 3' },
-        ];
-        // Save them to Firestore
-        await Promise.all(days.map(day => 
-          db.collection('workout_days').doc(day.id.toString()).set(day)
-        ));
+      const doc = await workoutDayDoc.get();
+      if (doc.exists) {
+        exercises = doc.data().exercises || [];
       } else {
-        days = snapshot.docs.map(doc => doc.data());
+        exercises = [];
       }
-      renderDays();
-    } catch (error) {
-      alert('Failed to load days from Firestore: ' + error.message);
+      renderExercises();
+    } catch (err) {
+      console.error("Error loading exercises from Firestore:", err);
+      exercises = [];
+      renderExercises();
     }
   }
 
-  // Save all days to Firestore (overwrite existing)
-  async function saveDays() {
+  // Save exercises to Firestore
+  async function saveExercises() {
     try {
-      const batch = db.batch();
-      const collectionRef = db.collection('workout_days');
-      days.forEach(day => {
-        const docRef = collectionRef.doc(day.id.toString());
-        batch.set(docRef, day);
-      });
-      await batch.commit();
-    } catch (error) {
-      alert('Failed to save days to Firestore: ' + error.message);
+      await workoutDayDoc.set({ exercises });
+    } catch (err) {
+      console.error("Error saving exercises to Firestore:", err);
     }
   }
 
-  function renderDays() {
-    daysList.innerHTML = '';
-    days.forEach((day, index) => {
-      const row = document.createElement('div');
-      row.className = 'day-row';
+  function renderExercises() {
+    exercisesListEl.innerHTML = '';
+    if (exercises.length === 0) {
+      exercisesListEl.textContent = 'No exercises logged yet.';
+      return;
+    }
 
-      const label = document.createElement('a');
-      label.className = 'day-label';
-      label.textContent = day.name;
-      label.href = `day.html?day=${day.id}`;
+    exercises.forEach((ex, idx) => {
+      const repsStr = ex.reps && ex.reps.length
+        ? ex.reps.filter(r => r != null && r !== '').join(',')
+        : 'N/A';
 
-      const menuBtn = document.createElement('button');
-      menuBtn.className = 'menu-btn';
-      menuBtn.innerHTML = '⋮';
+      const unit = ex.weightUnit || 'kg';
 
-      const menu = document.createElement('div');
-      menu.className = 'menu';
-      menu.style.display = 'none';
+      const div = document.createElement('div');
+      div.className = 'exercise-line';
+      div.title = 'Click to edit exercise';
+      div.tabIndex = 0;
+      div.setAttribute('role', 'button');
 
-      const rename = document.createElement('button');
-      rename.textContent = 'Rename';
-      rename.onclick = () => {
-        label.contentEditable = true;
-        label.focus();
-        closeMenu();
-      };
+      const span = document.createElement('span');
+      span.className = 'exercise-text';
+      span.textContent = `${ex.name} - ${ex.weight || 0}${unit} - ${repsStr}`;
 
-      const del = document.createElement('button');
-      del.textContent = 'Delete';
-      del.onclick = async () => {
-        if (confirm(`Delete "${day.name}"?`)) {
-          days.splice(index, 1);
-          await saveDays();
-          renderDays();
-        }
-      };
-
-      menu.appendChild(rename);
-      menu.appendChild(del);
-      document.body.appendChild(menu);
-
-      menuBtn.onclick = (e) => {
-        e.stopPropagation();
-        toggleMenu(menu, menuBtn);
-      };
-
-      label.addEventListener('blur', async () => {
-        label.contentEditable = false;
-        const newName = label.textContent.trim();
-        if (newName) {
-          day.name = newName;
-          await saveDays();
-        } else {
-          label.textContent = day.name;
-        }
-      });
-
-      label.addEventListener('keydown', async e => {
-        if (e.key === 'Enter') {
+      div.appendChild(span);
+      div.addEventListener('click', () => openModalForEdit(idx));
+      div.addEventListener('keypress', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          label.blur();
+          openModalForEdit(idx);
         }
       });
 
-      row.appendChild(label);
-      row.appendChild(menuBtn);
-      daysList.appendChild(row);
+      exercisesListEl.appendChild(div);
     });
   }
 
-  function toggleMenu(menu, btn) {
-    closeMenu();
-    const rect = btn.getBoundingClientRect();
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-    const scrollX = window.scrollX || document.documentElement.scrollLeft;
-
-    menu.style.top = (rect.bottom + scrollY + 4) + 'px';
-    menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
-    menu.style.display = 'block';
-    openMenu = menu;
+  function openModalForAdd() {
+    editingIndex = null;
+    modalTitle.textContent = 'Add Exercise';
+    exerciseForm.reset();
+    repsInputsDiv.innerHTML = '';
+    deleteBtn.style.display = 'none';
+    currentWeightUnit = 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
+    showModal();
   }
 
-  function closeMenu() {
-    if (openMenu) openMenu.style.display = 'none';
-    openMenu = null;
+  function openModalForEdit(index) {
+    editingIndex = index;
+    const ex = exercises[index];
+    modalTitle.textContent = 'Edit Exercise';
+    exerciseNameInput.value = ex.name;
+    weightInput.value = ex.weight || '';
+    currentWeightUnit = ex.weightUnit || 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
+    numSetsSelect.value = ex.reps.length;
+    generateRepsInputs(ex.reps.length, ex.reps);
+    deleteBtn.style.display = 'block';
+    showModal();
   }
 
-  addDayBtn.onclick = async () => {
-    const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
-    days.push({ id: nextId, name: `Day ${nextId}` });
-    await saveDays();
-    renderDays();
-  };
+  function generateRepsInputs(num, existingReps=[]) {
+    repsInputsDiv.innerHTML = '';
+    for (let i = 0; i < num; i++) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.placeholder = `Reps set ${i + 1}`;
+      input.required = true;
+      input.value = existingReps[i] || '';
+      input.autocomplete = 'off';
+      repsInputsDiv.appendChild(input);
+    }
+  }
 
-  window.addEventListener('click', closeMenu);
+  function showModal() {
+    modal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+    exerciseNameInput.focus();
+  }
+  function hideModal() {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  }
 
-  // Load days from Firestore on page load
-  fetchDays();
+  addExerciseBtn.addEventListener('click', openModalForAdd);
 
+  cancelBtn.addEventListener('click', e => {
+    e.preventDefault();
+    hideModal();
+  });
+
+  modalOverlay.addEventListener('click', hideModal);
+
+  numSetsSelect.addEventListener('change', () => {
+    const num = parseInt(numSetsSelect.value, 10);
+    if (!isNaN(num)) {
+      generateRepsInputs(num);
+    } else {
+      repsInputsDiv.innerHTML = '';
+    }
+  });
+
+  exerciseForm.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const name = exerciseNameInput.value.trim();
+    const weight = weightInput.value.trim();
+    const weightVal = weight === '' ? 0 : parseFloat(weight);
+    const weightUnit = currentWeightUnit;
+    const numSets = parseInt(numSetsSelect.value, 10);
+
+    if (!name || isNaN(numSets) || numSets <= 0) {
+      alert('Please enter all required fields.');
+      return;
+    }
+
+    const reps = [];
+    const inputs = repsInputsDiv.querySelectorAll('input');
+    for (const input of inputs) {
+      const val = input.value.trim();
+      if (val === '' || isNaN(parseInt(val, 10))) {
+        alert('Please enter valid reps for all sets.');
+        return;
+      }
+      reps.push(parseInt(val, 10));
+    }
+    const exerciseData = {
+      name,
+      weight: weightVal,
+      weightUnit: currentWeightUnit,
+      reps
+    };
+
+    if (editingIndex !== null) {
+      exercises[editingIndex] = exerciseData;
+    } else {
+      exercises.push(exerciseData);
+    }
+
+    await saveExercises();
+
+    // You can still keep your global exercise log in localStorage or change to Firestore if you want
+    const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+    logs.push({
+      name: exerciseData.name,
+      weight: exerciseData.weight,
+      weightUnit: exerciseData.weightUnit || 'kg',
+      reps: exerciseData.reps || [],
+      date: new Date().toISOString().split('T')[0]
+    });
+    localStorage.setItem('exercise_logs', JSON.stringify(logs));
+
+    renderExercises();
+    hideModal();
+  });
+
+  deleteBtn.addEventListener('click', async () => {
+    if (editingIndex === null) return;
+    if (!confirm('Delete this exercise?')) return;
+    exercises.splice(editingIndex, 1);
+    editingIndex = null;
+    await saveExercises();
+    renderExercises();
+    hideModal();
+  });
+
+  weightUnitBtn.addEventListener('click', () => {
+    currentWeightUnit = currentWeightUnit === 'kg' ? 'lbs' : 'kg';
+    weightUnitBtn.textContent = currentWeightUnit;
+  });
+
+  function goBack() {
+    window.location.href = 'index.html';
+  }
+
+  viewGraphBtn.addEventListener('click', () => {
+    window.location.href = `graph.html?day=${day}`;
+  });
+
+  // Load exercises from Firestore on startup
+  loadExercises();
 </script>
 </body>
 </html>
+
 
 
 
