@@ -80,7 +80,7 @@
   <div class="add-form">
     <input type="text" id="habitName" placeholder="Habit name" />
     <textarea id="habitDesc" placeholder="Description (optional)"></textarea>
-    <button id="addHabit">➕ Add Habit</button>
+    <button id="doneBtn">✅ Done</button>
   </div>
 
   <script>
@@ -92,6 +92,7 @@
     const habitList = document.getElementById("habitList");
     const habitName = document.getElementById("habitName");
     const habitDesc = document.getElementById("habitDesc");
+    const doneBtn = document.getElementById("doneBtn");
 
     function getHabits() {
       return JSON.parse(localStorage.getItem(`day-${currentDay}`)) || [];
@@ -101,12 +102,8 @@
       localStorage.setItem(`day-${currentDay}`, JSON.stringify(habits));
     }
 
-    function loadDay(day) {
-      currentDay = day;
-      dayTitle.textContent = `Day ${day} of ${TOTAL_DAYS}`;
-      daySelect.value = day;
+    function renderHabits() {
       habitList.innerHTML = "";
-
       const habits = getHabits();
 
       habits.forEach((habit, i) => {
@@ -140,7 +137,13 @@
         li.appendChild(desc);
         habitList.appendChild(li);
       });
+    }
 
+    function loadDay(day) {
+      currentDay = day;
+      dayTitle.textContent = `Day ${day} of ${TOTAL_DAYS}`;
+      daySelect.value = day;
+      renderHabits();
       habitName.value = "";
       habitDesc.value = "";
     }
@@ -171,7 +174,7 @@
       document.getElementById("nextDay").addEventListener("click", () => {
         if (currentDay < TOTAL_DAYS) loadDay(currentDay + 1);
       });
-      document.getElementById("addHabit").addEventListener("click", addHabit);
+      doneBtn.addEventListener("click", addHabit);
 
       loadDay(1);
     }
@@ -181,4 +184,5 @@
 
 </body>
 </html>
+
 
