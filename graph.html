@@ -110,18 +110,9 @@ firebase.database().ref(`users/${userId}/logs`).once('value', snapshot => {
       renderChart(selected);
     });
 
-    // Save goal and update chart
-    goalInput.addEventListener('change', () => {
-      const selected = select.value;
-      if (!selected) return;
+    const logId = firebase.database().ref().child('users').push().key;
+firebase.database().ref(`users/${userId}/logs/${logId}`).set(newLog);
 
-      const goalVal = parseFloat(goalInput.value);
-      if (!isNaN(goalVal)) {
-        goals[selected] = goalVal;
-        localStorage.setItem('exercise_goals', JSON.stringify(goals));
-        renderChart(selected);
-      }
-    });
 
     function renderChart(exerciseName) {
       const data = logs
