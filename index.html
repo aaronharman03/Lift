@@ -3,272 +3,213 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Fitness App - Days</title>
+<title>Workout Days</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-  #days-container { margin-bottom: 20px; }
-  .day-button {
+  body {
+    font-family: sans-serif;
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 0 16px;
+    background: #f9f9f9;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .day-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #007bff;
-    color: white;
-    padding: 10px;
-    margin: 6px 0;
-    border-radius: 4px;
-    cursor: pointer;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
-  .day-name {
+  .day-label {
+    font-size: 16px;
     flex-grow: 1;
-    outline: none;
-    border: none;
-    background: transparent;
-    color: white;
-    font-size: 1rem;
-    user-select: none;
+    text-decoration: none;
+    color: black;
+    word-break: break-word;
   }
-  .day-name[contenteditable="true"] {
-    border-bottom: 1px solid white;
-    user-select: text;
+  .day-label[contenteditable="true"] {
+    background: #eef5ff;
+    outline: none;
+    padding: 2px 4px;
+    border-radius: 4px;
   }
   .menu-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    position: relative;
-  }
-  .menu-dropdown {
-    position: absolute;
-    top: 28px;
-    right: 0;
-    background: white;
-    color: black;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    display: none;
-    flex-direction: column;
-    min-width: 80px;
-    z-index: 10;
-  }
-  .menu-dropdown.show {
-    display: flex;
-  }
-  .menu-dropdown button {
     background: none;
     border: none;
-    padding: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 8px;
+  }
+  .menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 4px 0;
+    z-index: 10;
+    min-width: 120px;
+  }
+  .menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    background: none;
+    border: none;
     text-align: left;
+    font-size: 14px;
     cursor: pointer;
   }
-  #add-day-btn {
-    padding: 10px;
-    font-size: 1rem;
+  .menu button:hover {
+    background: #f0f0f0;
+  }
+  #addDayBtn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    border: none;
     cursor: pointer;
+  }
+  #addDayBtn:hover {
+    background-color: #0056b3;
   }
 </style>
 </head>
 <body>
+<h1>Workout Days</h1>
+<div id="daysList"></div>
+<button id="addDayBtn">+ Add Day</button>
 
-<h1>My Workout Days</h1>
+<script>
+  const storageKey = 'workout_days';
+  let days = JSON.parse(localStorage.getItem(storageKey)) || [
+    { id: 1, name: 'Day 1' },
+    { id: 2, name: 'Day 2' },
+    { id: 3, name: 'Day 3' },
+  ];
 
-<div id="days-container"></div>
+  const daysList = document.getElementById('daysList');
+  const addDayBtn = document.getElementById('addDayBtn');
+  let openMenu = null;
 
-<button id="add-day-btn">+ Add Day</button>
+  function saveDays() {
+    localStorage.setItem(storageKey, JSON.stringify(days));
+  }
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    query,
-    orderBy,
-    addDoc,
-    doc,
-    updateDoc,
-    deleteDoc,
-    onSnapshot,
-  } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+  function renderDays() {
+    daysList.innerHTML = '';
+    days.forEach((day, index) => {
+      const row = document.createElement('div');
+      row.className = 'day-row';
 
-  import {
-    getAuth,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signOut,
-  } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+      const label = document.createElement('a');
+      label.className = 'day-label';
+      label.textContent = day.name;
+      label.href = `day.html?day=${day.id}`;
 
-  // TODO: Replace with your Firebase config
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "yourproject.firebaseapp.com",
-    projectId: "yourproject-id",
-    storageBucket: "yourproject.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
+      const menuBtn = document.createElement('button');
+      menuBtn.className = 'menu-btn';
+      menuBtn.innerHTML = '⋮';
+
+      const menu = document.createElement('div');
+      menu.className = 'menu';
+      menu.style.display = 'none';
+
+      const rename = document.createElement('button');
+      rename.textContent = 'Rename';
+      rename.onclick = () => {
+        label.contentEditable = true;
+        label.focus();
+        closeMenu();
+      };
+
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = () => {
+        if (confirm(`Delete "${day.name}"?`)) {
+          days.splice(index, 1);
+          saveDays();
+          renderDays();
+        }
+      };
+
+      menu.appendChild(rename);
+      menu.appendChild(del);
+      document.body.appendChild(menu);
+
+      menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleMenu(menu, menuBtn);
+      };
+
+      label.addEventListener('blur', () => {
+        label.contentEditable = false;
+        const newName = label.textContent.trim();
+        if (newName) {
+          day.name = newName;
+          saveDays();
+        } else {
+          label.textContent = day.name;
+        }
+      });
+
+      label.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          label.blur();
+        }
+      });
+
+      row.appendChild(label);
+      row.appendChild(menuBtn);
+      daysList.appendChild(row);
+    });
+  }
+
+  function toggleMenu(menu, btn) {
+    closeMenu();
+    const rect = btn.getBoundingClientRect();
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const scrollX = window.scrollX || document.documentElement.scrollLeft;
+
+    menu.style.top = (rect.bottom + scrollY + 4) + 'px';
+    menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
+    menu.style.display = 'block';
+    openMenu = menu;
+  }
+
+  function closeMenu() {
+    if (openMenu) openMenu.style.display = 'none';
+    openMenu = null;
+  }
+
+  addDayBtn.onclick = () => {
+    const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
+    days.push({ id: nextId, name: `Day ${nextId}` });
+    saveDays();
+    renderDays();
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const daysContainer = document.getElementById("days-container");
-  const addDayBtn = document.getElementById("add-day-btn");
-
-  let currentUser = null;
-
-  // Create a day element
-  function createDayElement(dayDoc) {
-    const dayData = dayDoc.data();
-
-    const dayEl = document.createElement("div");
-    dayEl.className = "day-button";
-
-    const dayName = document.createElement("div");
-    dayName.className = "day-name";
-    dayName.textContent = dayData.name || "Unnamed Day";
-    dayName.contentEditable = false;
-
-    // Navigate to workouts page when day name clicked (only if not editing)
-    dayName.addEventListener("click", () => {
-      if (!dayName.isContentEditable) {
-        window.location.href = `workouts.html?dayId=${dayDoc.id}`;
-      }
-    });
-
-    // 3-dot menu button
-    const menuBtn = document.createElement("button");
-    menuBtn.className = "menu-btn";
-    menuBtn.textContent = "⋮";
-
-    // Dropdown menu
-    const menuDropdown = document.createElement("div");
-    menuDropdown.className = "menu-dropdown";
-
-    const renameBtn = document.createElement("button");
-    renameBtn.textContent = "Rename";
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-
-    menuDropdown.appendChild(renameBtn);
-    menuDropdown.appendChild(deleteBtn);
-    menuBtn.appendChild(menuDropdown);
-
-    // Toggle dropdown
-    menuBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // Close any other open menus
-      document.querySelectorAll(".menu-dropdown.show").forEach(menu => {
-        if (menu !== menuDropdown) menu.classList.remove("show");
-      });
-      menuDropdown.classList.toggle("show");
-    });
-
-    // Rename handler
-    renameBtn.addEventListener("click", () => {
-      menuDropdown.classList.remove("show");
-      dayName.contentEditable = true;
-      dayName.focus();
-
-      // Place cursor at end
-      document.execCommand("selectAll", false, null);
-      document.getSelection().collapseToEnd();
-
-      // Save on Enter or blur
-      function saveName() {
-        dayName.contentEditable = false;
-        const newName = dayName.textContent.trim() || "Unnamed Day";
-        updateDoc(doc(db, "users", currentUser.uid, "days", dayDoc.id), {
-          name: newName,
-        });
-        dayName.removeEventListener("blur", saveName);
-        dayName.removeEventListener("keydown", onKeyDown);
-      }
-      function onKeyDown(e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          dayName.blur();
-        }
-      }
-      dayName.addEventListener("blur", saveName);
-      dayName.addEventListener("keydown", onKeyDown);
-    });
-
-    // Delete handler
-    deleteBtn.addEventListener("click", async () => {
-      menuDropdown.classList.remove("show");
-      if (confirm(`Delete day "${dayData.name}"?`)) {
-        await deleteDoc(doc(db, "users", currentUser.uid, "days", dayDoc.id));
-      }
-    });
-
-    dayEl.appendChild(dayName);
-    dayEl.appendChild(menuBtn);
-
-    // Close menus if clicking outside
-    document.addEventListener("click", () => {
-      menuDropdown.classList.remove("show");
-    });
-
-    return dayEl;
-  }
-
-  // Load and listen for days from Firestore
-  function loadDays() {
-    const daysRef = collection(db, "users", currentUser.uid, "days");
-    const q = query(daysRef, orderBy("createdAt"));
-    onSnapshot(q, (snapshot) => {
-      daysContainer.innerHTML = "";
-      snapshot.forEach((doc) => {
-        daysContainer.appendChild(createDayElement(doc));
-      });
-    });
-  }
-
-  // Add new day and auto-trigger rename
-  async function addNewDay() {
-    if (!currentUser) return alert("Not logged in");
-
-    const newDayRef = await addDoc(collection(db, "users", currentUser.uid, "days"), {
-      name: "New Day",
-      createdAt: new Date(),
-    });
-
-    // Wait a tick, then find new day element and auto-rename
-    setTimeout(() => {
-      const dayElements = daysContainer.querySelectorAll(".day-button");
-      for (const dayEl of dayElements) {
-        const dayNameEl = dayEl.querySelector(".day-name");
-        if (dayNameEl.textContent === "New Day") {
-          // Simulate clicking rename
-          dayNameEl.dispatchEvent(new Event('click'));
-          const menuBtn = dayEl.querySelector(".menu-btn");
-          menuBtn.click(); // Open menu
-          const renameBtn = dayEl.querySelector(".menu-dropdown button:first-child");
-          renameBtn.click();
-          break;
-        }
-      }
-    }, 500);
-  }
-
-  addDayBtn.addEventListener("click", addNewDay);
-
-  // Authentication handling (simple auto-login for demo)
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      currentUser = user;
-      loadDays();
-    } else {
-      // For demo only: sign in with fixed credentials
-      signInWithEmailAndPassword(auth, "test@example.com", "test123").catch(console.error);
-    }
-  });
+  window.addEventListener('click', closeMenu);
+  renderDays();
 </script>
-
 </body>
 </html>
+
+
 
 
 
