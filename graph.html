@@ -15,11 +15,15 @@
     h1 {
       text-align: center;
     }
-    #exerciseSelect {
+    #exerciseSelect, #maxYInput {
       font-size: 16px;
       margin: 20px auto;
       display: block;
       padding: 8px;
+      max-width: 200px;
+    }
+    #maxYInput {
+      margin-top: 10px;
     }
     canvas {
       margin-top: 20px;
@@ -50,14 +54,20 @@
   <option value="">Select Exercise</option>
 </select>
 
+<!-- Input box for max Y value -->
+<input type="number" id="maxYInput" placeholder="Set max graph value (Y-axis)" min="0" step="any"/>
+
 <canvas id="progressChart" height="300"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
   const select = document.getElementById('exerciseSelect');
+  const maxYInput = document.getElementById('maxYInput');
   const ctx = document.getElementById('progressChart').getContext('2d');
   let chart;
+  let currentData = null;
+  let currentSelected = '';
 
   const exerciseNames = [...new Set(logs.map(log => log.name))];
   exerciseNames.forEach(name => {
@@ -67,18 +77,20 @@
     select.appendChild(option);
   });
 
-  select.addEventListener('change', () => {
-    const selected = select.value;
+  function renderChart(selected, maxY) {
     if (!selected) return;
 
     const data = logs
       .filter(log => log.name === selected && log.weight != null)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    currentData = data;
+
     const labels = data.map(log => log.date);
     const weights = data.map(log => log.weight);
 
     if (chart) chart.destroy();
+
     chart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -97,6 +109,7 @@
         scales: {
           y: {
             beginAtZero: false,
+            max: maxY > 0 ? maxY : undefined,
             title: {
               display: true,
               text: 'Weight'
@@ -111,6 +124,18 @@
         }
       }
     });
+  }
+
+  select.addEventListener('change', () => {
+    currentSelected = select.value;
+    const maxY = parseFloat(maxYInput.value);
+    renderChart(currentSelected, maxY);
+  });
+
+  maxYInput.addEventListener('change', () => {
+    if (!currentSelected) return;
+    const maxY = parseFloat(maxYInput.value);
+    renderChart(currentSelected, maxY);
   });
 
   function goBack() {
@@ -119,4 +144,5 @@
 </script>
 
 </body>
-</html
+</html>
+
