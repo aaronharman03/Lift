@@ -26,7 +26,6 @@
     padding: 12px 14px;
     margin-bottom: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    position: relative;
   }
   .day-label {
     font-size: 16px;
@@ -94,52 +93,70 @@
 <div id="daysList"></div>
 <button id="addDayBtn">+ Add Day</button>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<!-- Firebase Firestore SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-  // Your Firebase config — replace these with your real values
+  // TODO: Replace with your own Firebase config
   const firebaseConfig = {
-    apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
   };
 
   firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-
-  // Temporary user ID for demo/testing
-  const userId = 'defaultUser';
+  const db = firebase.firestore();
 
   const daysList = document.getElementById('daysList');
   const addDayBtn = document.getElementById('addDayBtn');
+  let openMenu = null;
 
-  // Workout days array — will load from Firebase or start empty
-  let days = [];
+  let days = []; // will hold data from Firestore
 
-  // Load days from Firebase on page load
-  function loadDays() {
-    firebase.database().ref(`users/${userId}/workoutDays`).once('value').then(snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        days = data;
+  // Fetch days from Firestore
+  async function fetchDays() {
+    try {
+      const snapshot = await db.collection('workout_days').orderBy('id').get();
+      if (snapshot.empty) {
+        // Initialize default days if none exist
+        days = [
+          { id: 1, name: 'Day 1' },
+          { id: 2, name: 'Day 2' },
+          { id: 3, name: 'Day 3' },
+        ];
+        // Save them to Firestore
+        await Promise.all(days.map(day => 
+          db.collection('workout_days').doc(day.id.toString()).set(day)
+        ));
       } else {
-        days = [];
+        days = snapshot.docs.map(doc => doc.data());
       }
       renderDays();
-    });
+    } catch (error) {
+      alert('Failed to load days from Firestore: ' + error.message);
+    }
   }
 
-  // Save days to Firebase
-  function saveDays() {
-    firebase.database().ref(`users/${userId}/workoutDays`).set(days);
+  // Save all days to Firestore (overwrite existing)
+  async function saveDays() {
+    try {
+      const batch = db.batch();
+      const collectionRef = db.collection('workout_days');
+      days.forEach(day => {
+        const docRef = collectionRef.doc(day.id.toString());
+        batch.set(docRef, day);
+      });
+      await batch.commit();
+    } catch (error) {
+      alert('Failed to save days to Firestore: ' + error.message);
+    }
   }
 
-  // Render the days list in the UI
   function renderDays() {
     daysList.innerHTML = '';
     days.forEach((day, index) => {
@@ -151,62 +168,53 @@
       label.textContent = day.name;
       label.href = `day.html?day=${day.id}`;
 
-      // Menu button
       const menuBtn = document.createElement('button');
       menuBtn.className = 'menu-btn';
-      menuBtn.textContent = '⋮';
+      menuBtn.innerHTML = '⋮';
 
-      // Menu container
       const menu = document.createElement('div');
       menu.className = 'menu';
       menu.style.display = 'none';
 
-      // Rename button
-      const renameBtn = document.createElement('button');
-      renameBtn.textContent = 'Rename';
-      renameBtn.onclick = () => {
+      const rename = document.createElement('button');
+      rename.textContent = 'Rename';
+      rename.onclick = () => {
         label.contentEditable = true;
         label.focus();
         closeMenu();
       };
 
-      // Delete button
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.onclick = () => {
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = async () => {
         if (confirm(`Delete "${day.name}"?`)) {
           days.splice(index, 1);
-          saveDays();
+          await saveDays();
           renderDays();
         }
       };
 
-      menu.appendChild(renameBtn);
-      menu.appendChild(deleteBtn);
+      menu.appendChild(rename);
+      menu.appendChild(del);
+      document.body.appendChild(menu);
 
-      // Append menu to the row (position: absolute inside row)
-      row.appendChild(menu);
-
-      // Show/hide menu on button click
       menuBtn.onclick = (e) => {
         e.stopPropagation();
         toggleMenu(menu, menuBtn);
       };
 
-      // Handle label editing finish
-      label.addEventListener('blur', () => {
-        if (!label.isContentEditable) return;
+      label.addEventListener('blur', async () => {
         label.contentEditable = false;
         const newName = label.textContent.trim();
         if (newName) {
           day.name = newName;
-          saveDays();
+          await saveDays();
         } else {
-          label.textContent = day.name; // revert if empty
+          label.textContent = day.name;
         }
       });
 
-      label.addEventListener('keydown', e => {
+      label.addEventListener('keydown', async e => {
         if (e.key === 'Enter') {
           e.preventDefault();
           label.blur();
@@ -219,49 +227,38 @@
     });
   }
 
-  let openMenu = null;
-
-  // Show the context menu positioned under the button
   function toggleMenu(menu, btn) {
-    if (openMenu && openMenu !== menu) {
-      openMenu.style.display = 'none';
-    }
-    if (menu.style.display === 'block') {
-      menu.style.display = 'none';
-      openMenu = null;
-      return;
-    }
+    closeMenu();
     const rect = btn.getBoundingClientRect();
     const scrollY = window.scrollY || document.documentElement.scrollTop;
     const scrollX = window.scrollX || document.documentElement.scrollLeft;
+
     menu.style.top = (rect.bottom + scrollY + 4) + 'px';
     menu.style.left = (Math.min(rect.left + scrollX, window.innerWidth - 140)) + 'px';
     menu.style.display = 'block';
     openMenu = menu;
   }
 
-  // Close any open menu
   function closeMenu() {
     if (openMenu) openMenu.style.display = 'none';
     openMenu = null;
   }
 
-  // Add new day button click
-  addDayBtn.onclick = () => {
+  addDayBtn.onclick = async () => {
     const nextId = days.length ? Math.max(...days.map(d => d.id)) + 1 : 1;
     days.push({ id: nextId, name: `Day ${nextId}` });
-    saveDays();
+    await saveDays();
     renderDays();
   };
 
-  // Close menu when clicking outside
   window.addEventListener('click', closeMenu);
 
-  // Initial load
-  loadDays();
-</script>
+  // Load days from Firestore on page load
+  fetchDays();
 
+</script>
 </body>
 </html>
+
 
 
