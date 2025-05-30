@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Exercises</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 0 15px;
+  }
+  h1 {
+    margin-bottom: 20px;
+  }
+  #backBtn {
+    margin-bottom: 20px;
+    background-color: #2d89ef;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  #exercisesPlaceholder {
+    font-style: italic;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<button id="backBtn">&larr; Back to Workouts</button>
+<h1 id="workoutTitle"></h1>
+
+<div id="exercisesPlaceholder">[Exercises for this workout will go here]</div>
+
+<script>
+  const backBtn = document.getElementById('backBtn');
+  const workoutTitle = document.getElementById('workoutTitle');
+
+  backBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+
+  // Read workout name from query param
+  function getQueryParam(param) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(param);
+  }
+
+  const workoutName = getQueryParam('workout');
+  if (workoutName) {
+    workoutTitle.textContent = decodeURIComponent(workoutName);
+  } else {
+    workoutTitle.textContent = 'Unknown Workout';
+  }
+</script>
+
+</body>
+</html>
