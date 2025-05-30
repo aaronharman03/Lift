@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#4CAF50" />
-  <link rel="manifest" href="manifest.json" />
   <title>75 Day Tracker</title>
   <style>
     body {
@@ -35,21 +34,29 @@
       margin: 0.5rem 0;
       display: flex;
       align-items: center;
+      flex-direction: column;
     }
-    input[type="text"], textarea {
+    .habit-main {
       width: 100%;
-      margin-top: 0.5rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      cursor: pointer;
     }
-    textarea {
-      min-height: 80px;
+    .habit-description {
+      width: 100%;
+      background: #e0e0e0;
+      padding: 0.5rem;
+      margin-left: 1.5rem;
+      border-radius: 5px;
+      display: none;
     }
     button {
-      font-size: 1.2rem;
-      margin: 0 0.5rem;
+      font-size: 1rem;
+      margin: 1rem auto;
       padding: 0.5rem 1rem;
+      display: block;
     }
   </style>
 </head>
@@ -73,19 +80,9 @@
     const TOTAL_DAYS = 75;
     let currentDay = 1;
 
-    function getDefaultTasks() {
-      return [
-        { text: "Workout", done: false },
-        { text: "Read 10 pages", done: false },
-        { text: "Drink 1 gallon of water", done: false },
-      ];
-    }
-
     function getDayData(day) {
       const data = localStorage.getItem(`day-${day}`);
-      return data
-        ? JSON.parse(data)
-        : { tasks: getDefaultTasks(), notes: "" };
+      return data ? JSON.parse(data) : { habits: [] };
     }
 
     function saveDayData(day, data) {
@@ -100,59 +97,65 @@
         opt.textContent = `Day ${i}`;
         selector.appendChild(opt);
       }
-
-      selector.addEventListener("change", e => {
-        onDayChange(parseInt(e.target.value));
-      });
+      selector.addEventListener("change", e => onDayChange(parseInt(e.target.value)));
     }
 
     function renderDay(day) {
       const selector = document.getElementById("daySelector");
       selector.value = day;
-
-      const dayTitle = document.getElementById("dayTitle");
-      dayTitle.textContent = `Day ${day} of ${TOTAL_DAYS}`;
+      document.getElementById("dayTitle").textContent = `Day ${day} of ${TOTAL_DAYS}`;
 
       const container = document.getElementById("checklistContainer");
-      const { tasks, notes } = getDayData(day);
+      const { habits } = getDayData(day);
       container.innerHTML = "";
 
       const ul = document.createElement("ul");
-      tasks.forEach((task, i) => {
+      habits.forEach((habit, i) => {
         const li = document.createElement("li");
+
+        const mainRow = document.createElement("div");
+        mainRow.className = "habit-main";
+
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.checked = task.done;
+        checkbox.checked = habit.done;
         checkbox.addEventListener("change", () => {
-          task.done = checkbox.checked;
-          saveDayData(day, { tasks, notes });
+          habit.done = checkbox.checked;
+          saveDayData(day, { habits });
         });
-        li.appendChild(checkbox);
-        li.append(` ${task.text}`);
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = habit.name;
+        nameSpan.addEventListener("click", () => {
+          descDiv.style.display = descDiv.style.display === "none" ? "block" : "none";
+        });
+
+        const descDiv = document.createElement("div");
+        descDiv.className = "habit-description";
+        descDiv.textContent = habit.description;
+        descDiv.style.display = "none";
+
+        mainRow.appendChild(checkbox);
+        mainRow.appendChild(nameSpan);
+        li.appendChild(mainRow);
+        li.appendChild(descDiv);
         ul.appendChild(li);
       });
 
-      const newTaskInput = document.createElement("input");
-      newTaskInput.placeholder = "New task (press Enter to add)";
-      newTaskInput.type = "text";
-      newTaskInput.addEventListener("keypress", e => {
-        if (e.key === "Enter" && newTaskInput.value.trim()) {
-          tasks.push({ text: newTaskInput.value.trim(), done: false });
-          saveDayData(day, { tasks, notes });
-          renderDay(day);
-        }
-      });
-
-      const noteInput = document.createElement("textarea");
-      noteInput.value = notes || "";
-      noteInput.placeholder = "Add notes...";
-      noteInput.addEventListener("blur", () => {
-        saveDayData(day, { tasks, notes: noteInput.value });
-      });
+      const addButton = document.createElement("button");
+      addButton.textContent = "➕ Add Habit";
+      addButton.onclick = () => {
+        const name = prompt("Habit name?");
+        if (!name) return;
+        const description = prompt("Description?");
+        const newHabit = { name, description, done: false };
+        habits.push(newHabit);
+        saveDayData(day, { habits });
+        renderDay(day);
+      };
 
       container.appendChild(ul);
-      container.appendChild(newTaskInput);
-      container.appendChild(noteInput);
+      container.appendChild(addButton);
     }
 
     function updateDay(day) {
@@ -167,12 +170,10 @@
       document.getElementById("prevDay").addEventListener("click", () => {
         if (currentDay > 1) updateDay(currentDay - 1);
       });
-
       document.getElementById("nextDay").addEventListener("click", () => {
         if (currentDay < TOTAL_DAYS) updateDay(currentDay + 1);
       });
 
-      // Register service worker
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
       }
@@ -180,5 +181,4 @@
   </script>
 </body>
 </html>
-
 
