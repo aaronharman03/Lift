@@ -3,93 +3,93 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Tracker Dashboard with Calendar</title>
+<title>Collapsible Workout Dashboard</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    background: #f7f7f7;
+    background: #f9f9f9;
+    margin: 0; padding: 1rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
   }
-  #app {
-    display: flex;
-    height: 100vh;
-    max-width: 900px;
-    margin: auto;
+  h1 {
+    text-align: center;
+  }
+  .panel {
     background: white;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
   }
-  /* Calendar sidebar */
-  #calendar {
-    width: 280px;
-    border-right: 1px solid #ddd;
+  .panel-header {
     padding: 1rem;
-    box-sizing: border-box;
-  }
-  #calendar header {
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
   }
-  #calendar header button {
-    cursor: pointer;
-    background: none;
-    border: none;
+  .panel-header:hover {
+    background: #e6f0ff;
+  }
+  .panel-header .toggle-icon {
     font-size: 1.3rem;
+    transition: transform 0.3s ease;
   }
-  #calendar .month-year {
-    font-weight: bold;
-    font-size: 1.2rem;
+  .panel-header.collapsed .toggle-icon {
+    transform: rotate(-90deg);
   }
-  #calendar table {
+  .panel-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 1rem;
+  }
+  .panel-content.open {
+    padding: 1rem;
+  }
+
+  /* Calendar table */
+  table {
     width: 100%;
     border-collapse: collapse;
-    user-select: none;
   }
-  #calendar th, #calendar td {
+  th, td {
     width: 14.28%;
     text-align: center;
     padding: 0.3rem 0;
     cursor: pointer;
     border-radius: 4px;
   }
-  #calendar th {
-    font-weight: normal;
+  th {
     color: #666;
+    font-weight: normal;
   }
-  #calendar td:hover {
+  td:hover {
     background: #eef6ff;
   }
-  #calendar td.today {
+  td.today {
     border: 2px solid #007bff;
   }
-  #calendar td.hasWorkout {
+  td.hasWorkout {
     background: #d1e7dd;
   }
-  #calendar td.selected {
+  td.selected {
     background: #007bff;
     color: white;
   }
 
-  /* Main workout panel */
-  #workout-panel {
-    flex: 1;
-    padding: 1rem 2rem;
-    box-sizing: border-box;
-    overflow-y: auto;
-  }
-  #workout-panel h2 {
-    margin-top: 0;
-  }
   label {
     display: block;
     margin: 0.5rem 0 0.2rem;
   }
-  input[type=text], input[type=number] {
+  input[type=text], input[type=number], input[type=date] {
     width: 100%;
-    padding: 0.5rem;
-    box-sizing: border-box;
+    padding: 0.4rem;
     font-size: 1rem;
+    box-sizing: border-box;
   }
   button {
     margin-top: 1rem;
@@ -105,6 +105,7 @@
     background: #aaa;
     cursor: not-allowed;
   }
+
   .exercises-list {
     margin-top: 1rem;
   }
@@ -139,56 +140,54 @@
     border-radius: 4px;
     font-weight: normal;
   }
-
-  /* Responsive */
-  @media (max-width: 700px) {
-    #app {
-      flex-direction: column;
-      height: auto;
-    }
-    #calendar {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid #ddd;
-    }
-    #workout-panel {
-      padding: 1rem;
-    }
-  }
 </style>
 </head>
 <body>
 
-<div id="app">
-  <aside id="calendar">
-    <header>
-      <button id="prevMonth" aria-label="Previous month">&lt;</button>
-      <div class="month-year" id="monthYear"></div>
-      <button id="nextMonth" aria-label="Next month">&gt;</button>
-    </header>
-    <table id="calendarTable">
+<h1>Workout Dashboard</h1>
+
+<div class="panel" id="calendarPanel">
+  <div class="panel-header" id="calendarHeader">
+    Calendar <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="panel-content" id="calendarContent">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:0.5rem;">
+      <button id="prevMonth">&lt;</button>
+      <div id="monthYear" style="font-weight:bold;"></div>
+      <button id="nextMonth">&gt;</button>
+    </div>
+    <table>
       <thead>
-        <tr>
-          <th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th>
-        </tr>
+        <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
       </thead>
       <tbody id="calendarBody"></tbody>
     </table>
-  </aside>
+  </div>
+</div>
 
-  <main id="workout-panel">
-    <h2>Workout Details</h2>
+<div class="panel" id="workoutPanel">
+  <div class="panel-header" id="workoutHeader">
+    Workout Details <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="panel-content" id="workoutContent">
     <label for="workoutDate">Date:</label>
     <input type="date" id="workoutDate" />
 
     <label for="workoutName">Workout Name:</label>
-    <input type="text" id="workoutName" placeholder="e.g. Push Day" />
+    <input type="text" id="workoutName" placeholder="e.g. Leg Day" />
 
-    <hr />
+    <button id="saveWorkoutBtn">Save Workout</button>
+  </div>
+</div>
 
+<div class="panel" id="exercisePanel">
+  <div class="panel-header" id="exerciseHeader">
+    Exercises <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="panel-content" id="exerciseContent">
     <h3>Add / Edit Exercise</h3>
     <label for="exerciseName">Exercise Name:</label>
-    <input type="text" id="exerciseName" placeholder="e.g. Bench Press" />
+    <input type="text" id="exerciseName" placeholder="e.g. Squat" />
 
     <label for="exerciseWeight">Weight (kg):</label>
     <input type="number" id="exerciseWeight" min="0" step="0.1" />
@@ -201,18 +200,42 @@
 
     <hr />
 
-    <h3>Exercises</h3>
     <div class="exercises-list" id="exercisesList"></div>
-
-    <button id="saveWorkoutBtn">Save Workout</button>
-    <button id="newWorkoutBtn" style="background:#6c757d; margin-left:0.5rem;">Start New Workout</button>
-  </main>
+  </div>
 </div>
 
 <script>
 (() => {
-  // Helpers
   const STORAGE_KEY = 'workoutTrackerWorkouts';
+
+  // Panels and toggle icons
+  const panels = [
+    { header: document.getElementById('calendarHeader'), content: document.getElementById('calendarContent') },
+    { header: document.getElementById('workoutHeader'), content: document.getElementById('workoutContent') },
+    { header: document.getElementById('exerciseHeader'), content: document.getElementById('exerciseContent') }
+  ];
+  // Setup toggle handlers
+  panels.forEach(({header, content}) => {
+    header.addEventListener('click', () => {
+      const isOpen = content.classList.contains('open');
+      if(isOpen){
+        content.style.maxHeight = null;
+        content.classList.remove('open');
+        header.classList.add('collapsed');
+      } else {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        content.classList.add('open');
+        header.classList.remove('collapsed');
+      }
+    });
+  });
+
+  // Expand all by default
+  panels.forEach(({header, content}) => {
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.classList.add('open');
+    header.classList.remove('collapsed');
+  });
 
   // Elements
   const monthYearEl = document.getElementById('monthYear');
@@ -231,39 +254,31 @@
 
   const exercisesListDiv = document.getElementById('exercisesList');
   const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
-  const newWorkoutBtn = document.getElementById('newWorkoutBtn');
 
   // State
   let currentDate = new Date();
   let displayedYear = currentDate.getFullYear();
   let displayedMonth = currentDate.getMonth();
 
-  let workouts = {}; // all workouts loaded from localStorage
+  let workouts = {};
   let currentWorkoutDate = null;
   let editingExerciseIndex = -1;
-  let currentSets = [null]; // reps counts for each set (null = empty)
+  let currentSets = [null];
 
-  // Load workouts from localStorage
   function loadWorkouts() {
     const raw = localStorage.getItem(STORAGE_KEY);
     workouts = raw ? JSON.parse(raw) : {};
   }
-  // Save workouts to localStorage
   function saveWorkouts() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
   }
-
-  // Format date to yyyy-mm-dd
   function formatDate(date) {
     return date.toISOString().slice(0,10);
   }
 
-  // Render calendar for current displayed month/year
   function renderCalendar() {
     monthYearEl.textContent = new Date(displayedYear, displayedMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
     calendarBody.innerHTML = '';
-
-    // first day of month and days in month
     const firstDay = new Date(displayedYear, displayedMonth, 1).getDay();
     const daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
 
@@ -280,17 +295,19 @@
           const dateStr = `${displayedYear}-${String(displayedMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
           td.dataset.date = dateStr;
 
-          // Highlight today
           if(dateStr === formatDate(new Date())) td.classList.add('today');
-
-          // Highlight if workout exists on this date
           if(workouts[dateStr]) td.classList.add('hasWorkout');
-
-          // Highlight selected date
           if(dateStr === currentWorkoutDate) td.classList.add('selected');
 
           td.addEventListener('click', () => {
             loadWorkout(dateStr);
+            // Open workout and exercises panel if collapsed
+            panels[1].content.classList.add('open');
+            panels[1].content.style.maxHeight = panels[1].content.scrollHeight + 'px';
+            panels[1].header.classList.remove('collapsed');
+            panels[2].content.classList.add('open');
+            panels[2].content.style.maxHeight = panels[2].content.scrollHeight + 'px';
+            panels[2].header.classList.remove('collapsed');
           });
           day++;
         } else {
@@ -303,7 +320,6 @@
     }
   }
 
-  // Render sets inputs
   function renderSets() {
     setsInputsDiv.innerHTML = '';
     currentSets.forEach((val, idx) => {
@@ -321,8 +337,6 @@
       setsInputsDiv.appendChild(input);
     });
   }
-
-  // Add set (max 5)
   addSetBtn.addEventListener('click', () => {
     if(currentSets.length < 5) {
       currentSets.push(null);
@@ -330,7 +344,6 @@
     }
   });
 
-  // Clear exercise inputs
   function clearExerciseInputs() {
     exerciseNameInput.value = '';
     exerciseWeightInput.value = '';
@@ -339,7 +352,6 @@
     renderSets();
   }
 
-  // Render exercises list
   function renderExercises() {
     exercisesListDiv.innerHTML = '';
     if(!currentWorkoutDate || !workouts[currentWorkoutDate]) return;
@@ -365,6 +377,10 @@
         currentSets = ex.sets.slice();
         editingExerciseIndex = i;
         renderSets();
+        // Open exercise panel if collapsed
+        panels[2].content.classList.add('open');
+        panels[2].content.style.maxHeight = panels[2].content.scrollHeight + 'px';
+        panels[2].header.classList.remove('collapsed');
       };
       actions.appendChild(editBtn);
 
@@ -376,7 +392,6 @@
           saveWorkouts();
           renderExercises();
           if(editingExerciseIndex === i) clearExerciseInputs();
-          renderCalendar(); // update calendar highlight if needed
         }
       };
       actions.appendChild(delBtn);
@@ -386,116 +401,53 @@
     });
   }
 
-  // Load workout by date
   function loadWorkout(dateStr) {
-    if(!dateStr) return;
     currentWorkoutDate = dateStr;
     workoutDateInput.value = dateStr;
+
     const workout = workouts[dateStr] || { name: '', exercises: [] };
     workoutNameInput.value = workout.name || '';
+    if(!workouts[dateStr]) {
+      workouts[dateStr] = workout;
+      saveWorkouts();
+    }
     clearExerciseInputs();
     renderExercises();
     renderCalendar();
   }
 
-  // Save or update exercise in current workout
-  saveExerciseBtn.addEventListener('click', () => {
-    if(!currentWorkoutDate) {
-      alert('Please select a date or start a new workout first.');
-      return;
-    }
-    const name = exerciseNameInput.value.trim();
-    const weight = parseFloat(exerciseWeightInput.value);
-    const reps = currentSets.filter(x => x !== null && x >= 0);
-
-    if(!name || isNaN(weight) || reps.length === 0) {
-      alert('Please fill in exercise name, weight, and at least one set of reps.');
-      return;
-    }
-    if(!workouts[currentWorkoutDate]) {
-      workouts[currentWorkoutDate] = { name: '', exercises: [] };
-    }
-    if(editingExerciseIndex > -1) {
-      workouts[currentWorkoutDate].exercises[editingExerciseIndex] = { name, weight, sets: reps };
-      editingExerciseIndex = -1;
-    } else {
-      if(workouts[currentWorkoutDate].exercises.length >= 10) {
-        alert('Maximum 10 exercises per workout.');
-        return;
-      }
-      workouts[currentWorkoutDate].exercises.push({ name, weight, sets: reps });
-    }
-    saveWorkouts();
-    clearExerciseInputs();
-    renderExercises();
-    renderCalendar();
-  });
-
-  // Save workout name
   saveWorkoutBtn.addEventListener('click', () => {
-    if(!currentWorkoutDate) {
-      alert('Please select a date or start a new workout first.');
-      return;
-    }
-    const name = workoutNameInput.value.trim();
-    if(!name) {
-      alert('Please enter a workout name.');
-      return;
-    }
-    if(!workouts[currentWorkoutDate]) {
-      workouts[currentWorkoutDate] = { name: '', exercises: [] };
-    }
-    workouts[currentWorkoutDate].name = name;
+    if(!currentWorkoutDate) return alert('Select a date first');
+    workouts[currentWorkoutDate].name = workoutNameInput.value.trim();
     saveWorkouts();
+    renderCalendar();
     alert('Workout saved!');
-    renderCalendar();
   });
 
-  // Start a new workout for today or selected date
-  newWorkoutBtn.addEventListener('click', () => {
-    const todayStr = formatDate(new Date());
-    currentWorkoutDate = todayStr;
-    workoutDateInput.value = todayStr;
-    workoutNameInput.value = '';
-    workouts[todayStr] = { name: '', exercises: [] };
-    clearExerciseInputs();
-    renderExercises();
-    renderCalendar();
-  });
+  saveExerciseBtn.addEventListener('click', () => {
+    if(!currentWorkoutDate) return alert('Select a date first');
+    const name = exerciseNameInput.value.trim();
+    if(!name) return alert('Exercise name required');
+    const weight = parseFloat(exerciseWeightInput.value);
+    if(isNaN(weight) || weight < 0) return alert('Valid weight required');
+    const sets = currentSets.filter(s => s !== null && s >= 0);
+    if(sets.length === 0) return alert('At least one set with reps required');
 
-  // When date input changes, load that workout or clear
-  workoutDateInput.addEventListener('change', e => {
-    const val = e.target.value;
-    if(val) {
-      loadWorkout(val);
+    const newExercise = { name, weight, sets };
+
+    if(editingExerciseIndex >= 0) {
+      workouts[currentWorkoutDate].exercises[editingExerciseIndex] = newExercise;
+    } else {
+      workouts[currentWorkoutDate].exercises.push(newExercise);
     }
+    saveWorkouts();
+    renderExercises();
+    clearExerciseInputs();
   });
 
-  // Initialize sets inputs
-  renderSets();
-
-  // Load all workouts and render calendar for first load
+  // Initialize
   loadWorkouts();
   loadWorkout(formatDate(currentDate));
-
-  // Month navigation
-  prevMonthBtn.addEventListener('click', () => {
-    displayedMonth--;
-    if(displayedMonth < 0) {
-      displayedMonth = 11;
-      displayedYear--;
-    }
-    renderCalendar();
-  });
-  nextMonthBtn.addEventListener('click', () => {
-    displayedMonth++;
-    if(displayedMonth > 11) {
-      displayedMonth = 0;
-      displayedYear++;
-    }
-    renderCalendar();
-  });
-
   renderCalendar();
 })();
 </script>
