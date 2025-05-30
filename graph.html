@@ -74,8 +74,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
-    let goals = JSON.parse(localStorage.getItem('exercise_goals') || '{}');
+    let logs = [];
+
+firebase.database().ref(`users/${userId}/logs`).once('value', snapshot => {
+  const data = snapshot.val();
+  if (data) {
+    logs = Object.values(data);
+    drawGraph(); // Or whatever your function is to render the chart
+  }
+});
+
 
     const select = document.getElementById('exerciseSelect');
     const goalInput = document.getElementById('goalInput');
