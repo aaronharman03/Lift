@@ -446,26 +446,6 @@ renderExercises();
 
   // Initial render
   renderExercises();
-  setGoalBtn.addEventListener('click', () => {
-  if (editingIndex === null) return;
-
-  const current = exercises[editingIndex];
-  const unit = current.weightUnit || 'kg';
-
-  const input = prompt(`Set your goal weight for ${current.name} in ${unit}:`, current.goal || '');
-  if (input === null) return; // Cancelled
-
-  const goal = parseFloat(input);
-  if (isNaN(goal) || goal <= 0) {
-    alert("Please enter a valid number greater than 0.");
-    return;
-  }
-
-  current.goal = goal;
-  saveExercises();
-  renderExercises();
-  alert(`Goal of ${goal}${unit} saved for ${current.name}.`);
-});
 
 </script>
 </body>
