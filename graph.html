@@ -15,21 +15,11 @@
     h1 {
       text-align: center;
     }
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    #exerciseSelect,
-    #goalInput {
+    #exerciseSelect {
       font-size: 16px;
+      margin: 20px auto;
+      display: block;
       padding: 8px;
-    }
-    #goalInput {
-      width: 100px;
     }
     canvas {
       margin-top: 20px;
@@ -44,173 +34,89 @@
       padding: 8px 12px;
       border-radius: 5px;
       cursor: pointer;
+      margin-bottom: 20px;
     }
     .btn-back:hover {
       opacity: 0.9;
-    }
-    .goal-label {
-      font-size: 14px;
-      margin-left: 10px;
     }
   </style>
 </head>
 <body>
 
-  <button class="btn-back" onclick="goBack()">← Back</button>
-  <h1>Exercise Progress</h1>
+<button class="btn-back" onclick="goBack()">← Back</button>
+<h1>Exercise Progress</h1>
 
-  <div class="controls">
-    <select id="exerciseSelect">
-      <option value="">Select Exercise</option>
-    </select>
+<select id="exerciseSelect">
+  <option value="">Select Exercise</option>
+</select>
 
-    <div>
-      <label for="goalInput" class="goal-label">Goal Weight:</label>
-      <input type="number" id="goalInput" placeholder="e.g. 100" />
-    </div>
-  </div>
+<canvas id="progressChart" height="300"></canvas>
 
-  <canvas id="progressChart" height="300"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const logs = JSON.parse(localStorage.getItem('exercise_logs') || '[]');
+  const select = document.getElementById('exerciseSelect');
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  let chart;
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  const exerciseNames = [...new Set(logs.map(log => log.name))];
+  exerciseNames.forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  select.addEventListener('change', () => {
+    const selected = select.value;
+    if (!selected) return;
 
-  <script>
-    // ✅ Replace with your Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-    };
+    const data = logs
+      .filter(log => log.name === selected && log.weight != null)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Init
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const labels = data.map(log => log.date);
+    const weights = data.map(log => log.weight);
 
-    // 🔐 Replace with your own user logic
-    const userId = "demo-user"; // Or dynamically from auth
-
-    const select = document.getElementById('exerciseSelect');
-    const goalInput = document.getElementById('goalInput');
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    let chart;
-    let logs = [];
-
-    // Load logs from Firebase
-    firebase.database().ref(`users/${userId}/logs`).once('value', snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        logs = Object.values(data);
-        populateDropdown();
-      }
-    });
-
-    function populateDropdown() {
-      const exerciseNames = [...new Set(logs.map(log => log.name))];
-      exerciseNames.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
-      });
-    }
-
-    // On exercise selection
-    select.addEventListener('change', () => {
-      const selected = select.value;
-      if (!selected) return;
-
-      // Load goal from Firebase
-      firebase.database().ref(`users/${userId}/goals/${selected}`).once('value', snapshot => {
-        goalInput.value = snapshot.exists() ? snapshot.val() : '';
-        renderChart(selected);
-      });
-    });
-
-    // Save goal to Firebase
-    goalInput.addEventListener('change', () => {
-      const selected = select.value;
-      if (!selected) return;
-
-      const goalVal = parseFloat(goalInput.value);
-      if (!isNaN(goalVal)) {
-        firebase.database().ref(`users/${userId}/goals/${selected}`).set(goalVal)
-          .then(() => {
-            renderChart(selected);
-          })
-          .catch(err => {
-            console.error("Error saving goal:", err);
-          });
-      }
-    });
-
-    function renderChart(exerciseName) {
-      const data = logs
-        .filter(log => log.name === exerciseName && log.weight != null)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      if (data.length === 0) return;
-
-      const labels = data.map(log => log.date);
-      const weights = data.map(log => log.weight);
-      const startingWeight = weights[0];
-
-      // Load goal then render chart
-      firebase.database().ref(`users/${userId}/goals/${exerciseName}`).once('value', snapshot => {
-        const goalWeight = snapshot.exists() ? snapshot.val() : Math.max(...weights);
-        const minY = Math.min(startingWeight, goalWeight);
-        const maxY = Math.max(startingWeight, goalWeight);
-
-        if (chart) chart.destroy();
-
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [{
-              label: `${exerciseName} Weight`,
-              data: weights,
-              borderColor: '#007bff',
-              backgroundColor: 'rgba(0, 123, 255, 0.2)',
-              tension: 0,
-              fill: true
-            }]
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: `${selected} Weight`,
+          data: weights,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Weight'
+            }
           },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: false,
-                min: minY,
-                max: maxY,
-                title: {
-                  display: true,
-                  text: 'Weight'
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'Date'
-                }
-              }
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
             }
           }
-        });
-      });
-    }
+        }
+      }
+    });
+  });
 
-    function goBack() {
-      window.history.back();
-    }
-  </script>
+  function goBack() {
+    window.history.back();
+  }
+</script>
+
 </body>
 </html>
