@@ -118,10 +118,25 @@
   <button onclick="nextPage()">→</button>
 </header>
 
-<main id="pages">
-  ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','List']
-    .map((day, i) => `
-      <div class="page" id="page${i}">
+<main id="pages"></main>
+
+<script>
+  let currentPage = 0;
+  const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
+
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  function createPages() {
+    const main = document.getElementById('pages');
+    pageNames.forEach((day, i) => {
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.id = `page${i}`;
+      page.innerHTML = `
         <h3>${day} Tasks</h3>
         <div id="taskList${i}"></div>
         <form onsubmit="addTask(event, ${i})">
@@ -131,26 +146,16 @@
           ${i === 7 ? '<input type="date" name="date" required />' : ''}
           <button type="submit">Add Task</button>
         </form>
-      </div>
-    `).join('')}
-</main>
-
-<script>
-  let currentPage = 0;
-  const titles = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-
-  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-  if (tasks.length === 0) tasks = Array(8).fill([]).map(() => []);
-
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+      `;
+      main.appendChild(page);
+    });
   }
 
   function render() {
     document.querySelectorAll('.page').forEach((p, i) => {
       p.classList.toggle('active', i === currentPage);
     });
-    document.getElementById('pageTitle').textContent = titles[currentPage];
+    document.getElementById('pageTitle').textContent = pageNames[currentPage];
 
     tasks.forEach((taskList, i) => {
       const container = document.getElementById(`taskList${i}`);
@@ -228,6 +233,7 @@
   }
 
   window.addEventListener('load', () => {
+    createPages();
     render();
 
     if ('serviceWorker' in navigator) {
