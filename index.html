@@ -3,53 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#121212">
+  <meta name="theme-color" content="#0d0d0d" />
   <title>Weekly Schedule</title>
   <link rel="manifest" href="manifest.json">
   <style>
+    :root {
+      --bg: #0d0d0d;
+      --card: #1a1a1a;
+      --accent: #00c6ff;
+      --text: #f0f0f0;
+      --muted: #888;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: sans-serif;
-      background: #121212;
-      color: #eee;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    header, footer {
+
+    header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       padding: 1rem;
-      background: #1e1e1e;
+      background: var(--card);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
+
+    header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+    }
+
     .page {
       display: none;
-      padding: 1rem;
     }
+
     .page.active {
       display: block;
     }
+
     .task {
-      border: 1px solid #333;
-      padding: 0.5rem;
+      background: var(--card);
       margin: 0.5rem 0;
-      background: #1e1e1e;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
     }
+
     .task.done {
-      text-decoration: line-through;
       opacity: 0.6;
+      text-decoration: line-through;
     }
+
+    .task small {
+      color: var(--muted);
+    }
+
+    .task-buttons button {
+      margin: 0 0.3rem;
+    }
+
     button {
-      background: #333;
+      background: var(--accent);
       color: #fff;
       border: none;
-      padding: 0.3rem 0.6rem;
-      margin: 0.2rem;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
       cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
     }
-    input, textarea {
-      background: #222;
-      color: #eee;
-      border: 1px solid #444;
-      margin: 0.3rem 0;
+
+    button:hover {
+      background: #009fd4;
+    }
+
+    form input,
+    form textarea {
       width: 100%;
+      margin: 0.4rem 0;
+      padding: 0.6rem;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    form {
+      margin-top: 1rem;
     }
   </style>
 </head>
@@ -61,15 +118,14 @@
   <button onclick="nextPage()">→</button>
 </header>
 
-<div id="pages">
-  <!-- 7 Day Pages + 1 List Page -->
+<main id="pages">
   ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','List']
     .map((day, i) => `
       <div class="page" id="page${i}">
         <h3>${day} Tasks</h3>
         <div id="taskList${i}"></div>
         <form onsubmit="addTask(event, ${i})">
-          <input type="time" name="time" />
+          ${i !== 7 ? '<input type="time" name="time" />' : ''}
           <input type="text" name="name" placeholder="Task name" required />
           <textarea name="desc" placeholder="Description (optional)"></textarea>
           ${i === 7 ? '<input type="date" name="date" required />' : ''}
@@ -77,33 +133,30 @@
         </form>
       </div>
     `).join('')}
-</div>
+</main>
 
 <script>
   let currentPage = 0;
   const titles = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
 
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill([]).map(() => []);
+
   function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }
-
-  function loadTasks() {
-    const data = localStorage.getItem('tasks');
-    return data ? JSON.parse(data) : Array(8).fill([]).map(() => []);
-  }
-
-  let tasks = loadTasks();
 
   function render() {
     document.querySelectorAll('.page').forEach((p, i) => {
       p.classList.toggle('active', i === currentPage);
     });
     document.getElementById('pageTitle').textContent = titles[currentPage];
+
     tasks.forEach((taskList, i) => {
       const container = document.getElementById(`taskList${i}`);
       container.innerHTML = '';
       let sorted = [...taskList];
-      if (i === 7) sorted.sort((a,b) => new Date(a.date) - new Date(b.date));
+      if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
       sorted.forEach((task, idx) => {
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
@@ -111,9 +164,11 @@
           <strong>${task.time || ''} ${task.name}</strong><br/>
           ${task.desc || ''}<br/>
           ${task.date ? `<small>${task.date}</small><br/>` : ''}
-          <button onclick="toggleDone(${i}, ${idx})">✔</button>
-          <button onclick="editTask(${i}, ${idx})">✏️</button>
-          <button onclick="deleteTask(${i}, ${idx})">🗑</button>
+          <div class="task-buttons">
+            <button onclick="toggleDone(${i}, ${idx})">✔</button>
+            <button onclick="editTask(${i}, ${idx})">✏️</button>
+            <button onclick="deleteTask(${i}, ${idx})">🗑</button>
+          </div>
         `;
         container.appendChild(div);
       });
@@ -172,16 +227,16 @@
     render();
   }
 
-  window.addEventListener('load', render);
-  if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(reg => console.log('SW registered', reg))
-      .catch(err => console.error('SW registration failed', err));
+    render();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('Service Worker registered ✅'))
+        .catch(err => console.error('Service Worker failed', err));
+    }
   });
-}
-
 </script>
-
 </body>
 </html>
+
