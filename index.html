@@ -64,6 +64,14 @@
       text-align: left;
       cursor: pointer;
     }
+    .saved-workouts {
+      margin-top: 1rem;
+    }
+    .saved-workouts button {
+      display: block;
+      margin: 0.2rem 0;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -82,6 +90,7 @@
   <button id="saveWorkout">💾 Save Workout</button>
   <h3>Exercises</h3>
   <div id="log"></div>
+  <div class="saved-workouts" id="savedWorkouts"></div>
 </div>
 <script>
   const dateEl = document.getElementById('date');
@@ -93,21 +102,26 @@
   const saveExerciseBtn = document.getElementById('saveExercise');
   const saveWorkoutBtn = document.getElementById('saveWorkout');
   const logEl = document.getElementById('log');
+  const savedWorkoutsEl = document.getElementById('savedWorkouts');
 
   let sets = [""];
   let editingIndex = -1;
 
-  const getKey = () => `workout_${dateEl.value}`;
+  const getKey = (date) => `workout_${date}`;
 
-  const loadWorkout = () => {
-    const raw = localStorage.getItem(getKey());
+  const loadWorkout = (date = dateEl.value) => {
+    const raw = localStorage.getItem(getKey(date));
     const data = raw ? JSON.parse(raw) : { name: '', exercises: [] };
-    workoutNameEl.value = data.name;
     return data;
   };
 
-  const saveWorkoutData = (data) => {
-    localStorage.setItem(getKey(), JSON.stringify(data));
+  const saveWorkoutData = (data, date = dateEl.value) => {
+    localStorage.setItem(getKey(date), JSON.stringify(data));
+    let saved = JSON.parse(localStorage.getItem('savedWorkoutDates') || '[]');
+    if (!saved.includes(date)) {
+      saved.push(date);
+      localStorage.setItem('savedWorkoutDates', JSON.stringify(saved));
+    }
   };
 
   const renderSets = () => {
@@ -150,6 +164,7 @@
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = 'Delete';
       deleteBtn.onclick = () => {
+        const data = loadWorkout();
         data.exercises.splice(i, 1);
         saveWorkoutData(data);
         renderLog();
@@ -158,6 +173,25 @@
       menu.append(btn, menuItems);
       div.append(info, menu);
       logEl.appendChild(div);
+    });
+  };
+
+  const renderSavedWorkouts = () => {
+    const saved = JSON.parse(localStorage.getItem('savedWorkoutDates') || '[]');
+    savedWorkoutsEl.innerHTML = '<h3>Saved Workouts</h3>';
+    saved.forEach(date => {
+      const btn = document.createElement('button');
+      const data = loadWorkout(date);
+      btn.textContent = `${date} - ${data.name}`;
+      btn.onclick = () => {
+        dateEl.value = date;
+        workoutNameEl.value = data.name;
+        sets = [""];
+        editingIndex = -1;
+        renderSets();
+        renderLog();
+      };
+      savedWorkoutsEl.appendChild(btn);
     });
   };
 
@@ -216,17 +250,24 @@
     const data = loadWorkout();
     data.name = workoutNameEl.value.trim();
     saveWorkoutData(data);
+    renderSavedWorkouts();
+    workoutNameEl.value = '';
+    exerciseEl.value = '';
+    weightEl.value = '';
+    sets = [""];
+    editingIndex = -1;
+    renderSets();
     renderLog();
-    alert("Workout saved successfully!");
   };
 
   window.addEventListener('DOMContentLoaded', () => {
     const lastDate = localStorage.getItem('lastDate');
     if (lastDate) {
       dateEl.value = lastDate;
-      renderSets();
-      renderLog();
     }
+    renderSets();
+    renderSavedWorkouts();
+    renderLog();
   });
 
   // Init
@@ -235,3 +276,4 @@
 </script>
 </body>
 </html>
+
