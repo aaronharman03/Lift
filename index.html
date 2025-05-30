@@ -3,118 +3,283 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Tracker</title>
+<title>Advanced Workout Tracker</title>
 <style>
+  /* Basic Reset & Styling */
   body {
-    font-family: Arial, sans-serif;
-    padding: 1rem;
-    max-width: 600px;
-    margin: auto;
-    background: #f5f5f5;
+    margin: 0; padding: 0; font-family: Arial, sans-serif;
+    background: #fafafa; max-width: 720px; margin-left: auto; margin-right: auto; padding: 1rem;
   }
-  h1 {
+  h1, h2 {
     text-align: center;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    background: #0a74da;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  button:disabled {
+    background: #aaa;
+    cursor: default;
+  }
+  input, select {
+    padding: 0.3rem 0.5rem;
+    font-size: 1rem;
+  }
+  /* Sign In Form */
+  #auth-section {
+    max-width: 400px; margin: 3rem auto; padding: 1rem; background: white; border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  #auth-section input {
+    width: 100%; margin: 0.5rem 0; box-sizing: border-box;
+  }
+  #auth-section button {
+    width: 100%;
+    margin-top: 1rem;
+  }
+  /* Main App */
+  #app {
+    display: none;
+  }
+  #header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   #days {
     margin-top: 1rem;
   }
   .day {
     background: white;
-    border-radius: 6px;
-    padding: 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 1rem;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    user-select: none;
   }
   .day-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  .day-header input {
-    font-size: 1.1rem;
-    border: none;
-    border-bottom: 1px solid transparent;
-    padding: 0.2rem;
-    width: 70%;
-    transition: border-color 0.2s;
-  }
-  .day-header input:focus {
-    border-color: #666;
-    outline: none;
-  }
-  button {
-    cursor: pointer;
-    border: none;
-    background: #007bff;
-    color: white;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-  }
-  button.delete {
-    background: #dc3545;
-  }
-  ul.exercises {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 0.5rem;
-  }
-  li.exercise {
-    background: #eee;
-    border-radius: 4px;
-    margin: 0.3rem 0;
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
     gap: 0.5rem;
   }
-  li.exercise input[type=text],
-  li.exercise input[type=number] {
-    width: 100px;
-    padding: 0.2rem 0.3rem;
-    border-radius: 3px;
-    border: 1px solid #ccc;
+  .day-header input[type="text"] {
+    font-size: 1.1rem;
+    border: none;
+    border-bottom: 1.5px solid transparent;
+    outline: none;
+    width: 70%;
+    transition: border-color 0.2s ease;
   }
-  li.exercise input[type=text] {
-    width: 140px;
+  .day-header input[type="text"]:focus {
+    border-bottom-color: #0a74da;
   }
-  li.exercise .delete-ex {
+  .exercises {
+    margin-top: 0.8rem;
+  }
+  .exercise {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+  .exercise input[type="text"] {
+    width: 160px;
+  }
+  .exercise input[type="number"] {
+    width: 60px;
+  }
+  .exercise button {
     background: #dc3545;
     font-weight: bold;
-    padding: 0 0.4rem;
+    padding: 0 0.5rem;
   }
   #add-day {
-    margin-top: 1rem;
     width: 100%;
-    font-size: 1rem;
+    margin-top: 1rem;
+    padding: 0.7rem;
+    font-size: 1.1rem;
+  }
+  #signout-btn {
+    background: #dc3545;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.9rem;
+    border-radius: 5px;
+  }
+  /* Dragging Styles */
+  .dragging {
+    opacity: 0.5;
+  }
+  .drag-over {
+    border: 2px dashed #0a74da;
+  }
+  /* Responsive */
+  @media (max-width: 480px) {
+    .exercise input[type="text"] {
+      width: 100px;
+    }
   }
 </style>
 </head>
 <body>
-<h1>Workout Tracker</h1>
-<div id="days"></div>
-<button id="add-day">+ Add Workout Day</button>
+
+<div id="auth-section">
+  <h2>Sign In / Register</h2>
+  <input type="email" id="email" placeholder="Email" autocomplete="username" />
+  <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+  <button id="signin-btn">Sign In</button>
+  <button id="register-btn">Register</button>
+  <p id="auth-msg" style="color: red;"></p>
+</div>
+
+<div id="app">
+  <div id="header">
+    <h1>Workout Tracker</h1>
+    <button id="signout-btn">Sign Out</button>
+  </div>
+  <div id="days"></div>
+  <button id="add-day">+ Add Workout Day</button>
+</div>
 
 <script type="module">
+
+  // === IMPORT FIREBASE MODULES ===
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
   import {
-    getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+  } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    arrayRemove
   } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 
-  // === FIREBASE SETUP ===
+  // === FIREBASE CONFIG ===
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_AUTH_DOMAIN",
     projectId: "YOUR_PROJECT_ID",
   };
+
+  // INIT FIREBASE
   const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // === GLOBALS ===
-  const userId = 'demo-user'; // temp user
-  const planRef = doc(db, 'users', userId);
+  // === ELEMENTS ===
+  const authSection = document.getElementById('auth-section');
+  const appSection = document.getElementById('app');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const signinBtn = document.getElementById('signin-btn');
+  const registerBtn = document.getElementById('register-btn');
+  const authMsg = document.getElementById('auth-msg');
+  const signoutBtn = document.getElementById('signout-btn');
+  const daysContainer = document.getElementById('days');
+  const addDayBtn = document.getElementById('add-day');
 
-  // === HELPERS ===
+  // === STATE ===
+  let currentUser = null;
+  let currentPlan = { days: [] };
+  let dragSrcEl = null;
+  let dragSrcType = null; // 'day' or 'exercise'
+  let dragSrcIndexes = null; // { dayIndex, exIndex }
+
+  // === AUTH HANDLERS ===
+  signinBtn.onclick = async () => {
+    clearAuthMsg();
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+      currentUser = userCredential.user;
+      initAppForUser();
+    } catch (e) {
+      showAuthMsg(e.message);
+    }
+  };
+
+  registerBtn.onclick = async () => {
+    clearAuthMsg();
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+      currentUser = userCredential.user;
+      await createEmptyPlan();
+      initAppForUser();
+    } catch (e) {
+      showAuthMsg(e.message);
+    }
+  };
+
+  signoutBtn.onclick = async () => {
+    await signOut(auth);
+  };
+
+  function showAuthMsg(msg) {
+    authMsg.textContent = msg;
+  }
+  function clearAuthMsg() {
+    authMsg.textContent = '';
+  }
+
+  // Monitor auth state changes
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUser = user;
+      initAppForUser();
+    } else {
+      currentUser = null;
+      authSection.style.display = 'block';
+      appSection.style.display = 'none';
+      currentPlan = { days: [] };
+      daysContainer.innerHTML = '';
+      clearAuthMsg();
+      emailInput.value = '';
+      passwordInput.value = '';
+    }
+  });
+
+  // === FIRESTORE PATH ===
+  function userPlanDoc() {
+    return doc(db, 'users', currentUser.uid);
+  }
+
+  // === FIRESTORE DATA FUNCTIONS ===
+
+  async function createEmptyPlan() {
+    await setDoc(userPlanDoc(), { days: [] });
+  }
+
+  async function loadPlan() {
+    if (!currentUser) return;
+    const snap = await getDoc(userPlanDoc());
+    if (snap.exists()) {
+      currentPlan = snap.data();
+      if (!currentPlan.days) currentPlan.days = [];
+    } else {
+      await createEmptyPlan();
+      currentPlan = { days: [] };
+    }
+  }
+
+  async function savePlan() {
+    if (!currentUser) return;
+    await setDoc(userPlanDoc(), currentPlan);
+  }
+
+  // === UI CREATION HELPERS ===
   function createElement(tag, props = {}, ...children) {
     const el = document.createElement(tag);
     for (const key in props) {
@@ -122,167 +287,249 @@
         el.addEventListener(key.substring(2).toLowerCase(), props[key]);
       } else if (key === 'className') {
         el.className = props[key];
+      } else if (key === 'dataset') {
+        for (const dataKey in props[key]) {
+          el.dataset[dataKey] = props[key][dataKey];
+        }
       } else {
         el.setAttribute(key, props[key]);
       }
     }
     children.forEach(child => {
-      if (typeof child === 'string') el.appendChild(document.createTextNode(child));
-      else if (child) el.appendChild(child);
+      if (typeof child === 'string') {
+        el.appendChild(document.createTextNode(child));
+      } else if (child instanceof Node) {
+        el.appendChild(child);
+      }
     });
     return el;
   }
 
-  // === FIRESTORE DATA FUNCTIONS ===
+  // === RENDER FUNCTIONS ===
 
-  async function getPlan() {
-    const snap = await getDoc(planRef);
-    if (snap.exists()) return snap.data();
-    else {
-      await setDoc(planRef, { days: [] });
-      return { days: [] };
-    }
-  }
-
-  async function savePlan(plan) {
-    await setDoc(planRef, plan);
-  }
-
-  // === UI RENDERING & EVENTS ===
-
-  let currentPlan = null;
-
-  function render() {
-    const container = document.getElementById('days');
-    container.innerHTML = '';
-
-    if (!currentPlan || !currentPlan.days.length) {
-      container.appendChild(createElement('p', {}, 'No workout days yet.'));
-      return;
-    }
-
+  function renderApp() {
+    daysContainer.innerHTML = '';
     currentPlan.days.forEach((day, dayIndex) => {
-      const dayDiv = createElement('div', { className: 'day' });
+      const dayDiv = createElement('div', { className: 'day', draggable: true, dataset: { dayIndex } });
 
-      // Day header with editable name & delete button
-      const dayHeader = createElement('div', { className: 'day-header' },
-        createElement('input', {
-          type: 'text',
-          value: day.name,
-          oninput: e => {
-            currentPlan.days[dayIndex].name = e.target.value;
-            savePlan(currentPlan);
-          }
-        }),
-        createElement('button', {
-          className: 'delete',
-          onclick: () => {
-            currentPlan.days.splice(dayIndex,1);
-            savePlan(currentPlan).then(loadAndRender);
-          }
-        }, 'Delete')
-      );
+      // Drag events for days
+      dayDiv.addEventListener('dragstart', onDragStartDay);
+      dayDiv.addEventListener('dragover', onDragOverDay);
+      dayDiv.addEventListener('drop', onDropDay);
+      dayDiv.addEventListener('dragend', onDragEnd);
 
+      const dayHeader = createElement('div', { className: 'day-header' });
+
+      // Editable day name
+      const dayNameInput = createElement('input', { type: 'text', value: day.name, oninput: (e) => {
+        currentPlan.days[dayIndex].name = e.target.value;
+        savePlan();
+      }});
+
+      dayHeader.appendChild(dayNameInput);
+
+      // Delete day button
+      const delDayBtn = createElement('button', { onclick: () => {
+        if(confirm(`Delete "${day.name}"?`)) {
+          currentPlan.days.splice(dayIndex, 1);
+          savePlan().then(renderApp);
+        }
+      }}, '✕');
+
+      dayHeader.appendChild(delDayBtn);
       dayDiv.appendChild(dayHeader);
 
-      // Exercises list
-      const exList = createElement('ul', { className: 'exercises' });
-      day.exercises.forEach((ex, exIndex) => {
-        const exLi = createElement('li', { className: 'exercise' },
-          createElement('input', {
-            type: 'text',
-            value: ex.name,
-            placeholder: 'Exercise',
-            oninput: e => {
-              currentPlan.days[dayIndex].exercises[exIndex].name = e.target.value;
-              savePlan(currentPlan);
-            }
-          }),
-          createElement('input', {
-            type: 'number',
-            min: 1,
-            value: ex.sets,
-            placeholder: 'Sets',
-            oninput: e => {
-              const val = parseInt(e.target.value) || 1;
-              currentPlan.days[dayIndex].exercises[exIndex].sets = val;
-              savePlan(currentPlan);
-            }
-          }),
-          createElement('input', {
-            type: 'number',
-            min: 1,
-            value: ex.reps,
-            placeholder: 'Reps',
-            oninput: e => {
-              const val = parseInt(e.target.value) || 1;
-              currentPlan.days[dayIndex].exercises[exIndex].reps = val;
-              savePlan(currentPlan);
-            }
-          }),
-          createElement('input', {
-            type: 'number',
-            min: 0,
-            value: ex.weight,
-            placeholder: 'Weight',
-            oninput: e => {
-              const val = parseFloat(e.target.value) || 0;
-              currentPlan.days[dayIndex].exercises[exIndex].weight = val;
-              savePlan(currentPlan);
-            }
-          }),
-          createElement('button', {
-            className: 'delete-ex',
-            onclick: () => {
-              currentPlan.days[dayIndex].exercises.splice(exIndex,1);
-              savePlan(currentPlan).then(loadAndRender);
-            }
-          }, '×')
-        );
-        exList.appendChild(exLi);
-      });
+      // Exercises container
+      const exContainer = createElement('div', { className: 'exercises' });
 
-      dayDiv.appendChild(exList);
+      day.exercises.forEach((ex, exIndex) => {
+        const exDiv = createElement('div', { className: 'exercise', draggable: true, dataset: { dayIndex, exIndex } });
+
+        // Drag events for exercises
+        exDiv.addEventListener('dragstart', onDragStartExercise);
+        exDiv.addEventListener('dragover', onDragOverExercise);
+        exDiv.addEventListener('drop', onDropExercise);
+        exDiv.addEventListener('dragend', onDragEnd);
+
+        // Exercise inputs
+        const nameInput = createElement('input', {
+          type: 'text', value: ex.name,
+          placeholder: 'Exercise name',
+          oninput: (e) => {
+            currentPlan.days[dayIndex].exercises[exIndex].name = e.target.value;
+            savePlan();
+          }
+        });
+        const setsInput = createElement('input', {
+          type: 'number', min: 1, max: 99, value: ex.sets,
+          oninput: (e) => {
+            currentPlan.days[dayIndex].exercises[exIndex].sets = +e.target.value || 1;
+            savePlan();
+          }
+        });
+        const repsInput = createElement('input', {
+          type: 'number', min: 1, max: 999, value: ex.reps,
+          oninput: (e) => {
+            currentPlan.days[dayIndex].exercises[exIndex].reps = +e.target.value || 1;
+            savePlan();
+          }
+        });
+        const weightInput = createElement('input', {
+          type: 'number', min: 0, max: 9999, step: 0.1, value: ex.weight,
+          oninput: (e) => {
+            currentPlan.days[dayIndex].exercises[exIndex].weight = +e.target.value || 0;
+            savePlan();
+          }
+        });
+
+        const removeExBtn = createElement('button', {
+          onclick: () => {
+            if (confirm(`Remove exercise "${ex.name}"?`)) {
+              currentPlan.days[dayIndex].exercises.splice(exIndex, 1);
+              savePlan().then(renderApp);
+            }
+          }
+        }, '✕');
+
+        exDiv.append(nameInput, setsInput, repsInput, weightInput, removeExBtn);
+        exContainer.appendChild(exDiv);
+      });
 
       // Add exercise button
       const addExBtn = createElement('button', {
         onclick: () => {
           currentPlan.days[dayIndex].exercises.push({
-            id: Date.now().toString(),
-            name: '',
+            name: 'New Exercise',
             sets: 3,
             reps: 10,
-            weight: 0
+            weight: 0,
           });
-          savePlan(currentPlan).then(loadAndRender);
+          savePlan().then(renderApp);
         }
       }, '+ Add Exercise');
 
+      dayDiv.appendChild(exContainer);
       dayDiv.appendChild(addExBtn);
 
-      container.appendChild(dayDiv);
+      daysContainer.appendChild(dayDiv);
     });
   }
 
-  async function loadAndRender() {
-    currentPlan = await getPlan();
-    render();
+  // === DRAG & DROP HANDLERS ===
+
+  function onDragStartDay(e) {
+    dragSrcEl = e.currentTarget;
+    dragSrcType = 'day';
+    dragSrcIndexes = { dayIndex: +e.currentTarget.dataset.dayIndex };
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', 'day');
+    e.currentTarget.classList.add('dragging');
   }
 
-  document.getElementById('add-day').addEventListener('click', () => {
-    if (!currentPlan) currentPlan = { days: [] };
+  function onDragOverDay(e) {
+    e.preventDefault();
+    if (dragSrcType !== 'day') return;
+    e.currentTarget.classList.add('drag-over');
+  }
+
+  function onDropDay(e) {
+    e.preventDefault();
+    if (dragSrcType !== 'day') return;
+    e.currentTarget.classList.remove('drag-over');
+    const targetIndex = +e.currentTarget.dataset.dayIndex;
+    const srcIndex = dragSrcIndexes.dayIndex;
+
+    if (srcIndex === targetIndex) return;
+
+    // reorder days
+    const day = currentPlan.days.splice(srcIndex, 1)[0];
+    currentPlan.days.splice(targetIndex, 0, day);
+    savePlan().then(renderApp);
+  }
+
+  function onDragEnd(e) {
+    if (dragSrcType === 'day') {
+      document.querySelectorAll('.day.dragging').forEach(el => el.classList.remove('dragging'));
+      document.querySelectorAll('.day.drag-over').forEach(el => el.classList.remove('drag-over'));
+    } else if (dragSrcType === 'exercise') {
+      document.querySelectorAll('.exercise.dragging').forEach(el => el.classList.remove('dragging'));
+      document.querySelectorAll('.exercise.drag-over').forEach(el => el.classList.remove('drag-over'));
+    }
+    dragSrcEl = null;
+    dragSrcType = null;
+    dragSrcIndexes = null;
+  }
+
+  function onDragStartExercise(e) {
+    dragSrcEl = e.currentTarget;
+    dragSrcType = 'exercise';
+    dragSrcIndexes = {
+      dayIndex: +e.currentTarget.dataset.dayIndex,
+      exIndex: +e.currentTarget.dataset.exIndex
+    };
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', 'exercise');
+    e.currentTarget.classList.add('dragging');
+    e.stopPropagation();
+  }
+
+  function onDragOverExercise(e) {
+    e.preventDefault();
+    if (dragSrcType !== 'exercise') return;
+    e.currentTarget.classList.add('drag-over');
+    e.stopPropagation();
+  }
+
+  function onDropExercise(e) {
+    e.preventDefault();
+    if (dragSrcType !== 'exercise') return;
+    e.currentTarget.classList.remove('drag-over');
+    const targetDayIndex = +e.currentTarget.dataset.dayIndex;
+    const targetExIndex = +e.currentTarget.dataset.exIndex;
+
+    const { dayIndex: srcDayIndex, exIndex: srcExIndex } = dragSrcIndexes;
+    if (srcDayIndex === targetDayIndex && srcExIndex === targetExIndex) return;
+
+    // Move exercise within same day or between days
+    const exercise = currentPlan.days[srcDayIndex].exercises.splice(srcExIndex, 1)[0];
+    currentPlan.days[targetDayIndex].exercises.splice(targetExIndex, 0, exercise);
+
+    savePlan().then(renderApp);
+    e.stopPropagation();
+  }
+
+  // === BUTTONS ===
+
+  addDayBtn.onclick = () => {
     currentPlan.days.push({
-      id: Date.now().toString(),
       name: 'New Workout Day',
       exercises: []
     });
-    savePlan(currentPlan).then(loadAndRender);
-  });
+    savePlan().then(renderApp);
+  };
 
-  loadAndRender();
+  // === INIT APP ===
+
+  async function initAppForUser() {
+    authSection.style.display = 'none';
+    appSection.style.display = 'block';
+
+    await loadPlan();
+    renderApp();
+  }
+
+  // === PWA SERVICE WORKER ===
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(console.error);
+    });
+  }
+
 </script>
+
 </body>
 </html>
+
 
 
 
