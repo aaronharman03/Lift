@@ -72,47 +72,85 @@
 
   <canvas id="progressChart" height="300"></canvas>
 
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
   <script>
-    let logs = [];
+    // ✅ Replace with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DB_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-firebase.database().ref(`users/${userId}/logs`).once('value', snapshot => {
-  const data = snapshot.val();
-  if (data) {
-    logs = Object.values(data);
-    drawGraph(); // Or whatever your function is to render the chart
-  }
-});
+    // Init
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
+    // 🔐 Replace with your own user logic
+    const userId = "demo-user"; // Or dynamically from auth
 
     const select = document.getElementById('exerciseSelect');
     const goalInput = document.getElementById('goalInput');
     const ctx = document.getElementById('progressChart').getContext('2d');
     let chart;
+    let logs = [];
 
-    // Populate dropdown
-    const exerciseNames = [...new Set(logs.map(log => log.name))];
-    exerciseNames.forEach(name => {
-      const option = document.createElement('option');
-      option.value = name;
-      option.textContent = name;
-      select.appendChild(option);
+    // Load logs from Firebase
+    firebase.database().ref(`users/${userId}/logs`).once('value', snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        logs = Object.values(data);
+        populateDropdown();
+      }
     });
 
-    // Handle selection
+    function populateDropdown() {
+      const exerciseNames = [...new Set(logs.map(log => log.name))];
+      exerciseNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+    }
+
+    // On exercise selection
     select.addEventListener('change', () => {
       const selected = select.value;
       if (!selected) return;
 
-      // Set goal input if saved
-      goalInput.value = goals[selected] || '';
-
-      renderChart(selected);
+      // Load goal from Firebase
+      firebase.database().ref(`users/${userId}/goals/${selected}`).once('value', snapshot => {
+        goalInput.value = snapshot.exists() ? snapshot.val() : '';
+        renderChart(selected);
+      });
     });
 
-    const logId = firebase.database().ref().child('users').push().key;
-firebase.database().ref(`users/${userId}/logs/${logId}`).set(newLog);
+    // Save goal to Firebase
+    goalInput.addEventListener('change', () => {
+      const selected = select.value;
+      if (!selected) return;
 
+      const goalVal = parseFloat(goalInput.value);
+      if (!isNaN(goalVal)) {
+        firebase.database().ref(`users/${userId}/goals/${selected}`).set(goalVal)
+          .then(() => {
+            renderChart(selected);
+          })
+          .catch(err => {
+            console.error("Error saving goal:", err);
+          });
+      }
+    });
 
     function renderChart(exerciseName) {
       const data = logs
@@ -124,46 +162,49 @@ firebase.database().ref(`users/${userId}/logs/${logId}`).set(newLog);
       const labels = data.map(log => log.date);
       const weights = data.map(log => log.weight);
       const startingWeight = weights[0];
-      const goalWeight = goals[exerciseName] || Math.max(...weights);
 
-      const minY = Math.min(startingWeight, goalWeight);
-      const maxY = Math.max(startingWeight, goalWeight);
+      // Load goal then render chart
+      firebase.database().ref(`users/${userId}/goals/${exerciseName}`).once('value', snapshot => {
+        const goalWeight = snapshot.exists() ? snapshot.val() : Math.max(...weights);
+        const minY = Math.min(startingWeight, goalWeight);
+        const maxY = Math.max(startingWeight, goalWeight);
 
-      if (chart) chart.destroy();
+        if (chart) chart.destroy();
 
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: `${exerciseName} Weight`,
-            data: weights,
-            borderColor: '#007bff',
-            backgroundColor: 'rgba(0, 123, 255, 0.2)',
-            tension: 0,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: false,
-              min: minY,
-              max: maxY,
-              title: {
-                display: true,
-                text: 'Weight'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Date'
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: `${exerciseName} Weight`,
+              data: weights,
+              borderColor: '#007bff',
+              backgroundColor: 'rgba(0, 123, 255, 0.2)',
+              tension: 0,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: false,
+                min: minY,
+                max: maxY,
+                title: {
+                  display: true,
+                  text: 'Weight'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Date'
+                }
               }
             }
           }
-        }
+        });
       });
     }
 
