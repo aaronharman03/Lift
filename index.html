@@ -76,6 +76,11 @@
   .remove-btn:hover {
     background: #c0392b;
   }
+
+  /* Prevent zoom on input focus on mobile */
+  input, select, textarea, button {
+    font-size: 16px;
+  }
 </style>
 </head>
 <body>
@@ -124,7 +129,7 @@
   // Load workouts from localStorage
   let workouts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-  // Render workouts list
+  // Render workouts list with updated format
   function renderWorkouts() {
     workoutsList.innerHTML = "";
     if (workouts.length === 0) {
@@ -134,36 +139,22 @@
     workouts.forEach((workout, index) => {
       const li = document.createElement("li");
       li.className = "workout-item";
+
       li.innerHTML = `
         <strong>${workout.date}</strong> — ${workout.workoutType}
         <div class="workout-details" style="display:none;">
           ${workout.exercises
-            .map(
-              (ex) => `
-            <div>
-              <strong>${ex.name}</strong>
-              <ul>
-                ${ex.sets
-                  .map(
-                    (set) =>
-                      `<li>Weight: ${set.weight} — Reps: ${set.reps}</li>`
-                  )
-                  .join("")}
-              </ul>
-            </div>
-          `
-            )
-            .join("")}
+            .map(ex => {
+              const weight = ex.sets.length ? ex.sets[0].weight : "-";
+              const repsList = ex.sets.map(s => s.reps).join(", ");
+              return `<div>${ex.name} - Weight: ${weight} - Sets: ${repsList}</div>`;
+            }).join("")}
         </div>
       `;
 
       li.addEventListener("click", () => {
         const details = li.querySelector(".workout-details");
-        if (details.style.display === "none") {
-          details.style.display = "block";
-        } else {
-          details.style.display = "none";
-        }
+        details.style.display = details.style.display === "none" ? "block" : "none";
       });
 
       workoutsList.appendChild(li);
