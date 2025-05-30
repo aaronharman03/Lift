@@ -1,293 +1,408 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Minimal Workout Tracker</title>
-<style>
-  body {
-    max-width: 600px;
-    margin: 2rem auto;
-    font-family: system-ui, sans-serif;
-    background: #fff;
-    color: #222;
-    padding: 0 1rem;
-  }
-  label {
-    font-weight: 600;
-  }
-  input[type="date"], input[type="text"], input[type="number"] {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 6px 8px;
-    font-size: 1rem;
-  }
-  input[type="date"] {
-    display: block;
-    margin-bottom: 1rem;
-    width: 100%;
-  }
-  .exercise-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-  .exercise-row input[type="text"] {
-    flex: 2;
-  }
-  .exercise-row input[type="number"] {
-    width: 50px;
-    text-align: center;
-  }
-  button {
-    padding: 8px 12px;
-    font-weight: 600;
-    border: none;
-    border-radius: 6px;
-    background: #2a7fff;
-    color: white;
-    cursor: pointer;
-    user-select: none;
-  }
-  button:disabled {
-    background: #a0c1ff;
-    cursor: default;
-  }
-  .exercises-list {
-    margin-top: 2rem;
-    border-top: 1px solid #ddd;
-  }
-  .exercise-item {
-    display: flex;
-    align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 1rem;
-  }
-  .exercise-text {
-    flex: 1;
-  }
-  /* 3-dot menu styling */
-  .menu {
-    position: relative;
-    cursor: pointer;
-    user-select: none;
-    font-weight: 700;
-    padding: 0 8px;
-    font-size: 20px;
-    line-height: 1;
-  }
-  .menu-items {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 24px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    min-width: 110px;
-    z-index: 100;
-  }
-  .menu-items button {
-    width: 100%;
-    border: none;
-    background: none;
-    padding: 8px 12px;
-    text-align: left;
-    font-size: 0.95rem;
-    cursor: pointer;
-  }
-  .menu-items button:hover {
-    background: #2a7fff;
-    color: white;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modern Workout Tracker</title>
+  <style>
+    /* Reset & base */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0; padding: 20px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      user-select: none;
+    }
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #2a7fff;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+    input[type="date"], input[type="text"], input[type="number"] {
+      border: 1.5px solid #ddd;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      outline-offset: 2px;
+      outline-color: transparent;
+      width: 100%;
+    }
+    input[type="date"]:focus,
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: #2a7fff;
+      outline-color: #a7c0ff;
+    }
+    /* Main container */
+    .workout-container {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 15px rgb(42 127 255 / 0.12);
+      margin-bottom: 30px;
+    }
+    /* Exercise input row */
+    .exercise-input-row {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .exercise-input-row input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    /* Save button */
+    button#saveExerciseBtn {
+      background: #2a7fff;
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 12px 0;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button#saveExerciseBtn:disabled {
+      background-color: #a0b9ff;
+      cursor: default;
+    }
+    button#saveExerciseBtn:hover:not(:disabled) {
+      background-color: #1b5fd3;
+    }
+    /* Saved workouts list */
+    .workout-list {
+      margin-top: 20px;
+    }
+    .workout-day {
+      margin-bottom: 2rem;
+    }
+    .workout-day h2 {
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: #2a7fff;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #2a7fff;
+      padding-bottom: 4px;
+    }
+    /* Exercises in workout day */
+    .exercise-item {
+      background: #f9fbff;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 40px;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      user-select: text;
+      position: relative;
+      transition: box-shadow 0.2s ease;
+    }
+    .exercise-item:hover {
+      box-shadow: 0 0 15px rgba(42, 127, 255, 0.15);
+    }
+    .exercise-item div {
+      overflow-wrap: anywhere;
+    }
+    /* 3-dot menu */
+    .menu {
+      cursor: pointer;
+      user-select: none;
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1;
+      color: #555;
+      text-align: center;
+      padding: 4px 6px;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+      position: relative;
+      user-select: none;
+    }
+    .menu:hover {
+      background-color: #e1eaff;
+      color: #2a7fff;
+    }
+    .menu-items {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 28px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(42, 127, 255, 0.2);
+      min-width: 110px;
+      z-index: 999;
+      user-select: none;
+    }
+    .menu-items button {
+      width: 100%;
+      border: none;
+      background: none;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.95rem;
+      cursor: pointer;
+      color: #333;
+      border-radius: 0 0 8px 8px;
+      transition: background-color 0.2s ease;
+      user-select: none;
+    }
+    .menu-items button:hover {
+      background: #2a7fff;
+      color: white;
+    }
+    /* Hide number input spinners for cleaner look */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    /* Responsive */
+    @media (max-width: 480px) {
+      .exercise-input-row, .exercise-item {
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 40px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
 </head>
 <body>
+  <h1>Workout Tracker</h1>
 
-<label for="dateInput">Date</label>
-<input type="date" id="dateInput" />
+  <div class="workout-container">
+    <label for="dateInput">Select Date</label>
+    <input type="date" id="dateInput" />
 
-<div class="exercise-row" id="exerciseInputRow">
-  <input type="text" id="exerciseName" placeholder="Exercise" />
-  <input type="number" id="weight" min="0" step="0.1" placeholder="Weight" />
-  <input type="number" id="set1" min="0" placeholder="Set 1" />
-  <input type="number" id="set2" min="0" placeholder="Set 2" />
-  <input type="number" id="set3" min="0" placeholder="Set 3" />
-</div>
+    <div class="exercise-input-row" style="margin-top: 16px;">
+      <input type="text" id="exerciseName" placeholder="Exercise name" />
+      <input type="number" id="weight" placeholder="Weight" min="0" step="0.1" />
+      <input type="number" id="set1" placeholder="Set 1" min="0" />
+      <input type="number" id="set2" placeholder="Set 2" min="0" />
+      <input type="number" id="set3" placeholder="Set 3" min="0" />
+    </div>
 
-<button id="saveBtn" disabled>Save Exercise</button>
+    <button id="saveExerciseBtn" disabled>Save Exercise</button>
+  </div>
 
-<div class="exercises-list" id="exercisesList"></div>
+  <div class="workout-list" id="workoutList"></div>
 
 <script>
-  const dateInput = document.getElementById("dateInput");
-  const exerciseNameInput = document.getElementById("exerciseName");
-  const weightInput = document.getElementById("weight");
+  // Elements
+  const dateInput = document.getElementById('dateInput');
+  const exerciseName = document.getElementById('exerciseName');
+  const weight = document.getElementById('weight');
   const setInputs = [
-    document.getElementById("set1"),
-    document.getElementById("set2"),
-    document.getElementById("set3")
+    document.getElementById('set1'),
+    document.getElementById('set2'),
+    document.getElementById('set3')
   ];
-  const saveBtn = document.getElementById("saveBtn");
-  const exercisesList = document.getElementById("exercisesList");
+  const saveBtn = document.getElementById('saveExerciseBtn');
+  const workoutList = document.getElementById('workoutList');
 
-  let exercises = JSON.parse(localStorage.getItem("exercisesMinimal")) || [];
-  let editingIndex = null;
+  // State
+  let workouts = JSON.parse(localStorage.getItem('workouts')) || {};
+  let editing = null; // { date, index }
 
-  // Enable save button only if date + exercise + weight + at least one set > 0 filled
-  function validateInputs() {
-    const dateValid = dateInput.value !== "";
-    const nameValid = exerciseNameInput.value.trim() !== "";
-    const weightValid = parseFloat(weightInput.value) > 0;
-    const setsValid = setInputs.some(input => parseInt(input.value) > 0);
-    saveBtn.disabled = !(dateValid && nameValid && weightValid && setsValid);
+  // Helpers
+  function isPositiveNumber(val) {
+    return !isNaN(val) && Number(val) > 0;
   }
 
-  // Render exercises list
-  function renderExercises() {
-    exercisesList.innerHTML = "";
+  // Enable save button only if valid inputs
+  function validateForm() {
+    const validDate = dateInput.value !== '';
+    const validExercise = exerciseName.value.trim().length > 0;
+    const validWeight = isPositiveNumber(weight.value);
+    const validSets = setInputs.some(input => isPositiveNumber(input.value));
+    saveBtn.disabled = !(validDate && validExercise && validWeight && validSets);
+  }
 
-    if (exercises.length === 0) {
-      exercisesList.innerHTML = "<p>No exercises saved.</p>";
+  // Reset form and editing state
+  function resetForm() {
+    exerciseName.value = '';
+    weight.value = '';
+    setInputs.forEach(input => input.value = '');
+    editing = null;
+    saveBtn.textContent = 'Save Exercise';
+    validateForm();
+  }
+
+  // Save to localStorage
+  function saveWorkouts() {
+    localStorage.setItem('workouts', JSON.stringify(workouts));
+  }
+
+  // Render all workouts grouped by date
+  function renderWorkouts() {
+    workoutList.innerHTML = '';
+    const dates = Object.keys(workouts).sort((a,b) => new Date(b) - new Date(a));
+
+    if (dates.length === 0) {
+      workoutList.innerHTML = '<p style="text-align:center;color:#666;">No workouts recorded yet.</p>';
       return;
     }
 
-    exercises.forEach((ex, idx) => {
-      const div = document.createElement("div");
-      div.className = "exercise-item";
+    dates.forEach(date => {
+      const dayContainer = document.createElement('div');
+      dayContainer.className = 'workout-day';
 
-      // Format: Exercise - Weight - set1, set2, set3 (only non-empty sets)
-      const setsText = ex.sets.filter(s => s > 0).join(", ");
-      const textSpan = document.createElement("span");
-      textSpan.className = "exercise-text";
-      textSpan.textContent = `${ex.name} - ${ex.weight} - ${setsText}`;
+      const dateHeading = document.createElement('h2');
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      dateHeading.textContent = new Date(date).toLocaleDateString(undefined, options);
+      dayContainer.appendChild(dateHeading);
 
-      // 3-dot menu
-      const menu = document.createElement("div");
-      menu.className = "menu";
-      menu.textContent = "⋮";
+      workouts[date].forEach((ex, i) => {
+        const exDiv = document.createElement('div');
+        exDiv.className = 'exercise-item';
 
-      const menuItems = document.createElement("div");
-      menuItems.className = "menu-items";
+        // Name
+        const nameDiv = document.createElement('div');
+        nameDiv.textContent = ex.name;
+        exDiv.appendChild(nameDiv);
 
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.onclick = (e) => {
-        e.stopPropagation();
-        openEdit(idx);
-        closeAllMenus();
-      };
+        // Weight
+        const weightDiv = document.createElement('div');
+        weightDiv.textContent = ex.weight;
+        exDiv.appendChild(weightDiv);
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (confirm("Delete this exercise?")) {
-          exercises.splice(idx, 1);
-          saveAndRender();
+        // Sets
+        for (let s = 0; s < 3; s++) {
+          const setDiv = document.createElement('div');
+          setDiv.textContent = ex.sets[s] > 0 ? ex.sets[s] : '';
+          exDiv.appendChild(setDiv);
         }
-        closeAllMenus();
-      };
 
-      menuItems.appendChild(editBtn);
-      menuItems.appendChild(deleteBtn);
-      menu.appendChild(menuItems);
+        // Menu
+        const menuDiv = document.createElement('div');
+        menuDiv.className = 'menu';
+        menuDiv.textContent = '⋮';
 
-      menu.onclick = (e) => {
-        e.stopPropagation();
-        const visible = menuItems.style.display === "block";
-        closeAllMenus();
-        menuItems.style.display = visible ? "none" : "block";
-      };
+        const menuItems = document.createElement('div');
+        menuItems.className = 'menu-items';
 
-      div.appendChild(textSpan);
-      div.appendChild(menu);
-      exercisesList.appendChild(div);
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          openEdit(date, i);
+          closeAllMenus();
+        };
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          if (confirm('Delete this exercise?')) {
+            workouts[date].splice(i, 1);
+            if (workouts[date].length === 0) delete workouts[date];
+            saveWorkouts();
+            renderWorkouts();
+          }
+          closeAllMenus();
+        };
+
+        menuItems.appendChild(editBtn);
+        menuItems.appendChild(deleteBtn);
+        menuDiv.appendChild(menuItems);
+
+        menuDiv.onclick = (ev) => {
+          ev.stopPropagation();
+          const shown = menuItems.style.display === 'block';
+          closeAllMenus();
+          menuItems.style.display = shown ? 'none' : 'block';
+        };
+
+        exDiv.appendChild(menuDiv);
+        dayContainer.appendChild(exDiv);
+      });
+
+      workoutList.appendChild(dayContainer);
     });
   }
 
+  // Close all open menus
   function closeAllMenus() {
-    document.querySelectorAll(".menu-items").forEach(m => (m.style.display = "none"));
+    document.querySelectorAll('.menu-items').forEach(menu => {
+      menu.style.display = 'none';
+    });
   }
 
-  // Save exercises to localStorage and render
-  function saveAndRender() {
-    localStorage.setItem("exercisesMinimal", JSON.stringify(exercises));
-    renderExercises();
-    resetForm();
-  }
-
-  // Reset form inputs
-  function resetForm() {
-    exerciseNameInput.value = "";
-    weightInput.value = "";
-    setInputs.forEach(input => input.value = "");
-    editingIndex = null;
-    saveBtn.textContent = "Save Exercise";
-    validateInputs();
-  }
-
-  // Populate form for editing
-  function openEdit(idx) {
-    const ex = exercises[idx];
-    dateInput.value = ex.date;
-    exerciseNameInput.value = ex.name;
-    weightInput.value = ex.weight;
-    for (let i = 0; i < setInputs.length; i++) {
-      setInputs[i].value = ex.sets[i] || "";
+  // Open edit form for specific exercise
+  function openEdit(date, index) {
+    const ex = workouts[date][index];
+    dateInput.value = date;
+    exerciseName.value = ex.name;
+    weight.value = ex.weight;
+    for (let i = 0; i < 3; i++) {
+      setInputs[i].value = ex.sets[i] || '';
     }
-    editingIndex = idx;
-    saveBtn.textContent = "Update Exercise";
-    validateInputs();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    editing = { date, index };
+    saveBtn.textContent = 'Update Exercise';
+    validateForm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Save or update exercise
-  saveBtn.addEventListener("click", () => {
-    const name = exerciseNameInput.value.trim();
-    const weight = parseFloat(weightInput.value);
-    const sets = setInputs.map(i => parseInt(i.value) || 0);
-    const date = dateInput.value;
+  saveBtn.onclick = () => {
+    const name = exerciseName.value.trim();
+    const w = parseFloat(weight.value);
+    const sets = setInputs.map(input => parseInt(input.value) || 0);
+    const dateVal = dateInput.value;
 
-    if (!date) {
-      alert("Please select a date.");
-      return;
-    }
-    if (!name || weight <= 0 || sets.every(s => s === 0)) {
-      alert("Please fill in valid exercise details.");
+    if (!dateVal || !name || !(w > 0) || sets.every(s => s === 0)) {
+      alert('Please fill in valid exercise data.');
       return;
     }
 
-    if (editingIndex === null) {
-      exercises.push({ date, name, weight, sets });
+    if (!workouts[dateVal]) {
+      workouts[dateVal] = [];
+    }
+
+    if (editing) {
+      workouts[editing.date][editing.index] = { name, weight: w, sets };
+      editing = null;
+      saveBtn.textContent = 'Save Exercise';
     } else {
-      exercises[editingIndex] = { date, name, weight, sets };
+      workouts[dateVal].push({ name, weight: w, sets });
     }
 
-    saveAndRender();
-  });
+    saveWorkouts();
+    renderWorkouts();
+    resetForm();
+  };
 
   // Close menus on outside click
-  window.addEventListener("click", closeAllMenus);
+  window.addEventListener('click', closeAllMenus);
 
-  // Validate inputs on input change
-  [dateInput, exerciseNameInput, weightInput, ...setInputs].forEach(input => {
-    input.addEventListener("input", validateInputs);
+  // Validate on input change
+  [dateInput, exerciseName, weight, ...setInputs].forEach(input => {
+    input.addEventListener('input', validateForm);
   });
 
-  // Init
-  renderExercises();
-  validateInputs();
+  // Initial render
+  renderWorkouts();
+  validateForm();
 </script>
-
 </body>
 </html>
-
-
-
-
-
-
