@@ -3,25 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#0d0d0d" />
+<meta name="theme-color" content="#000000" />
 <title>Weekly Schedule</title>
-<link rel="manifest" href="manifest.json" />
 <style>
-  :root {
-    --bg: #0d0d0d;
-    --card: #1a1a1a;
-    --accent: #00c6ff;
-    --text: #f0f0f0;
-    --muted: #888;
-  }
-  * {
-    box-sizing: border-box;
-  }
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    background: #000;
+    color: #fff;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -31,11 +20,10 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    background: var(--card);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   }
   header h2 {
     margin: 0;
+    font-weight: normal;
     font-size: 1.2rem;
   }
   main {
@@ -49,41 +37,41 @@
     display: block;
   }
   .task {
-    background: var(--card);
-    margin: 0.5rem 0;
-    padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    padding: 0.7rem 0;
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .task.done {
     opacity: 0.6;
     text-decoration: line-through;
   }
   button {
-    background: var(--accent);
-    color: #fff;
+    background: none;
     border: none;
-    border-radius: 8px;
-    padding: 0.4rem 0.7rem;
+    color: #fff;
     cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s;
+    font-weight: normal;
+    padding: 0;
+    margin-left: 0.5rem;
   }
   button:hover {
-    background: #009fd4;
+    text-decoration: underline;
   }
   form input,
   form textarea {
     width: 100%;
-    margin: 0.4rem 0;
-    padding: 0.6rem;
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 8px;
-    color: var(--text);
+    margin: 0.3rem 0;
+    padding: 0.3rem;
+    background: #000;
+    border: none;
+    border-bottom: 1px solid #fff;
+    color: #fff;
     font-size: 1rem;
+  }
+  form textarea {
+    resize: vertical;
   }
   form {
     margin-top: 1rem;
@@ -94,60 +82,64 @@
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.8);
     justify-content: center;
     align-items: center;
     z-index: 1000;
   }
   #modalContent,
   #editModalContent {
-    background: var(--card);
-    padding: 2rem;
-    border-radius: 12px;
+    background: #000;
+    padding: 1.5rem;
     max-width: 400px;
     width: 90%;
-    text-align: left;
-  }
-  #modal h3 {
-    margin-top: 0;
+    color: #fff;
   }
   #modal button,
   #editModal button {
-    margin-top: 1rem;
     width: 100%;
+    padding: 0.7rem;
+    margin-top: 1rem;
+    border: none;
+    background: none;
+    color: #fff;
+    cursor: pointer;
+    font-weight: normal;
+    border-top: 1px solid #fff;
+  }
+  #modal button:hover,
+  #editModal button:hover {
+    background: #222;
   }
   .check-btn {
+    font-size: 1.1rem;
     background: none;
     border: none;
-    color: var(--accent);
-    font-size: 1.2rem;
+    color: #fff;
     cursor: pointer;
   }
   .menu-btn {
+    font-size: 1.2rem;
     background: none;
     border: none;
-    color: var(--muted);
-    font-size: 1.2rem;
+    color: #fff;
     cursor: pointer;
   }
   .menu {
     display: none;
     position: absolute;
     right: 0;
-    top: 1.8rem;
-    background: var(--card);
-    border: 1px solid #333;
-    border-radius: 8px;
+    top: 1.6rem;
+    background: #000;
     z-index: 10;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
   }
   .menu button {
     display: block;
     width: 100%;
     background: none;
     border: none;
-    color: var(--text);
-    padding: 0.5rem 1rem;
+    color: #fff;
+    padding: 0.4rem 1rem;
     text-align: left;
     cursor: pointer;
   }
@@ -198,7 +190,7 @@
         <input type="date" name="date" id="editDate" />
       </label>
       <button type="submit">Save</button>
-      <button type="button" onclick="closeEditModal()" style="margin-top:0.5rem; background:#444;">Cancel</button>
+      <button type="button" onclick="closeEditModal()">Cancel</button>
     </form>
   </div>
 </div>
@@ -209,8 +201,8 @@
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
   if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
 
-  let editIndex = null; // task index being edited
-  let editPage = null;  // page index for editing
+  let editIndex = null;
+  let editPage = null;
 
   function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -253,8 +245,8 @@
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
         div.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; flex: 1; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-grow:1;">
               <button onclick="toggleDone(${i}, ${idx})" class="check-btn">${task.done ? '✔' : '◻'}</button>
               <div onclick="showDetails(tasks[${i}][${idx}])" style="flex-grow: 1; cursor: pointer;">
                 <strong>${task.time || ''} ${task.name}</strong>
@@ -272,7 +264,6 @@
         container.appendChild(div);
       });
     });
-
     closeAllMenus();
   }
 
@@ -332,7 +323,6 @@
     render();
   }
 
-  // OPEN EDIT MODAL
   function openEditModal(i, idx) {
     closeAllMenus();
     editPage = i;
@@ -395,7 +385,6 @@
   window.addEventListener('load', () => {
     createPages();
     render();
-
     if (!localStorage.getItem('tasks')) {
       saveTasks();
     }
