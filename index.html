@@ -71,10 +71,6 @@
       text-decoration: line-through;
     }
 
-    .task-buttons button {
-      margin: 0;
-    }
-
     button {
       background: var(--accent);
       color: #fff;
@@ -106,7 +102,6 @@
       margin-top: 1rem;
     }
 
-    /* Modal styles */
     #modal {
       display: none;
       position: fixed;
@@ -136,6 +131,49 @@
     #modal button {
       margin-top: 1rem;
       width: 100%;
+    }
+
+    .check-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 1.8rem;
+      background: var(--card);
+      border: 1px solid #333;
+      border-radius: 8px;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .menu button {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .menu button:hover {
+      background: #222;
     }
   </style>
 </head>
@@ -203,19 +241,41 @@
       sorted.forEach((task, idx) => {
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
-        div.onclick = () => showDetails(task);
         div.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div><strong>${task.time || ''} ${task.name}</strong></div>
-            <div class="task-buttons" style="display: flex; gap: 0.3rem;">
-              <button onclick="event.stopPropagation(); toggleDone(${i}, ${idx})">✔</button>
-              <button onclick="event.stopPropagation(); editTask(${i}, ${idx})">✏️</button>
-              <button onclick="event.stopPropagation(); deleteTask(${i}, ${idx})">🗑</button>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; flex: 1; gap: 0.5rem;">
+              <button onclick="toggleDone(${i}, ${idx})" class="check-btn">${task.done ? '✔' : '◻'}</button>
+              <div onclick="showDetails(tasks[${i}][${idx}])" style="flex-grow: 1; cursor: pointer;">
+                <strong>${task.time || ''} ${task.name}</strong>
+              </div>
+            </div>
+            <div style="position: relative;">
+              <button class="menu-btn" onclick="toggleMenu(event, ${i}, ${idx})">⋮</button>
+              <div class="menu" id="menu-${i}-${idx}">
+                <button onclick="editTask(${i}, ${idx})">Edit</button>
+                <button onclick="deleteTask(${i}, ${idx})">Delete</button>
+              </div>
             </div>
           </div>
         `;
         container.appendChild(div);
       });
+    });
+
+    closeAllMenus();
+  }
+
+  function toggleMenu(event, i, idx) {
+    event.stopPropagation();
+    closeAllMenus();
+    const menu = document.getElementById(`menu-${i}-${idx}`);
+    if (menu) menu.style.display = 'block';
+    document.addEventListener('click', closeAllMenus, { once: true });
+  }
+
+  function closeAllMenus() {
+    document.querySelectorAll('.menu').forEach(menu => {
+      menu.style.display = 'none';
     });
   }
 
@@ -294,8 +354,10 @@
     }
   });
 </script>
+
 </body>
 </html>
+
 
 
 
