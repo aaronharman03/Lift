@@ -1,81 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Workout Tracker Simple Test</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Tracker Minimal</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    #days { margin-top: 1rem; }
+    .day { padding: 8px; border: 1px solid #ccc; margin-bottom: 6px; }
+  </style>
 </head>
 <body>
+  <h1>Workout Tracker</h1>
+  <button id="add-day">+ Add Workout Day</button>
+  <div id="days"></div>
 
-<h1>Workout Tracker Test</h1>
-<button id="add-day">+ Add Workout Day</button>
-<div id="days-list"></div>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion
+    } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-  import {
-    getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion
-  } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    // Replace these with your Firebase project config:
+    const firebaseConfig = {
+       apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
+  authDomain: "gym-app-4fff1.firebaseapp.com",
+  projectId: "gym-app-4fff1",
+    };
 
-  // Put your Firebase config here:
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-  };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const userId = 'demo-user';
+    const userDocRef = doc(db, 'users', userId);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    async function initUserDoc() {
+      const docSnap = await getDoc(userDocRef);
+      if (!docSnap.exists()) {
+        await setDoc(userDocRef, { days: [] });
+      }
+    }
 
-  const userId = 'demo-user';
-  const planRef = doc(db, 'users', userId);
-
-  async function loadPlan() {
-    const docSnap = await getDoc(planRef);
-    if (!docSnap.exists()) {
-      await setDoc(planRef, { days: [] });
-      return [];
-    } else {
+    async function getDays() {
+      const docSnap = await getDoc(userDocRef);
+      if (!docSnap.exists()) return [];
       const data = docSnap.data();
       return data.days || [];
     }
-  }
 
-  async function addWorkoutDay() {
-    const newDay = {
-      id: Date.now().toString(),
-      name: 'New Workout Day',
-      exercises: []
-    };
+    async function addWorkoutDay() {
+      const newDay = {
+        id: Date.now().toString(),
+        name: 'New Workout Day',
+        exercises: []
+      };
 
-    await updateDoc(planRef, {
-      days: arrayUnion(newDay)
+      // Use arrayUnion to add newDay
+      await updateDoc(userDocRef, {
+        days: arrayUnion(newDay)
+      });
+
+      renderDays();
+    }
+
+    async function renderDays() {
+      const days = await getDays();
+      const container = document.getElementById('days');
+      container.innerHTML = '';
+      days.forEach(day => {
+        const div = document.createElement('div');
+        div.className = 'day';
+        div.textContent = day.name;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('add-day').addEventListener('click', () => {
+      addWorkoutDay().catch(console.error);
     });
 
-    render();
-  }
+    // Initialize & render on page load
+    initUserDoc().then(renderDays).catch(console.error);
 
-  async function render() {
-    const days = await loadPlan();
-    const container = document.getElementById('days-list');
-    container.innerHTML = '';
-    days.forEach(day => {
-      const div = document.createElement('div');
-      div.textContent = day.name;
-      container.appendChild(div);
-    });
-  }
-
-  document.getElementById('add-day').addEventListener('click', () => {
-    addWorkoutDay().catch(console.error);
-  });
-
-  // Initial render
-  render();
-
-</script>
-
+  </script>
 </body>
 </html>
+
 
 
