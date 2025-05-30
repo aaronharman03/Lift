@@ -2,17 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Workout Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    #workout-days {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <h1>Workout Tracker</h1>
-    <div id="workout-days"></div>
-    <button id="add-day">Add Workout Day</button>
-  </div>
-  <script type="module" src="app.js"></script>
+  <h1>Workout Tracker</h1>
+  <div id="workout-days"></div>
+  <button id="add-day">Add Workout Day</button>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getFirestore, doc, setDoc, updateDoc, arrayUnion, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+
+    // Replace these values with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const userId = 'demo-user'; // temp user
+    const planRef = doc(db, 'users', userId);
+
+    async function initPlan() {
+      const docSnap = await getDoc(planRef);
+      if (!docSnap.exists()) {
+        await setDoc(planRef, { days: [] });
+        console.log('Empty plan created');
+      }
+    }
+
+    async function addWorkoutDay() {
+      const newDay = {
+        id: Date.now().toString(),
+        name: 'New Workout Day',
+        exercises: []
+      };
+      await updateDoc(planRef, {
+        days: arrayUnion(newDay)
+      });
+      loadWorkoutDays();
+    }
+
+    async function loadWorkoutDays() {
+      const docSnap = await getDoc(planRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const container = document.getElementById('workout-days');
+        container.innerHTML = '';
+        data.days.forEach(day => {
+          const div = document.createElement('div');
+          div.textContent = day.name;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    document.getElementById('add-day').addEventListener('click', addWorkoutDay);
+
+    // Initialize and load days on page load
+    initPlan().then(loadWorkoutDays);
+  </script>
 </body>
 </html>
+
 
