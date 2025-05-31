@@ -210,9 +210,65 @@
     </form>
   </div>
 </div>
+<!-- Add Exercise Modal -->
+<div id="exerciseModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1000; padding:1rem;">
+  <div style="background:#000; color:#fff; padding:1.5rem; width:90vw; max-width:400px;">
+    <h3>Add Exercise</h3>
+    <form id="exerciseForm" onsubmit="saveExercise(event)">
+      <label>
+        Exercise Name:<br/>
+        <input type="text" id="exerciseName" required />
+      </label><br/><br/>
+      <label>
+        Sets:<br/>
+        <input type="number" id="exerciseSets" min="1" />
+      </label><br/><br/>
+      <label>
+        Reps:<br/>
+        <input type="number" id="exerciseReps" min="1" />
+      </label><br/><br/>
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeExerciseModal()">Cancel</button>
+    </form>
+  </div>
+</div>
+<!-- Add Exercise Modal -->
+<div id="exerciseModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:1000; color:#fff; justify-content:center; align-items:center; padding:1rem; flex-direction:column;">
+  <h3>Add Exercise</h3>
+  <form onsubmit="addExercise(event)" style="width:100%;max-width:400px;">
+    <label>
+      Exercise Name:
+      <input type="text" id="exerciseName" required style="width:100%;margin-bottom:1rem;" />
+    </label>
+    <label>
+      Sets x Reps / Weight:
+      <input type="text" id="exerciseDetail" required style="width:100%;margin-bottom:1rem;" />
+    </label>
+    <button type="submit" style="width:100%;margin-top:1rem;">Add</button>
+    <button type="button" onclick="closeExerciseModal()" style="width:100%;margin-top:0.5rem;">Cancel</button>
+  </form>
+</div>
 
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
+  <!-- Floating Add Exercise Button -->
+<div id="addExerciseBtn" title="Add Exercise" onclick="openExerciseModal()" style="
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  background: #fff;
+  color: #000;
+  border-radius: 50%;
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 2rem;
+  line-height: 3.5rem;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 0 10px #fff88;
+">🏋</div>
+
 
 <script>
   let currentPage = 0;
