@@ -635,15 +635,17 @@ delBtn.onclick = () => {
     render();
   }
 
-  function openAddModal() {
+function openAddModal() {
   editIndex = null;
-  // If current page is List (7), open modal for page 7
-  if(currentPage === 7) {
-    editPage = 7;
+  // Use the current page unless it's one of the read-only pages (like Settings, etc.)
+  if (currentPage <= 6) {
+    editPage = currentPage;
   } else {
-    editPage = null;
+    editPage = 7; // Force List page
   }
   openEditModal();
+}
+
   }
 
   function prevPage() {
