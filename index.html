@@ -399,6 +399,38 @@
             });
             render();
           };
+          // Start and Goal inputs
+const startInput = document.createElement('input');
+startInput.type = 'text';
+startInput.placeholder = 'Start';
+startInput.value = task.start || '';
+startInput.style.marginBottom = '0.5rem';
+startInput.style.background = '#111';
+startInput.style.border = '1px solid #444';
+startInput.style.color = '#fff';
+startInput.style.padding = '0.3rem';
+startInput.oninput = e => {
+  task.start = e.target.value;
+  saveTasks();
+};
+
+const goalInput = document.createElement('input');
+goalInput.type = 'text';
+goalInput.placeholder = 'Goal';
+goalInput.value = task.goal || '';
+goalInput.style.marginBottom = '0.5rem';
+goalInput.style.background = '#111';
+goalInput.style.border = '1px solid #444';
+goalInput.style.color = '#fff';
+goalInput.style.padding = '0.3rem';
+goalInput.oninput = e => {
+  task.goal = e.target.value;
+  saveTasks();
+};
+
+exercisesDiv.appendChild(startInput);
+exercisesDiv.appendChild(goalInput);
+
           exercisesDiv.appendChild(addExerciseBtn);
 
           // Render each exercise
