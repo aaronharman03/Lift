@@ -509,9 +509,21 @@ delBtn.onclick = () => {
   render();
 };
 
-exDiv.appendChild(exerciseSummary);
-exDiv.appendChild(editBtn);
-exDiv.appendChild(delBtn);
+  exDiv.style.display = 'flex';
+  exDiv.style.justifyContent = 'space-between';
+  exDiv.style.alignItems = 'center';
+
+  // Container for buttons to group and align them properly
+  const btnContainer = document.createElement('div');
+  btnContainer.style.display = 'flex';
+  btnContainer.style.gap = '0.3rem';
+
+  btnContainer.appendChild(editBtn);
+  btnContainer.appendChild(delBtn);
+
+  exDiv.appendChild(exerciseSummary);
+  exDiv.appendChild(btnContainer);
+
 
   };
             exercisesDiv.appendChild(exDiv);
