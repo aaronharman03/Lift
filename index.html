@@ -338,18 +338,19 @@
         checkBtn.onclick = () => toggleDone(i, idx);
 
         const taskNameDiv = document.createElement('div');
-        taskNameDiv.style.flexGrow = '1';
-        taskNameDiv.style.cursor = 'pointer';
-        taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-        taskNameDiv.onclick = () => {
-          if(task.name === 'Lift') {
-            // Toggle exercises visibility for this task
-            task.showExercises = !task.showExercises;
-            render();
-          } else {
-            openEditModal(i, idx);
-          }
-        };
+taskNameDiv.style.flexGrow = '1';
+taskNameDiv.style.cursor = 'pointer';
+taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+taskNameDiv.onclick = () => {
+  // Toggle description visibility on click
+  task.showDesc = !task.showDesc;
+
+  // Optional: keep existing lift toggle behavior
+  if(task.name === 'Lift') {
+    task.showExercises = !task.showExercises;
+  }
+  render();
+};
 
         leftDiv.appendChild(checkBtn);
         leftDiv.appendChild(taskNameDiv);
@@ -390,6 +391,14 @@
         taskLine.appendChild(rightDiv);
 
         div.appendChild(taskLine);
+        if (task.showDesc && task.desc) {
+  const descDiv = document.createElement('div');
+  descDiv.style.marginTop = '0.3rem';
+  descDiv.style.whiteSpace = 'pre-wrap';
+  descDiv.style.color = '#aaa';
+  descDiv.textContent = task.desc;
+  div.appendChild(descDiv);
+}
 
         // If task is "Lift" and showExercises true, render exercises UI
         if(task.name === 'Lift' && task.showExercises) {
