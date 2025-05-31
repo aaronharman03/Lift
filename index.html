@@ -403,20 +403,38 @@
             exDiv.className = 'exercise-row';
 
             if(ex.editing) {
-              // Inputs for exercise details
+              // Container for exercise inputs & buttons
+              const exInputsDiv = document.createElement('div');
+              exInputsDiv.style.display = 'flex';
+              exInputsDiv.style.flexDirection = 'column';
+              exInputsDiv.style.gap = '0.3rem';
+
+              // Top row: exercise name and weight side by side
+              const topRow = document.createElement('div');
+              topRow.style.display = 'flex';
+              topRow.style.gap = '0.5rem';
+
               const nameInput = document.createElement('input');
               nameInput.type = 'text';
               nameInput.placeholder = 'Exercise';
               nameInput.value = ex.name;
+              nameInput.style.flex = '1';
               nameInput.oninput = e => ex.name = e.target.value;
 
               const weightInput = document.createElement('input');
               weightInput.type = 'text';
               weightInput.placeholder = 'Weight';
               weightInput.value = ex.weight;
+              weightInput.style.width = '80px';
               weightInput.oninput = e => ex.weight = e.target.value;
 
-              // Sets inputs (3 by default, but can grow)
+              topRow.appendChild(nameInput);
+              topRow.appendChild(weightInput);
+
+              // Sets inputs in a separate row
+              const setsRow = document.createElement('div');
+              setsRow.style.display = 'flex';
+              setsRow.style.gap = '0.3rem';
               ex.sets.forEach((setVal, setIdx) => {
                 const setInput = document.createElement('input');
                 setInput.type = 'text';
@@ -424,23 +442,25 @@
                 setInput.value = setVal;
                 setInput.style.width = '40px';
                 setInput.oninput = e => ex.sets[setIdx] = e.target.value;
-                exDiv.appendChild(setInput);
+                setsRow.appendChild(setInput);
               });
 
-              // Add set button
+              // Add set button below sets
               const addSetBtn = document.createElement('button');
               addSetBtn.textContent = '+ Set';
+              addSetBtn.style.marginTop = '0.3rem';
               addSetBtn.onclick = () => {
                 ex.sets.push('');
                 render();
               };
 
-              // Done button
+              // Done button next to addSetBtn
               const doneBtn = document.createElement('button');
               doneBtn.className = 'done-btn';
               doneBtn.textContent = 'Done';
+              doneBtn.style.marginTop = '0.3rem';
+              doneBtn.style.marginLeft = '0.5rem';
               doneBtn.onclick = () => {
-                // If empty name, remove exercise
                 if(!ex.name.trim()) {
                   task.exercises.splice(exIdx, 1);
                 } else {
@@ -450,16 +470,30 @@
                 render();
               };
 
-              exDiv.appendChild(nameInput);
-              exDiv.appendChild(weightInput);
-              exDiv.appendChild(addSetBtn);
-              exDiv.appendChild(doneBtn);
+              const btnRow = document.createElement('div');
+              btnRow.style.marginTop = '0.3rem';
+              btnRow.appendChild(addSetBtn);
+              btnRow.appendChild(doneBtn);
+
+              // Append all rows to main container
+              exInputsDiv.appendChild(topRow);
+              exInputsDiv.appendChild(setsRow);
+              exInputsDiv.appendChild(btnRow);
+
+              exDiv.appendChild(exInputsDiv);
 
             } else {
-              // Show exercise info with edit button
-              const infoSpan = document.createElement('span');
-              infoSpan.textContent = `${ex.name} - ${ex.weight} - ${ex.sets.join(' - ')}`;
-              infoSpan.style.flexGrow = '1';
+              // Show exercise summary line
+              const nameSpan = document.createElement('span');
+              nameSpan.textContent = ex.name;
+              nameSpan.style.fontWeight = 'bold';
+
+              const weightSpan = document.createElement('span');
+              weightSpan.textContent = ex.weight ? ` @ ${ex.weight}` : '';
+              weightSpan.style.marginLeft = '0.5rem';
+
+              const setsSpan = document.createElement('span');
+              setsSpan.textContent = 'Sets: ' + ex.sets.filter(s => s.trim() !== '').join(', ');
 
               const editBtn = document.createElement('button');
               editBtn.textContent = 'Edit';
@@ -468,8 +502,18 @@
                 render();
               };
 
-              exDiv.appendChild(infoSpan);
+              const delBtn = document.createElement('button');
+              delBtn.textContent = 'Delete';
+              delBtn.onclick = () => {
+                task.exercises.splice(exIdx, 1);
+                render();
+              };
+
+              exDiv.appendChild(nameSpan);
+              exDiv.appendChild(weightSpan);
+              exDiv.appendChild(setsSpan);
               exDiv.appendChild(editBtn);
+              exDiv.appendChild(delBtn);
             }
 
             exercisesDiv.appendChild(exDiv);
@@ -483,47 +527,61 @@
     });
   }
 
-  function toggleMenu(event, pageIndex, taskIndex) {
-    event.stopPropagation();
-    // close other menus
-    document.querySelectorAll('.menu').forEach(menu => {
-      if (menu.id !== `menu-${pageIndex}-${taskIndex}`) {
-        menu.style.display = 'none';
-      }
-    });
-    const menu = document.getElementById(`menu-${pageIndex}-${taskIndex}`);
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-  }
-
-  function toggleDone(pageIndex, taskIndex) {
-    tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
+  function toggleDone(page, idx) {
+    tasks[page][idx].done = !tasks[page][idx].done;
     saveTasks();
     render();
   }
 
-  function openAddModal() {
-    editIndex = null;
-    editPage = currentPage;
-    document.getElementById('editModalTitle').textContent = 'Add Task';
-    document.getElementById('editTime').value = '';
-    document.getElementById('editName').value = '';
-    document.getElementById('editDesc').value = '';
-    document.getElementById('editDate').value = '';
-    document.getElementById('dateLabel').style.display = currentPage === 7 ? 'block' : 'none';
-    document.getElementById('editModal').style.display = 'flex';
+  function toggleMenu(event, page, idx) {
+    // Hide any other menus
+    document.querySelectorAll('.menu').forEach(menu => {
+      if(menu.id !== `menu-${page}-${idx}`) menu.style.display = 'none';
+    });
+    const menu = document.getElementById(`menu-${page}-${idx}`);
+    if(menu.style.display === 'block') menu.style.display = 'none';
+    else menu.style.display = 'block';
   }
 
-  function openEditModal(pageIndex, taskIndex) {
-    editIndex = taskIndex;
-    editPage = pageIndex;
-    const task = tasks[pageIndex][taskIndex];
-    document.getElementById('editModalTitle').textContent = 'Edit Task';
-    document.getElementById('editTime').value = task.time || '';
-    document.getElementById('editName').value = task.name || '';
-    document.getElementById('editDesc').value = task.desc || '';
-    document.getElementById('editDate').value = task.date || '';
-    document.getElementById('dateLabel').style.display = pageIndex === 7 ? 'block' : 'none';
-    document.getElementById('editModal').style.display = 'flex';
+  function deleteTask(page, idx) {
+    if(confirm('Delete this task?')) {
+      tasks[page].splice(idx, 1);
+      saveTasks();
+      render();
+    }
+  }
+
+  function openEditModal(page=null, idx=null) {
+    editPage = page;
+    editIndex = idx;
+    const modal = document.getElementById('editModal');
+    const title = document.getElementById('editModalTitle');
+    const form = document.getElementById('editForm');
+    const dateLabel = document.getElementById('dateLabel');
+
+    if(page === null) {
+      title.textContent = 'Add Task';
+      form.time.value = '';
+      form.name.value = '';
+      form.desc.value = '';
+      form.date.value = '';
+      dateLabel.style.display = 'none';
+    } else {
+      title.textContent = 'Edit Task';
+      const task = tasks[page][idx];
+      form.time.value = task.time || '';
+      form.name.value = task.name || '';
+      form.desc.value = task.desc || '';
+      if(page === 7) {
+        dateLabel.style.display = 'block';
+        form.date.value = task.date || '';
+      } else {
+        dateLabel.style.display = 'none';
+        form.date.value = '';
+      }
+    }
+    modal.style.display = 'flex';
+    form.name.focus();
   }
 
   function closeEditModal() {
@@ -532,52 +590,62 @@
 
   function saveEdit(e) {
     e.preventDefault();
-    const time = document.getElementById('editTime').value;
-    const name = document.getElementById('editName').value.trim();
-    const desc = document.getElementById('editDesc').value.trim();
-    const date = document.getElementById('editDate').value;
+    const form = e.target;
+    const time = form.time.value.trim();
+    const name = form.name.value.trim();
+    const desc = form.desc.value.trim();
+    const date = form.date.value;
 
-    if(!name) return alert('Task name is required');
+    if(!name) {
+      alert('Name is required');
+      return;
+    }
 
-    if(editIndex === null) {
-      // Adding new task
-      let newTask = { time, name, desc };
-      if(currentPage === 7) newTask.date = date;
-      tasks[currentPage].push(newTask);
+    if(editPage === null) {
+      // Add new task on current page except list page (7)
+      const pageToAdd = currentPage === 7 ? 0 : currentPage;
+      tasks[pageToAdd].push({
+        time,
+        name,
+        desc,
+        done: false,
+        date: pageToAdd === 7 ? date : undefined
+      });
     } else {
-      // Editing existing
+      // Edit existing
       const task = tasks[editPage][editIndex];
       task.time = time;
       task.name = name;
       task.desc = desc;
       if(editPage === 7) task.date = date;
     }
+
     saveTasks();
     closeEditModal();
     render();
   }
 
-  function deleteTask(pageIndex, taskIndex) {
-    if(confirm('Delete this task?')) {
-      tasks[pageIndex].splice(taskIndex, 1);
-      saveTasks();
-      render();
-    }
+  function openAddModal() {
+    editPage = null;
+    editIndex = null;
+    openEditModal();
   }
 
   function prevPage() {
-    currentPage = (currentPage + pageNames.length - 1) % pageNames.length;
+    currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
     render();
   }
-
   function nextPage() {
     currentPage = (currentPage + 1) % pageNames.length;
     render();
   }
 
-  document.body.onclick = () => {
-    // Hide all menus on body click
-    document.querySelectorAll('.menu').forEach(menu => menu.style.display = 'none');
+  window.onclick = e => {
+    if(!e.target.classList.contains('menu-btn')) {
+      document.querySelectorAll('.menu').forEach(menu => {
+        menu.style.display = 'none';
+      });
+    }
   };
 
   createPages();
@@ -586,7 +654,6 @@
 
 </body>
 </html>
-
 
 
 
