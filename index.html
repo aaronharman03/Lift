@@ -637,13 +637,9 @@ delBtn.onclick = () => {
 
 function openAddModal() {
   editIndex = null;
-  // Use the current page unless it's one of the read-only pages (like Settings, etc.)
-  if (currentPage <= 6) {
-    editPage = currentPage;
-  } else {
-    editPage = 7; // Force List page
-  }
+  editPage = currentPage; // <-- This is the fix
   openEditModal();
+
 }
 
   function prevPage() {
