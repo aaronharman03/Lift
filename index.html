@@ -172,6 +172,89 @@
     user-select: none;
     box-shadow: 0 0 10px #fff88;
   }
+  
+  /* Lift Task expanded panel styles */
+  #liftTaskPanel {
+    position: fixed;
+    top: 50px;
+    left: 10%;
+    width: 80%;
+    max-width: 600px;
+    max-height: 70vh;
+    background: #111;
+    border: 1px solid #444;
+    padding: 1rem;
+    color: #fff;
+    overflow-y: auto;
+    z-index: 1500;
+    box-shadow: 0 0 10px #0f0;
+    display: none;
+    flex-direction: column;
+  }
+  #liftTaskPanel h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  #liftTaskPanel > .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  #liftTaskPanel button {
+    color: #0f0;
+    font-weight: bold;
+    background: none;
+    border: 1px solid #0f0;
+    padding: 0.3rem 0.7rem;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  #liftTaskPanel button:hover {
+    background: #0f0;
+    color: #000;
+  }
+  .exercise-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .exercise-row input[type="text"], .exercise-row input[type="number"] {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    width: 100px;
+  }
+  .exercise-name {
+    flex: 1 1 120px;
+    min-width: 100px;
+  }
+  .sets-container {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: 0.5rem;
+  }
+  .sets-container input[type="number"] {
+    width: 40px;
+  }
+  .sets-container span {
+    background: #222;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    min-width: 30px;
+    text-align: center;
+  }
+  .exercise-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.3rem;
+  }
 </style>
 </head>
 <body>
@@ -210,65 +293,19 @@
     </form>
   </div>
 </div>
-<!-- Add Exercise Modal -->
-<div id="exerciseModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1000; padding:1rem;">
-  <div style="background:#000; color:#fff; padding:1.5rem; width:90vw; max-width:400px;">
-    <h3>Add Exercise</h3>
-    <form id="exerciseForm" onsubmit="saveExercise(event)">
-      <label>
-        Exercise Name:<br/>
-        <input type="text" id="exerciseName" required />
-      </label><br/><br/>
-      <label>
-        Sets:<br/>
-        <input type="number" id="exerciseSets" min="1" />
-      </label><br/><br/>
-      <label>
-        Reps:<br/>
-        <input type="number" id="exerciseReps" min="1" />
-      </label><br/><br/>
-      <button type="submit">Save</button>
-      <button type="button" onclick="closeExerciseModal()">Cancel</button>
-    </form>
-  </div>
-</div>
-<!-- Add Exercise Modal -->
-<div id="exerciseModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:1000; color:#fff; justify-content:center; align-items:center; padding:1rem; flex-direction:column;">
-  <h3>Add Exercise</h3>
-  <form onsubmit="addExercise(event)" style="width:100%;max-width:400px;">
-    <label>
-      Exercise Name:
-      <input type="text" id="exerciseName" required style="width:100%;margin-bottom:1rem;" />
-    </label>
-    <label>
-      Sets x Reps / Weight:
-      <input type="text" id="exerciseDetail" required style="width:100%;margin-bottom:1rem;" />
-    </label>
-    <button type="submit" style="width:100%;margin-top:1rem;">Add</button>
-    <button type="button" onclick="closeExerciseModal()" style="width:100%;margin-top:0.5rem;">Cancel</button>
-  </form>
-</div>
 
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
-  <!-- Floating Add Exercise Button -->
-<div id="addExerciseBtn" title="Add Exercise" onclick="openExerciseModal()" style="
-  position: fixed;
-  bottom: 2rem;
-  left: 2rem;
-  background: #fff;
-  color: #000;
-  border-radius: 50%;
-  width: 3.5rem;
-  height: 3.5rem;
-  font-size: 2rem;
-  line-height: 3.5rem;
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
-  box-shadow: 0 0 10px #fff88;
-">🏋</div>
 
+<!-- Lift Task Expanded Panel -->
+<div id="liftTaskPanel">
+  <div class="header">
+    <h3>Lift Task Details</h3>
+    <button onclick="closeLiftTaskPanel()">Done</button>
+  </div>
+  <button id="addExerciseBtn" style="margin-bottom: 1rem;">+ Add Exercise</button>
+  <div id="exercisesContainer"></div>
+</div>
 
 <script>
   let currentPage = 0;
@@ -279,10 +316,18 @@
   let editIndex = null;
   let editPage = null;
 
+  // --- NEW DATA STRUCT FOR LIFT TASK EXERCISES ---
+  // Each lift task stores an array of exercises:
+  // { name: string, weight: string, sets: [number], editing: bool }
+  // We store this inside the task's "desc" field as JSON string
+  // (or if empty, we initialize it)
+  
+  // Save tasks to localStorage
   function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }
 
+  // --- RENDERING PAGES & TASKS ---
   function createPages() {
     const main = document.getElementById('pages');
     main.innerHTML = '';
@@ -313,14 +358,14 @@
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-grow:1;">
               <button onclick="toggleDone(${i}, ${idx})" class="check-btn" title="Toggle done">${task.done ? '✔' : '◻'}</button>
-              <div onclick="openEditModal(${i}, ${idx})" style="flex-grow: 1; cursor: pointer;">
+              <div style="flex-grow: 1; cursor: pointer;" ${task.name === 'Lift Task' ? `onclick="openLiftTaskPanel(${i}, ${idx})"` : `onclick="openEditModal(${i}, ${idx})"`}>
                 <strong>${task.time || ''} ${task.name}</strong>
               </div>
             </div>
             <div style="position: relative;">
               <button class="menu-btn" onclick="toggleMenu(event, ${i}, ${idx})" title="Options">⋮</button>
               <div class="menu" id="menu-${i}-${idx}">
-                <button onclick="openEditModal(${i}, ${idx})">Edit</button>
+                <button ${task.name === 'Lift Task' ? `onclick="openLiftTaskPanel(${i}, ${idx})"` : `onclick="openEditModal(${i}, ${idx})"`}>Edit</button>
                 <button onclick="deleteTask(${i}, ${idx})">Delete</button>
               </div>
             </div>
@@ -331,9 +376,9 @@
     });
   }
 
+  // Menu toggle (same as before)
   function toggleMenu(event, pageIndex, taskIndex) {
     event.stopPropagation();
-    // close other menus
     document.querySelectorAll('.menu').forEach(menu => {
       if (menu.id !== `menu-${pageIndex}-${taskIndex}`) {
         menu.style.display = 'none';
@@ -347,6 +392,7 @@
     document.querySelectorAll('.menu').forEach(menu => (menu.style.display = 'none'));
   };
 
+  // --- Edit Modal (unchanged) ---
   function openEditModal(pageIndex, taskIndex) {
     editIndex = taskIndex;
     editPage = pageIndex;
@@ -365,7 +411,6 @@
     }
     document.getElementById('editModal').style.display = 'flex';
   }
-
   function openAddModal() {
     editIndex = null;
     editPage = currentPage;
@@ -383,48 +428,59 @@
     }
     document.getElementById('editModal').style.display = 'flex';
   }
-
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
-    editIndex = null;
-    editPage = null;
   }
-
   function saveEdit(event) {
     event.preventDefault();
-    const time = document.getElementById('editTime').value.trim();
+    const time = document.getElementById('editTime').value;
     const name = document.getElementById('editName').value.trim();
     const desc = document.getElementById('editDesc').value.trim();
-    const date = document.getElementById('editDate').value.trim();
+    let date = '';
+    if(editPage === 7) {
+      date = document.getElementById('editDate').value;
+      if (!date) {
+        alert("Please select a date for List tasks.");
+        return;
+      }
+    }
+    if(!name) {
+      alert("Task name cannot be empty.");
+      return;
+    }
+    const taskObj = { time, name, desc, done: false };
+    if(editPage === 7) taskObj.date = date;
 
-    if (!name) return;
-
-    if (editIndex === null) {
-      // Add new
-      tasks[editPage].push({ time, name, desc, date, done: false });
+    if(editIndex !== null) {
+      // keep done state
+      taskObj.done = tasks[editPage][editIndex].done || false;
+      tasks[editPage][editIndex] = taskObj;
     } else {
-      // Edit existing
-      tasks[editPage][editIndex] = { time, name, desc, date, done: tasks[editPage][editIndex].done };
+      tasks[editPage].push(taskObj);
     }
     saveTasks();
     closeEditModal();
     render();
   }
 
+  // Toggle done
   function toggleDone(pageIndex, taskIndex) {
     tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
     saveTasks();
     render();
   }
-
+  // Delete task
   function deleteTask(pageIndex, taskIndex) {
-    tasks[pageIndex].splice(taskIndex, 1);
-    saveTasks();
-    render();
+    if(confirm("Delete this task?")) {
+      tasks[pageIndex].splice(taskIndex,1);
+      saveTasks();
+      render();
+    }
   }
 
+  // Prev/Next page
   function prevPage() {
-    currentPage = (currentPage + pageNames.length - 1) % pageNames.length;
+    currentPage = (currentPage -1 + pageNames.length) % pageNames.length;
     render();
   }
   function nextPage() {
@@ -432,12 +488,172 @@
     render();
   }
 
+  // --- LIFT TASK PANEL ---
+
+  let liftPageIndex = null;
+  let liftTaskIndex = null;
+  let liftExercises = [];
+
+  const liftTaskPanel = document.getElementById('liftTaskPanel');
+  const exercisesContainer = document.getElementById('exercisesContainer');
+  const addExerciseBtn = document.getElementById('addExerciseBtn');
+
+  function openLiftTaskPanel(pageIndex, taskIndex) {
+    liftPageIndex = pageIndex;
+    liftTaskIndex = taskIndex;
+    // Parse exercises JSON from desc or initialize empty
+    const task = tasks[pageIndex][taskIndex];
+    if(task.desc) {
+      try {
+        const parsed = JSON.parse(task.desc);
+        if(Array.isArray(parsed)) {
+          liftExercises = parsed.map(e => ({
+            name: e.name || '',
+            weight: e.weight || '',
+            sets: Array.isArray(e.sets) ? e.sets : [],
+            editing: false
+          }));
+        } else {
+          liftExercises = [];
+        }
+      } catch {
+        liftExercises = [];
+      }
+    } else {
+      liftExercises = [];
+    }
+    renderLiftExercises();
+    liftTaskPanel.style.display = 'flex';
+  }
+
+  function closeLiftTaskPanel() {
+    // Save exercises to desc as JSON string
+    const task = tasks[liftPageIndex][liftTaskIndex];
+    // Remove any exercise with empty name
+    liftExercises = liftExercises.filter(e => e.name.trim() !== '');
+    task.desc = JSON.stringify(liftExercises);
+    tasks[liftPageIndex][liftTaskIndex] = task;
+    saveTasks();
+    liftTaskPanel.style.display = 'none';
+    render();
+  }
+
+  function renderLiftExercises() {
+    exercisesContainer.innerHTML = '';
+    liftExercises.forEach((ex, idx) => {
+      const row = document.createElement('div');
+      row.className = 'exercise-row';
+
+      if(ex.editing) {
+        // Inputs for editing
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = ex.name;
+        nameInput.placeholder = 'Exercise';
+        nameInput.className = 'exercise-name';
+        nameInput.oninput = e => { liftExercises[idx].name = e.target.value; };
+
+        const weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.min = '0';
+        weightInput.value = ex.weight;
+        weightInput.placeholder = 'Weight';
+        weightInput.oninput = e => { liftExercises[idx].weight = e.target.value; };
+
+        // Sets container
+        const setsContainer = document.createElement('div');
+        setsContainer.className = 'sets-container';
+
+        ex.sets.forEach((setVal, setIdx) => {
+          const setInput = document.createElement('input');
+          setInput.type = 'number';
+          setInput.min = '0';
+          setInput.value = setVal;
+          setInput.placeholder = 'Set';
+          setInput.oninput = e => {
+            liftExercises[idx].sets[setIdx] = e.target.value;
+          };
+          setsContainer.appendChild(setInput);
+        });
+
+        // + Add Set button
+        const addSetBtn = document.createElement('button');
+        addSetBtn.textContent = '+';
+        addSetBtn.title = 'Add Set';
+        addSetBtn.style.flexShrink = 0;
+        addSetBtn.onclick = () => {
+          liftExercises[idx].sets.push('');
+          renderLiftExercises();
+        };
+        setsContainer.appendChild(addSetBtn);
+
+        // Done button (save and stop editing)
+        const doneBtn = document.createElement('button');
+        doneBtn.textContent = 'Done';
+        doneBtn.onclick = () => {
+          // Clean up empty sets
+          liftExercises[idx].sets = liftExercises[idx].sets.filter(s => s !== '' && s !== null);
+          liftExercises[idx].editing = false;
+          renderLiftExercises();
+        };
+
+        row.appendChild(nameInput);
+        row.appendChild(weightInput);
+        row.appendChild(setsContainer);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'exercise-actions';
+        actionsDiv.appendChild(doneBtn);
+        row.appendChild(actionsDiv);
+
+      } else {
+        // Show static info with Edit button
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'exercise-name';
+        nameSpan.textContent = ex.name;
+
+        const weightSpan = document.createElement('span');
+        weightSpan.textContent = ex.weight ? `Weight: ${ex.weight}` : 'Weight: -';
+
+        const setsSpan = document.createElement('span');
+        setsSpan.textContent = `Sets: ${ex.sets.join(', ') || '-'}`;
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => {
+          liftExercises[idx].editing = true;
+          renderLiftExercises();
+        };
+
+        row.appendChild(nameSpan);
+        row.appendChild(weightSpan);
+        row.appendChild(setsSpan);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'exercise-actions';
+        actionsDiv.appendChild(editBtn);
+        row.appendChild(actionsDiv);
+      }
+      exercisesContainer.appendChild(row);
+    });
+  }
+
+  addExerciseBtn.onclick = () => {
+    liftExercises.push({ name: '', weight: '', sets: [''], editing: true });
+    renderLiftExercises();
+  };
+
+  // Init
   createPages();
   render();
 </script>
 
 </body>
 </html>
+
+
+
+
 
 
 
