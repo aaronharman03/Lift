@@ -172,88 +172,48 @@
     user-select: none;
     box-shadow: 0 0 10px #fff88;
   }
-  
-  /* Lift Task expanded panel styles */
-  #liftTaskPanel {
-    position: fixed;
-    top: 50px;
-    left: 10%;
-    width: 80%;
-    max-width: 600px;
-    max-height: 70vh;
-    background: #111;
-    border: 1px solid #444;
-    padding: 1rem;
-    color: #fff;
-    overflow-y: auto;
-    z-index: 1500;
-    box-shadow: 0 0 10px #0f0;
-    display: none;
-    flex-direction: column;
-  }
-  #liftTaskPanel h3 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-  }
-  #liftTaskPanel > .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  #liftTaskPanel button {
-    color: #0f0;
-    font-weight: bold;
-    background: none;
-    border: 1px solid #0f0;
-    padding: 0.3rem 0.7rem;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  #liftTaskPanel button:hover {
-    background: #0f0;
-    color: #000;
+
+  /* Lift task exercise UI styles */
+  .lift-exercises {
+    margin-top: 0.5rem;
+    padding-left: 2.2rem;
+    border-left: 2px solid #555;
   }
   .exercise-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
+    margin-bottom: 0.3rem;
   }
-  .exercise-row input[type="text"], .exercise-row input[type="number"] {
-    background: #222;
+  .exercise-row input[type="text"] {
+    background: #111;
     border: 1px solid #444;
     color: #fff;
     padding: 0.2rem 0.4rem;
-    border-radius: 3px;
     width: 100px;
   }
-  .exercise-name {
-    flex: 1 1 120px;
-    min-width: 100px;
-  }
-  .sets-container {
-    display: flex;
-    gap: 0.3rem;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-left: 0.5rem;
-  }
-  .sets-container input[type="number"] {
-    width: 40px;
-  }
-  .sets-container span {
+  .exercise-row button {
     background: #222;
+    border: 1px solid #555;
+    color: #fff;
     padding: 0.2rem 0.5rem;
-    border-radius: 3px;
-    min-width: 30px;
-    text-align: center;
+    font-size: 0.9rem;
+    cursor: pointer;
   }
-  .exercise-actions {
-    margin-left: auto;
-    display: flex;
-    gap: 0.3rem;
+  .exercise-row button:hover {
+    background: #333;
+  }
+  .add-exercise-btn {
+    font-weight: bold;
+    cursor: pointer;
+    color: #0f0;
+    margin-bottom: 0.5rem;
+  }
+  .done-btn {
+    margin-left: 0.5rem;
+    color: #0ff;
+    cursor: pointer;
+    font-weight: bold;
   }
 </style>
 </head>
@@ -297,16 +257,6 @@
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
-<!-- Lift Task Expanded Panel -->
-<div id="liftTaskPanel">
-  <div class="header">
-    <h3>Lift Task Details</h3>
-    <button onclick="closeLiftTaskPanel()">Done</button>
-  </div>
-  <button id="addExerciseBtn" style="margin-bottom: 1rem;">+ Add Exercise</button>
-  <div id="exercisesContainer"></div>
-</div>
-
 <script>
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
@@ -316,18 +266,13 @@
   let editIndex = null;
   let editPage = null;
 
-  // --- NEW DATA STRUCT FOR LIFT TASK EXERCISES ---
-  // Each lift task stores an array of exercises:
-  // { name: string, weight: string, sets: [number], editing: bool }
-  // We store this inside the task's "desc" field as JSON string
-  // (or if empty, we initialize it)
-  
-  // Save tasks to localStorage
+  // We'll store lift exercises inside the task object, like task.exercises = []
+  // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
+
   function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }
 
-  // --- RENDERING PAGES & TASKS ---
   function createPages() {
     const main = document.getElementById('pages');
     main.innerHTML = '';
@@ -354,45 +299,220 @@
       sorted.forEach((task, idx) => {
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
-        div.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-grow:1;">
-              <button onclick="toggleDone(${i}, ${idx})" class="check-btn" title="Toggle done">${task.done ? '✔' : '◻'}</button>
-              <div style="flex-grow: 1; cursor: pointer;" ${task.name === 'Lift Task' ? `onclick="openLiftTaskPanel(${i}, ${idx})"` : `onclick="openEditModal(${i}, ${idx})"`}>
-                <strong>${task.time || ''} ${task.name}</strong>
-              </div>
-            </div>
-            <div style="position: relative;">
-              <button class="menu-btn" onclick="toggleMenu(event, ${i}, ${idx})" title="Options">⋮</button>
-              <div class="menu" id="menu-${i}-${idx}">
-                <button ${task.name === 'Lift Task' ? `onclick="openLiftTaskPanel(${i}, ${idx})"` : `onclick="openEditModal(${i}, ${idx})"`}>Edit</button>
-                <button onclick="deleteTask(${i}, ${idx})">Delete</button>
-              </div>
-            </div>
-          </div>
-        `;
+        div.style.flexDirection = 'column'; // so exercises can go below
+
+        // Main task line
+        const taskLine = document.createElement('div');
+        taskLine.style.display = 'flex';
+        taskLine.style.justifyContent = 'space-between';
+        taskLine.style.alignItems = 'center';
+        taskLine.style.width = '100%';
+
+        // Left side: checkbox + name clickable
+        const leftDiv = document.createElement('div');
+        leftDiv.style.display = 'flex';
+        leftDiv.style.alignItems = 'center';
+        leftDiv.style.gap = '0.5rem';
+        leftDiv.style.flexGrow = '1';
+
+        const checkBtn = document.createElement('button');
+        checkBtn.className = 'check-btn';
+        checkBtn.title = 'Toggle done';
+        checkBtn.textContent = task.done ? '✔' : '◻';
+        checkBtn.onclick = () => toggleDone(i, idx);
+
+        const taskNameDiv = document.createElement('div');
+        taskNameDiv.style.flexGrow = '1';
+        taskNameDiv.style.cursor = 'pointer';
+        taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+        taskNameDiv.onclick = () => {
+          if(task.name === 'Lift') {
+            // Toggle exercises visibility for this task
+            task.showExercises = !task.showExercises;
+            render();
+          } else {
+            openEditModal(i, idx);
+          }
+        };
+
+        leftDiv.appendChild(checkBtn);
+        leftDiv.appendChild(taskNameDiv);
+
+        // Right side: menu button
+        const rightDiv = document.createElement('div');
+        rightDiv.style.position = 'relative';
+
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'menu-btn';
+        menuBtn.title = 'Options';
+        menuBtn.textContent = '⋮';
+        menuBtn.onclick = (event) => {
+          event.stopPropagation();
+          toggleMenu(event, i, idx);
+        };
+
+        const menuDiv = document.createElement('div');
+        menuDiv.className = 'menu';
+        menuDiv.id = `menu-${i}-${idx}`;
+        menuDiv.style.display = 'none';
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => openEditModal(i, idx);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = () => deleteTask(i, idx);
+
+        menuDiv.appendChild(editBtn);
+        menuDiv.appendChild(deleteBtn);
+
+        rightDiv.appendChild(menuBtn);
+        rightDiv.appendChild(menuDiv);
+
+        taskLine.appendChild(leftDiv);
+        taskLine.appendChild(rightDiv);
+
+        div.appendChild(taskLine);
+
+        // If task is "Lift" and showExercises true, render exercises UI
+        if(task.name === 'Lift' && task.showExercises) {
+          if(!task.exercises) task.exercises = [];
+
+          const exercisesDiv = document.createElement('div');
+          exercisesDiv.className = 'lift-exercises';
+
+          // "+ Add Exercise" button
+          const addExerciseBtn = document.createElement('div');
+          addExerciseBtn.className = 'add-exercise-btn';
+          addExerciseBtn.textContent = '+ Add Exercise';
+          addExerciseBtn.onclick = () => {
+            task.exercises.push({
+              name: '',
+              weight: '',
+              sets: ['','',''], // 3 empty sets by default
+              editing: true
+            });
+            render();
+          };
+          exercisesDiv.appendChild(addExerciseBtn);
+
+          // Render each exercise
+          task.exercises.forEach((ex, exIdx) => {
+            const exDiv = document.createElement('div');
+            exDiv.className = 'exercise-row';
+
+            if(ex.editing) {
+              // Inputs for exercise details
+              const nameInput = document.createElement('input');
+              nameInput.type = 'text';
+              nameInput.placeholder = 'Exercise';
+              nameInput.value = ex.name;
+              nameInput.oninput = e => ex.name = e.target.value;
+
+              const weightInput = document.createElement('input');
+              weightInput.type = 'text';
+              weightInput.placeholder = 'Weight';
+              weightInput.value = ex.weight;
+              weightInput.oninput = e => ex.weight = e.target.value;
+
+              // Sets inputs (3 by default, but can grow)
+              ex.sets.forEach((setVal, setIdx) => {
+                const setInput = document.createElement('input');
+                setInput.type = 'text';
+                setInput.placeholder = 'Set';
+                setInput.value = setVal;
+                setInput.style.width = '40px';
+                setInput.oninput = e => ex.sets[setIdx] = e.target.value;
+                exDiv.appendChild(setInput);
+              });
+
+              // Add set button
+              const addSetBtn = document.createElement('button');
+              addSetBtn.textContent = '+ Set';
+              addSetBtn.onclick = () => {
+                ex.sets.push('');
+                render();
+              };
+
+              // Done button
+              const doneBtn = document.createElement('button');
+              doneBtn.className = 'done-btn';
+              doneBtn.textContent = 'Done';
+              doneBtn.onclick = () => {
+                // If empty name, remove exercise
+                if(!ex.name.trim()) {
+                  task.exercises.splice(exIdx, 1);
+                } else {
+                  ex.editing = false;
+                }
+                saveTasks();
+                render();
+              };
+
+              exDiv.appendChild(nameInput);
+              exDiv.appendChild(weightInput);
+              exDiv.appendChild(addSetBtn);
+              exDiv.appendChild(doneBtn);
+
+            } else {
+              // Show exercise info with edit button
+              const infoSpan = document.createElement('span');
+              infoSpan.textContent = `${ex.name} - ${ex.weight} - ${ex.sets.join(' - ')}`;
+              infoSpan.style.flexGrow = '1';
+
+              const editBtn = document.createElement('button');
+              editBtn.textContent = 'Edit';
+              editBtn.onclick = () => {
+                ex.editing = true;
+                render();
+              };
+
+              exDiv.appendChild(infoSpan);
+              exDiv.appendChild(editBtn);
+            }
+
+            exercisesDiv.appendChild(exDiv);
+          });
+
+          div.appendChild(exercisesDiv);
+        }
+
         container.appendChild(div);
       });
     });
   }
 
-  // Menu toggle (same as before)
   function toggleMenu(event, pageIndex, taskIndex) {
     event.stopPropagation();
+    // close other menus
     document.querySelectorAll('.menu').forEach(menu => {
       if (menu.id !== `menu-${pageIndex}-${taskIndex}`) {
         menu.style.display = 'none';
       }
     });
     const menu = document.getElementById(`menu-${pageIndex}-${taskIndex}`);
-    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
   }
 
-  window.onclick = function() {
-    document.querySelectorAll('.menu').forEach(menu => (menu.style.display = 'none'));
-  };
+  function toggleDone(pageIndex, taskIndex) {
+    tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
+    saveTasks();
+    render();
+  }
 
-  // --- Edit Modal (unchanged) ---
+  function openAddModal() {
+    editIndex = null;
+    editPage = currentPage;
+    document.getElementById('editModalTitle').textContent = 'Add Task';
+    document.getElementById('editTime').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editDesc').value = '';
+    document.getElementById('editDate').value = '';
+    document.getElementById('dateLabel').style.display = currentPage === 7 ? 'block' : 'none';
+    document.getElementById('editModal').style.display = 'flex';
+  }
+
   function openEditModal(pageIndex, taskIndex) {
     editIndex = taskIndex;
     editPage = pageIndex;
@@ -401,255 +521,72 @@
     document.getElementById('editTime').value = task.time || '';
     document.getElementById('editName').value = task.name || '';
     document.getElementById('editDesc').value = task.desc || '';
-    const dateLabel = document.getElementById('dateLabel');
-    if(pageIndex === 7) {
-      dateLabel.style.display = 'block';
-      document.getElementById('editDate').value = task.date || '';
-    } else {
-      dateLabel.style.display = 'none';
-      document.getElementById('editDate').value = '';
-    }
+    document.getElementById('editDate').value = task.date || '';
+    document.getElementById('dateLabel').style.display = pageIndex === 7 ? 'block' : 'none';
     document.getElementById('editModal').style.display = 'flex';
   }
-  function openAddModal() {
-    editIndex = null;
-    editPage = currentPage;
-    document.getElementById('editModalTitle').textContent = 'Add Task';
-    document.getElementById('editTime').value = '';
-    document.getElementById('editName').value = '';
-    document.getElementById('editDesc').value = '';
-    const dateLabel = document.getElementById('dateLabel');
-    if(currentPage === 7) {
-      dateLabel.style.display = 'block';
-      document.getElementById('editDate').value = '';
-    } else {
-      dateLabel.style.display = 'none';
-      document.getElementById('editDate').value = '';
-    }
-    document.getElementById('editModal').style.display = 'flex';
-  }
+
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
   }
-  function saveEdit(event) {
-    event.preventDefault();
+
+  function saveEdit(e) {
+    e.preventDefault();
     const time = document.getElementById('editTime').value;
     const name = document.getElementById('editName').value.trim();
     const desc = document.getElementById('editDesc').value.trim();
-    let date = '';
-    if(editPage === 7) {
-      date = document.getElementById('editDate').value;
-      if (!date) {
-        alert("Please select a date for List tasks.");
-        return;
-      }
-    }
-    if(!name) {
-      alert("Task name cannot be empty.");
-      return;
-    }
-    const taskObj = { time, name, desc, done: false };
-    if(editPage === 7) taskObj.date = date;
+    const date = document.getElementById('editDate').value;
 
-    if(editIndex !== null) {
-      // keep done state
-      taskObj.done = tasks[editPage][editIndex].done || false;
-      tasks[editPage][editIndex] = taskObj;
+    if(!name) return alert('Task name is required');
+
+    if(editIndex === null) {
+      // Adding new task
+      let newTask = { time, name, desc };
+      if(currentPage === 7) newTask.date = date;
+      tasks[currentPage].push(newTask);
     } else {
-      tasks[editPage].push(taskObj);
+      // Editing existing
+      const task = tasks[editPage][editIndex];
+      task.time = time;
+      task.name = name;
+      task.desc = desc;
+      if(editPage === 7) task.date = date;
     }
     saveTasks();
     closeEditModal();
     render();
   }
 
-  // Toggle done
-  function toggleDone(pageIndex, taskIndex) {
-    tasks[pageIndex][taskIndex].done = !tasks[pageIndex][taskIndex].done;
-    saveTasks();
-    render();
-  }
-  // Delete task
   function deleteTask(pageIndex, taskIndex) {
-    if(confirm("Delete this task?")) {
-      tasks[pageIndex].splice(taskIndex,1);
+    if(confirm('Delete this task?')) {
+      tasks[pageIndex].splice(taskIndex, 1);
       saveTasks();
       render();
     }
   }
 
-  // Prev/Next page
   function prevPage() {
-    currentPage = (currentPage -1 + pageNames.length) % pageNames.length;
+    currentPage = (currentPage + pageNames.length - 1) % pageNames.length;
     render();
   }
+
   function nextPage() {
     currentPage = (currentPage + 1) % pageNames.length;
     render();
   }
 
-  // --- LIFT TASK PANEL ---
-
-  let liftPageIndex = null;
-  let liftTaskIndex = null;
-  let liftExercises = [];
-
-  const liftTaskPanel = document.getElementById('liftTaskPanel');
-  const exercisesContainer = document.getElementById('exercisesContainer');
-  const addExerciseBtn = document.getElementById('addExerciseBtn');
-
-  function openLiftTaskPanel(pageIndex, taskIndex) {
-    liftPageIndex = pageIndex;
-    liftTaskIndex = taskIndex;
-    // Parse exercises JSON from desc or initialize empty
-    const task = tasks[pageIndex][taskIndex];
-    if(task.desc) {
-      try {
-        const parsed = JSON.parse(task.desc);
-        if(Array.isArray(parsed)) {
-          liftExercises = parsed.map(e => ({
-            name: e.name || '',
-            weight: e.weight || '',
-            sets: Array.isArray(e.sets) ? e.sets : [],
-            editing: false
-          }));
-        } else {
-          liftExercises = [];
-        }
-      } catch {
-        liftExercises = [];
-      }
-    } else {
-      liftExercises = [];
-    }
-    renderLiftExercises();
-    liftTaskPanel.style.display = 'flex';
-  }
-
-  function closeLiftTaskPanel() {
-    // Save exercises to desc as JSON string
-    const task = tasks[liftPageIndex][liftTaskIndex];
-    // Remove any exercise with empty name
-    liftExercises = liftExercises.filter(e => e.name.trim() !== '');
-    task.desc = JSON.stringify(liftExercises);
-    tasks[liftPageIndex][liftTaskIndex] = task;
-    saveTasks();
-    liftTaskPanel.style.display = 'none';
-    render();
-  }
-
-  function renderLiftExercises() {
-    exercisesContainer.innerHTML = '';
-    liftExercises.forEach((ex, idx) => {
-      const row = document.createElement('div');
-      row.className = 'exercise-row';
-
-      if(ex.editing) {
-        // Inputs for editing
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = ex.name;
-        nameInput.placeholder = 'Exercise';
-        nameInput.className = 'exercise-name';
-        nameInput.oninput = e => { liftExercises[idx].name = e.target.value; };
-
-        const weightInput = document.createElement('input');
-        weightInput.type = 'number';
-        weightInput.min = '0';
-        weightInput.value = ex.weight;
-        weightInput.placeholder = 'Weight';
-        weightInput.oninput = e => { liftExercises[idx].weight = e.target.value; };
-
-        // Sets container
-        const setsContainer = document.createElement('div');
-        setsContainer.className = 'sets-container';
-
-        ex.sets.forEach((setVal, setIdx) => {
-          const setInput = document.createElement('input');
-          setInput.type = 'number';
-          setInput.min = '0';
-          setInput.value = setVal;
-          setInput.placeholder = 'Set';
-          setInput.oninput = e => {
-            liftExercises[idx].sets[setIdx] = e.target.value;
-          };
-          setsContainer.appendChild(setInput);
-        });
-
-        // + Add Set button
-        const addSetBtn = document.createElement('button');
-        addSetBtn.textContent = '+';
-        addSetBtn.title = 'Add Set';
-        addSetBtn.style.flexShrink = 0;
-        addSetBtn.onclick = () => {
-          liftExercises[idx].sets.push('');
-          renderLiftExercises();
-        };
-        setsContainer.appendChild(addSetBtn);
-
-        // Done button (save and stop editing)
-        const doneBtn = document.createElement('button');
-        doneBtn.textContent = 'Done';
-        doneBtn.onclick = () => {
-          // Clean up empty sets
-          liftExercises[idx].sets = liftExercises[idx].sets.filter(s => s !== '' && s !== null);
-          liftExercises[idx].editing = false;
-          renderLiftExercises();
-        };
-
-        row.appendChild(nameInput);
-        row.appendChild(weightInput);
-        row.appendChild(setsContainer);
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'exercise-actions';
-        actionsDiv.appendChild(doneBtn);
-        row.appendChild(actionsDiv);
-
-      } else {
-        // Show static info with Edit button
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'exercise-name';
-        nameSpan.textContent = ex.name;
-
-        const weightSpan = document.createElement('span');
-        weightSpan.textContent = ex.weight ? `Weight: ${ex.weight}` : 'Weight: -';
-
-        const setsSpan = document.createElement('span');
-        setsSpan.textContent = `Sets: ${ex.sets.join(', ') || '-'}`;
-
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => {
-          liftExercises[idx].editing = true;
-          renderLiftExercises();
-        };
-
-        row.appendChild(nameSpan);
-        row.appendChild(weightSpan);
-        row.appendChild(setsSpan);
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'exercise-actions';
-        actionsDiv.appendChild(editBtn);
-        row.appendChild(actionsDiv);
-      }
-      exercisesContainer.appendChild(row);
-    });
-  }
-
-  addExerciseBtn.onclick = () => {
-    liftExercises.push({ name: '', weight: '', sets: [''], editing: true });
-    renderLiftExercises();
+  document.body.onclick = () => {
+    // Hide all menus on body click
+    document.querySelectorAll('.menu').forEach(menu => menu.style.display = 'none');
   };
 
-  // Init
   createPages();
   render();
 </script>
 
 </body>
 </html>
+
 
 
 
