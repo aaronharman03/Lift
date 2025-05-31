@@ -386,52 +386,62 @@
           const exercisesDiv = document.createElement('div');
           exercisesDiv.className = 'lift-exercises';
 
-          // "+ Add Exercise" button
-          const addExerciseBtn = document.createElement('div');
-          addExerciseBtn.className = 'add-exercise-btn';
-          addExerciseBtn.textContent = '+ Add Exercise';
-          addExerciseBtn.onclick = () => {
-            task.exercises.push({
-              name: '',
-              weight: '',
-              sets: ['','',''], // 3 empty sets by default
-              editing: true
-            });
-            render();
-          };
-          // Start and Goal inputs
-const startInput = document.createElement('input');
-startInput.type = 'text';
-startInput.placeholder = 'Start';
-startInput.value = task.start || '';
-startInput.style.marginBottom = '0.5rem';
-startInput.style.background = '#111';
-startInput.style.border = '1px solid #444';
-startInput.style.color = '#fff';
-startInput.style.padding = '0.3rem';
-startInput.oninput = e => {
-  task.start = e.target.value;
+          // Inline Add Exercise Form
+const addForm = document.createElement('form');
+addForm.className = 'exercise-row';
+addForm.style.marginBottom = '0.5rem';
+addForm.onsubmit = (e) => {
+  e.preventDefault();
+  const newName = nameInput.value.trim();
+  if (!newName) return;
+  task.exercises.push({
+    name: newName,
+    weight: weightInput.value.trim(),
+    sets: [set1.value.trim(), set2.value.trim(), set3.value.trim()],
+    editing: false
+  });
   saveTasks();
+  render();
 };
 
-const goalInput = document.createElement('input');
-goalInput.type = 'text';
-goalInput.placeholder = 'Goal';
-goalInput.value = task.goal || '';
-goalInput.style.marginBottom = '0.5rem';
-goalInput.style.background = '#111';
-goalInput.style.border = '1px solid #444';
-goalInput.style.color = '#fff';
-goalInput.style.padding = '0.3rem';
-goalInput.oninput = e => {
-  task.goal = e.target.value;
-  saveTasks();
-};
+// Inputs
+const nameInput = document.createElement('input');
+nameInput.type = 'text';
+nameInput.placeholder = 'Exercise';
+nameInput.required = true;
 
-exercisesDiv.appendChild(startInput);
-exercisesDiv.appendChild(goalInput);
+const weightInput = document.createElement('input');
+weightInput.type = 'text';
+weightInput.placeholder = 'Weight';
 
-          exercisesDiv.appendChild(addExerciseBtn);
+const set1 = document.createElement('input');
+set1.type = 'text';
+set1.placeholder = 'Set 1';
+set1.style.width = '40px';
+
+const set2 = document.createElement('input');
+set2.type = 'text';
+set2.placeholder = 'Set 2';
+set2.style.width = '40px';
+
+const set3 = document.createElement('input');
+set3.type = 'text';
+set3.placeholder = 'Set 3';
+set3.style.width = '40px';
+
+const submitBtn = document.createElement('button');
+submitBtn.textContent = 'Add';
+submitBtn.type = 'submit';
+submitBtn.style.marginLeft = '0.5rem';
+
+addForm.appendChild(nameInput);
+addForm.appendChild(weightInput);
+addForm.appendChild(set1);
+addForm.appendChild(set2);
+addForm.appendChild(set3);
+addForm.appendChild(submitBtn);
+
+exercisesDiv.appendChild(addForm);
 
           // Render each exercise
           task.exercises.forEach((ex, exIdx) => {
