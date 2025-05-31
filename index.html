@@ -497,7 +497,8 @@
               weightSpan.style.marginLeft = '0.5rem';
 
               const setsSpan = document.createElement('span');
-              setsSpan.textContent = 'Sets: ' + ex.sets.filter(s => s.trim() !== '').join(', ');
+              setsSpan.textContent = ex.sets.filter(s => s.trim() !== '').join(', ');
+
 
               const editBtn = document.createElement('button');
               editBtn.textContent = 'Edit';
