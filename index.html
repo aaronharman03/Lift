@@ -488,38 +488,31 @@
 
             } else {
               // Show exercise summary line
-              const nameSpan = document.createElement('span');
-              nameSpan.textContent = ex.name;
-              nameSpan.style.fontWeight = 'bold';
+              const exerciseSummary = document.createElement('span');
+const setsText = ex.sets.filter(s => s.trim() !== '').join(', ');
+const weightText = ex.weight ? ex.weight : '';
 
-              const weightSpan = document.createElement('span');
-              weightSpan.textContent = ex.weight ? ` @ ${ex.weight}` : '';
-              weightSpan.style.marginLeft = '0.5rem';
+exerciseSummary.textContent = `${ex.name} - ${weightText} - ${setsText}`;
+exerciseSummary.style.fontWeight = 'bold';
 
-              const setsSpan = document.createElement('span');
-              setsSpan.textContent = ex.sets.filter(s => s.trim() !== '').join(', ');
+const editBtn = document.createElement('button');
+editBtn.textContent = 'Edit';
+editBtn.onclick = () => {
+  ex.editing = true;
+  render();
+};
 
+const delBtn = document.createElement('button');
+delBtn.textContent = 'Delete';
+delBtn.onclick = () => {
+  task.exercises.splice(exIdx, 1);
+  render();
+};
 
-              const editBtn = document.createElement('button');
-              editBtn.textContent = 'Edit';
-              editBtn.onclick = () => {
-                ex.editing = true;
-                render();
-              };
+exDiv.appendChild(exerciseSummary);
+exDiv.appendChild(editBtn);
+exDiv.appendChild(delBtn);
 
-              const delBtn = document.createElement('button');
-              delBtn.textContent = 'Delete';
-              delBtn.onclick = () => {
-                task.exercises.splice(exIdx, 1);
-                render();
-              };
-
-              exDiv.appendChild(nameSpan);
-              exDiv.appendChild(weightSpan);
-              exDiv.appendChild(setsSpan);
-              exDiv.appendChild(editBtn);
-              exDiv.appendChild(delBtn);
-            }
 
             exercisesDiv.appendChild(exDiv);
           });
