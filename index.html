@@ -341,6 +341,12 @@
         taskNameDiv.style.flexGrow = '1';
         taskNameDiv.style.cursor = 'pointer';
         taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+        taskNameDiv.onclick = () => {
+  task.showDesc = !task.showDesc;
+  saveTasks();
+  render();
+};
+
         if (task.showDesc && task.desc && task.name !== 'Lift') {
   const descDiv = document.createElement('div');
   descDiv.style.marginTop = '0.5rem';
