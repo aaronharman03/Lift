@@ -613,7 +613,8 @@ delBtn.onclick = () => {
 
     if(editPage === null) {
       // Add new task on current page except list page (7)
-      const pageToAdd = currentPage === 7 ? 0 : currentPage;
+    const pageToAdd = currentPage;
+
       tasks[pageToAdd].push({
         time,
         name,
