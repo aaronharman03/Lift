@@ -341,15 +341,16 @@
         taskNameDiv.style.flexGrow = '1';
         taskNameDiv.style.cursor = 'pointer';
         taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-        taskNameDiv.onclick = () => {
-          if(task.name === 'Lift') {
-            // Toggle exercises visibility for this task
-            task.showExercises = !task.showExercises;
-            render();
-          } else {
-            openEditModal(i, idx);
-          }
-        };
+        if (task.showDesc && task.desc && task.name !== 'Lift') {
+  const descDiv = document.createElement('div');
+  descDiv.style.marginTop = '0.5rem';
+  descDiv.style.paddingLeft = '2.2rem';
+  descDiv.style.borderLeft = '2px solid #555';
+  descDiv.style.whiteSpace = 'pre-wrap';
+  descDiv.textContent = task.desc;
+  div.appendChild(descDiv);
+}
+
 
         leftDiv.appendChild(checkBtn);
         leftDiv.appendChild(taskNameDiv);
@@ -390,6 +391,15 @@
         taskLine.appendChild(rightDiv);
 
         div.appendChild(taskLine);
+        if (task.showDesc && task.desc && task.name !== 'Lift') {
+  const descDiv = document.createElement('div');
+  descDiv.style.marginTop = '0.5rem';
+  descDiv.style.paddingLeft = '2.2rem';
+  descDiv.style.borderLeft = '2px solid #555';
+  descDiv.style.whiteSpace = 'pre-wrap';
+  descDiv.textContent = task.desc;
+  div.appendChild(descDiv);
+}
 
         // If task is "Lift" and showExercises true, render exercises UI
         if(task.name === 'Lift' && task.showExercises) {
