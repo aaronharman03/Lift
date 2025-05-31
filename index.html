@@ -10,10 +10,6 @@
 <meta name="theme-color" content="#000000" />
 
 <style>
-  input, textarea {
-  font-size: 16px;
-}
-
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
@@ -326,178 +322,91 @@
         checkBtn.onclick = () => toggleDone(i, idx);
 
         const taskNameDiv = document.createElement('div');
-        taskNameDiv.style.flexGrow = '1';
+        taskNameDiv.textContent = task.time ? `${task.time} - ${task.name}` : task.name;
         taskNameDiv.style.cursor = 'pointer';
-        taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-        taskNameDiv.onclick = () => {
-          if(task.name === 'Lift') {
-            // Toggle exercises visibility for this task
-            task.showExercises = !task.showExercises;
-            render();
-          } else {
-            openEditModal(i, idx);
-          }
-        };
+        taskNameDiv.style.flexGrow = '1';
+        taskNameDiv.onclick = () => openEditModal(i, idx);
 
         leftDiv.appendChild(checkBtn);
         leftDiv.appendChild(taskNameDiv);
 
-        // Right side: menu button
-        const rightDiv = document.createElement('div');
-        rightDiv.style.position = 'relative';
+        taskLine.appendChild(leftDiv);
 
-        const menuBtn = document.createElement('button');
-        menuBtn.className = 'menu-btn';
-        menuBtn.title = 'Options';
-        menuBtn.textContent = '⋮';
-        menuBtn.onclick = (event) => {
-          event.stopPropagation();
-          toggleMenu(event, i, idx);
+        // Right side: delete button
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑';
+        delBtn.title = 'Delete task';
+        delBtn.onclick = () => {
+          if(confirm('Delete this task?')) {
+            tasks[i].splice(idx, 1);
+            saveTasks();
+            render();
+          }
         };
 
-        const menuDiv = document.createElement('div');
-        menuDiv.className = 'menu';
-        menuDiv.id = `menu-${i}-${idx}`;
-        menuDiv.style.display = 'none';
-
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => openEditModal(i, idx);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.onclick = () => deleteTask(i, idx);
-
-        menuDiv.appendChild(editBtn);
-        menuDiv.appendChild(deleteBtn);
-
-        rightDiv.appendChild(menuBtn);
-        rightDiv.appendChild(menuDiv);
-
-        taskLine.appendChild(leftDiv);
-        taskLine.appendChild(rightDiv);
+        taskLine.appendChild(delBtn);
 
         div.appendChild(taskLine);
 
-        // If task is "Lift" and showExercises true, render exercises UI
-        if(task.name === 'Lift' && task.showExercises) {
-          if(!task.exercises) task.exercises = [];
+        // Show description if any
+        if (task.desc) {
+          const descDiv = document.createElement('div');
+          descDiv.style.fontSize = '0.9rem';
+          descDiv.style.opacity = '0.7';
+          descDiv.style.marginLeft = '2.5rem';
+          descDiv.textContent = task.desc;
+          div.appendChild(descDiv);
+        }
 
-          const exercisesDiv = document.createElement('div');
-          exercisesDiv.className = 'lift-exercises';
+        // Lift exercise section if task.exercises exists
+        if (task.exercises && Array.isArray(task.exercises)) {
+          const exContainer = document.createElement('div');
+          exContainer.className = 'lift-exercises';
 
-          // "+ Add Exercise" button
-          const addExerciseBtn = document.createElement('div');
-          addExerciseBtn.className = 'add-exercise-btn';
-          addExerciseBtn.textContent = '+ Add Exercise';
-          addExerciseBtn.onclick = () => {
-            task.exercises.push({
-              name: '',
-              weight: '',
-              sets: ['','',''], // 3 empty sets by default
-              editing: true
-            });
-            render();
-          };
-          exercisesDiv.appendChild(addExerciseBtn);
-
-          // Render each exercise
           task.exercises.forEach((ex, exIdx) => {
             const exDiv = document.createElement('div');
             exDiv.className = 'exercise-row';
 
-            if(ex.editing) {
-              // Container for exercise inputs & buttons
-              const exInputsDiv = document.createElement('div');
-              exInputsDiv.style.display = 'flex';
-              exInputsDiv.style.flexDirection = 'column';
-              exInputsDiv.style.gap = '0.3rem';
-
-              // Top row: exercise name and weight side by side
-              const topRow = document.createElement('div');
-              topRow.style.display = 'flex';
-              topRow.style.gap = '0.5rem';
-
+            if (ex.editing) {
+              // Show inputs to edit
               const nameInput = document.createElement('input');
               nameInput.type = 'text';
-              nameInput.placeholder = 'Exercise';
-              nameInput.value = ex.name;
-              nameInput.style.flex = '1';
-              nameInput.oninput = e => ex.name = e.target.value;
+              nameInput.value = ex.name || '';
+              nameInput.placeholder = 'Name';
+              nameInput.oninput = (e) => { ex.name = e.target.value; };
 
               const weightInput = document.createElement('input');
               weightInput.type = 'text';
+              weightInput.value = ex.weight || '';
               weightInput.placeholder = 'Weight';
-              weightInput.value = ex.weight;
-              weightInput.style.width = '80px';
-              weightInput.oninput = e => ex.weight = e.target.value;
+              weightInput.oninput = (e) => { ex.weight = e.target.value; };
 
-              topRow.appendChild(nameInput);
-              topRow.appendChild(weightInput);
-
-              // Sets inputs in a separate row
-              const setsRow = document.createElement('div');
-              setsRow.style.display = 'flex';
-              setsRow.style.gap = '0.3rem';
-              ex.sets.forEach((setVal, setIdx) => {
-                const setInput = document.createElement('input');
-                setInput.type = 'text';
-                setInput.placeholder = 'Set';
-                setInput.value = setVal;
-                setInput.style.width = '40px';
-                setInput.oninput = e => ex.sets[setIdx] = e.target.value;
-                setsRow.appendChild(setInput);
-              });
-
-              // Add set button below sets
-              const addSetBtn = document.createElement('button');
-              addSetBtn.textContent = '+ Set';
-              addSetBtn.style.marginTop = '0.3rem';
-              addSetBtn.onclick = () => {
-                ex.sets.push('');
-                render();
+              const setsInput = document.createElement('input');
+              setsInput.type = 'text';
+              setsInput.value = (ex.sets || []).join(',');
+              setsInput.placeholder = 'Sets e.g. 10,9,7';
+              setsInput.oninput = (e) => {
+                ex.sets = e.target.value.split(',').map(s => s.trim());
               };
 
-              // Done button next to addSetBtn
               const doneBtn = document.createElement('button');
               doneBtn.className = 'done-btn';
               doneBtn.textContent = 'Done';
-              doneBtn.style.marginTop = '0.3rem';
-              doneBtn.style.marginLeft = '0.5rem';
               doneBtn.onclick = () => {
-                if(!ex.name.trim()) {
-                  task.exercises.splice(exIdx, 1);
-                } else {
-                  ex.editing = false;
-                }
+                ex.editing = false;
                 saveTasks();
                 render();
               };
 
-              const btnRow = document.createElement('div');
-              btnRow.style.marginTop = '0.3rem';
-              btnRow.appendChild(addSetBtn);
-              btnRow.appendChild(doneBtn);
-
-              // Append all rows to main container
-              exInputsDiv.appendChild(topRow);
-              exInputsDiv.appendChild(setsRow);
-              exInputsDiv.appendChild(btnRow);
-
-              exDiv.appendChild(exInputsDiv);
-
+              exDiv.appendChild(nameInput);
+              exDiv.appendChild(weightInput);
+              exDiv.appendChild(setsInput);
+              exDiv.appendChild(doneBtn);
             } else {
-              // Show exercise summary line
-              const nameSpan = document.createElement('span');
-              nameSpan.textContent = ex.name;
-              nameSpan.style.fontWeight = 'bold';
-
-              const weightSpan = document.createElement('span');
-              weightSpan.textContent = ex.weight ? ` @ ${ex.weight}` : '';
-              weightSpan.style.marginLeft = '0.5rem';
-
-              const setsSpan = document.createElement('span');
-              setsSpan.textContent = 'Sets: ' + ex.sets.filter(s => s.trim() !== '').join(', ');
+              // Show exercise info with edit button
+              const infoSpan = document.createElement('span');
+              infoSpan.textContent = `${ex.name} @${ex.weight} - ${ex.sets.filter(s => s.trim() !== '').join(',')}`;
+              infoSpan.style.flexGrow = '1';
 
               const editBtn = document.createElement('button');
               editBtn.textContent = 'Edit';
@@ -506,24 +415,25 @@
                 render();
               };
 
-              const delBtn = document.createElement('button');
-              delBtn.textContent = 'Delete';
-              delBtn.onclick = () => {
-                task.exercises.splice(exIdx, 1);
-                render();
-              };
-
-              exDiv.appendChild(nameSpan);
-              exDiv.appendChild(weightSpan);
-              exDiv.appendChild(setsSpan);
+              exDiv.appendChild(infoSpan);
               exDiv.appendChild(editBtn);
-              exDiv.appendChild(delBtn);
             }
 
-            exercisesDiv.appendChild(exDiv);
+            exContainer.appendChild(exDiv);
           });
 
-          div.appendChild(exercisesDiv);
+          // Add new exercise button
+          const addExBtn = document.createElement('div');
+          addExBtn.className = 'add-exercise-btn';
+          addExBtn.textContent = '+ Add Exercise';
+          addExBtn.onclick = () => {
+            task.exercises.push({name:'', weight:'', sets:[], editing:true});
+            render();
+          };
+
+          exContainer.appendChild(addExBtn);
+
+          div.appendChild(exContainer);
         }
 
         container.appendChild(div);
@@ -531,97 +441,91 @@
     });
   }
 
-  function toggleDone(page, idx) {
-    tasks[page][idx].done = !tasks[page][idx].done;
+  function toggleDone(pageIdx, taskIdx) {
+    tasks[pageIdx][taskIdx].done = !tasks[pageIdx][taskIdx].done;
     saveTasks();
     render();
   }
 
-  function toggleMenu(event, page, idx) {
-    // Hide any other menus
-    document.querySelectorAll('.menu').forEach(menu => {
-      if(menu.id !== `menu-${page}-${idx}`) menu.style.display = 'none';
-    });
-    const menu = document.getElementById(`menu-${page}-${idx}`);
-    if(menu.style.display === 'block') menu.style.display = 'none';
-    else menu.style.display = 'block';
+  function prevPage() {
+    currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
+    render();
   }
 
-  function deleteTask(page, idx) {
-    if(confirm('Delete this task?')) {
-      tasks[page].splice(idx, 1);
-      saveTasks();
-      render();
-    }
+  function nextPage() {
+    currentPage = (currentPage + 1) % pageNames.length;
+    render();
   }
 
-  function openEditModal(page=null, idx=null) {
+  function openEditModal(page = null, index = null) {
     editPage = page;
-    editIndex = idx;
+    editIndex = index;
     const modal = document.getElementById('editModal');
     const title = document.getElementById('editModalTitle');
     const form = document.getElementById('editForm');
+    const timeInput = document.getElementById('editTime');
+    const nameInput = document.getElementById('editName');
+    const descInput = document.getElementById('editDesc');
     const dateLabel = document.getElementById('dateLabel');
+    const dateInput = document.getElementById('editDate');
 
-    if(page === null) {
-      title.textContent = 'Add Task';
-      form.time.value = '';
-      form.name.value = '';
-      form.desc.value = '';
-      form.date.value = '';
-      dateLabel.style.display = 'none';
-    } else {
+    if (page !== null && index !== null) {
       title.textContent = 'Edit Task';
-      const task = tasks[page][idx];
-      form.time.value = task.time || '';
-      form.name.value = task.name || '';
-      form.desc.value = task.desc || '';
+      const task = tasks[page][index];
+      timeInput.value = task.time || '';
+      nameInput.value = task.name || '';
+      descInput.value = task.desc || '';
       if(page === 7) {
         dateLabel.style.display = 'block';
-        form.date.value = task.date || '';
+        dateInput.value = task.date || '';
       } else {
         dateLabel.style.display = 'none';
-        form.date.value = '';
+        dateInput.value = '';
       }
+    } else {
+      title.textContent = 'Add Task';
+      timeInput.value = '';
+      nameInput.value = '';
+      descInput.value = '';
+      dateLabel.style.display = 'none';
+      dateInput.value = '';
     }
+
     modal.style.display = 'flex';
-    form.name.focus();
   }
 
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
+    editPage = null;
+    editIndex = null;
   }
 
   function saveEdit(e) {
     e.preventDefault();
-    const form = e.target;
-    const time = form.time.value.trim();
-    const name = form.name.value.trim();
-    const desc = form.desc.value.trim();
-    const date = form.date.value;
+    const time = document.getElementById('editTime').value.trim();
+    const name = document.getElementById('editName').value.trim();
+    const desc = document.getElementById('editDesc').value.trim();
+    const date = document.getElementById('editDate').value;
 
-    if(!name) {
+    if (!name) {
       alert('Name is required');
       return;
     }
 
-    if(editPage === null) {
-      // Add new task on current page except list page (7)
-      const pageToAdd = currentPage === 7 ? 0 : currentPage;
-      tasks[pageToAdd].push({
-        time,
-        name,
-        desc,
-        done: false,
-        date: pageToAdd === 7 ? date : undefined
-      });
+    if(editPage !== null && editIndex !== null) {
+      // Editing existing
+      tasks[editPage][editIndex].time = time;
+      tasks[editPage][editIndex].name = name;
+      tasks[editPage][editIndex].desc = desc;
+      if(editPage === 7) tasks[editPage][editIndex].date = date;
     } else {
-      // Edit existing
-      const task = tasks[editPage][editIndex];
-      task.time = time;
-      task.name = name;
-      task.desc = desc;
-      if(editPage === 7) task.date = date;
+      // Adding new
+      let addToPage = currentPage;
+      let newTask = {time, name, desc, done:false};
+      if(currentPage === 7 && date) {
+        newTask.date = date;
+      }
+      tasks[addToPage].push(newTask);
     }
 
     saveTasks();
@@ -630,27 +534,8 @@
   }
 
   function openAddModal() {
-    editPage = null;
-    editIndex = null;
     openEditModal();
   }
-
-  function prevPage() {
-    currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
-    render();
-  }
-  function nextPage() {
-    currentPage = (currentPage + 1) % pageNames.length;
-    render();
-  }
-
-  window.onclick = e => {
-    if(!e.target.classList.contains('menu-btn')) {
-      document.querySelectorAll('.menu').forEach(menu => {
-        menu.style.display = 'none';
-      });
-    }
-  };
 
   createPages();
   render();
@@ -658,8 +543,6 @@
 
 </body>
 </html>
-
-
 
 
 
