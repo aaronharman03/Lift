@@ -397,14 +397,6 @@
         taskLine.appendChild(rightDiv);
 
         div.appendChild(taskLine);
-        if (task.showDesc && task.desc && task.name !== 'Lift') {
-  const descDiv = document.createElement('div');
-  descDiv.style.marginTop = '0.5rem';
-  descDiv.style.paddingLeft = '2.2rem';
-  descDiv.style.borderLeft = '2px solid #555';
-  descDiv.style.whiteSpace = 'pre-wrap';
-  descDiv.textContent = task.desc;
-  div.appendChild(descDiv);
 }
 
         // If task is "Lift" and showExercises true, render exercises UI
