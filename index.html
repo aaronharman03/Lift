@@ -636,9 +636,14 @@ delBtn.onclick = () => {
   }
 
   function openAddModal() {
+  editIndex = null;
+  // If current page is List (7), open modal for page 7
+  if(currentPage === 7) {
+    editPage = 7;
+  } else {
     editPage = null;
-    editIndex = null;
-    openEditModal();
+  }
+  openEditModal();
   }
 
   function prevPage() {
