@@ -341,8 +341,12 @@
         taskNameDiv.style.flexGrow = '1';
         taskNameDiv.style.cursor = 'pointer';
         taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-        taskNameDiv.onclick = () => {
-  task.showDesc = !task.showDesc;
+   taskNameDiv.onclick = () => {
+  if (task.name === 'Lift') {
+    task.showExercises = !task.showExercises;
+  } else {
+    task.showDesc = !task.showDesc;
+  }
   saveTasks();
   render();
 };
