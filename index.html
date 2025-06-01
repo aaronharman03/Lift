@@ -713,12 +713,11 @@ function openAddModal() {
     }
   };
 
-window.onload = async () => {
-  await loadTasks();
+document.addEventListener('DOMContentLoaded', async () => {
   createPages();
+  await loadTasks();
   render();
-}
-};
+});
 
 init();
 
