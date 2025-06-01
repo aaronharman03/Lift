@@ -287,14 +287,16 @@
   measurementId: "G-E0TDYJLMXH"
   };
 
-  firebase.initializeApp(firebaseConfig);
 let db;
 try {
-  firebase.initializeApp(firebaseConfig);
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
   db = firebase.firestore();
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
+
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
