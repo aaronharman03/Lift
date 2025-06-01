@@ -287,12 +287,6 @@
   };
 
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  
-// Initialize Firebase app
-firebase.initializeApp(firebaseConfig);
-
-// Initialize Firestore database
 const db = firebase.firestore();
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
@@ -314,12 +308,6 @@ async function loadTasks() {
   } catch (err) {
     console.error('Failed to load tasks:', err);
     tasks = Array(8).fill().map(() => []);
-  }
-}
-
-    }
-  } catch (err) {
-    console.error('Failed to load tasks:', err);
   }
 }
 
