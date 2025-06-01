@@ -273,9 +273,37 @@
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
+  <input type="file" id="fileInput" />
+<button id="uploadBtn">Upload</button>
+
    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  
+
 <script>
+  const fileInput = document.getElementById('fileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+
+uploadBtn.addEventListener('click', () => {
+  const file = fileInput.files[0];
+  if (!file) {
+    alert('Please select a file first!');
+    return;
+  }
+
+  const storageRef = firebase.storage().ref();
+  const fileRef = storageRef.child('uploads/' + file.name);
+
+  fileRef.put(file).then(() => {
+    alert('File uploaded successfully!');
+  }).catch(error => {
+    console.error('Upload failed:', error);
+    alert('Upload failed: ' + error.message);
+  });
+});
+
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "your-app.firebaseapp.com",
@@ -286,8 +314,55 @@
   };
 
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.firestore();
   window.db = db;
+
+  function signUp(email, password) {
+  auth.createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      // Signed up
+      const user = userCredential.user;
+      console.log('User signed up:', user.email);
+    })
+    .catch((error) => {
+      console.error('Error signing up:', error.message);
+    });
+}
+function signIn(email, password) {
+  auth.signInWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      console.log('User signed in:', user.email);
+    })
+    .catch((error) => {
+      console.error('Error signing in:', error.message);
+    });
+}
+function uploadFile(file) {
+  const storageRef = firebase.storage().ref();
+  const fileRef = storageRef.child(file.name);
+
+  fileRef.put(file)
+    .then(() => {
+      console.log('File uploaded successfully:', file.name);
+    })
+    .catch((error) => {
+      console.error('Error uploading file:', error.message);
+    });
+}
+const fileInput = document.getElementById('fileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+
+uploadBtn.addEventListener('click', () => {
+  const file = fileInput.files[0];
+  if (file) {
+    uploadFile(file);
+  } else {
+    alert('Please select a file first.');
+  }
+});
+
 </script>
 
 <script>
@@ -702,6 +777,8 @@ function openAddModal() {
   render();
 
 </script>
+
+  
 
 </body>
 </html>
