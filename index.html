@@ -298,19 +298,25 @@ const db = firebase.firestore();
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
 let tasks = Array(8).fill().map(() => []); // Default empty structure
 
-// Load tasks from Firestore on startup
 async function loadTasks() {
   try {
     const doc = await db.collection('schedules').doc('userTasks').get();
     if (doc.exists) {
       const data = doc.data();
-      if (data && data.tasks) {
+      if (data && Array.isArray(data.tasks) && data.tasks.length === 8) {
         tasks = data.tasks;
-        // Fix possible undefined arrays (if needed)
-        if (!Array.isArray(tasks) || tasks.length !== 8) {
-          tasks = Array(8).fill().map(() => []);
-        }
+      } else {
+        tasks = Array(8).fill().map(() => []);
       }
+    } else {
+      tasks = Array(8).fill().map(() => []);
+    }
+  } catch (err) {
+    console.error('Failed to load tasks:', err);
+    tasks = Array(8).fill().map(() => []);
+  }
+}
+
     }
   } catch (err) {
     console.error('Failed to load tasks:', err);
