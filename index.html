@@ -339,6 +339,11 @@ function logout() {
 
 auth.onAuthStateChanged(user => {
   if(user) {
+    if(!auth.currentUser) {
+  document.getElementById('addTaskBtn').style.display = 'none';
+} else {
+  document.getElementById('addTaskBtn').style.display = 'block';
+}
     document.getElementById('userEmail').textContent = user.email;
     document.getElementById('userDetails').style.display = 'block';
     document.getElementById('authForms').style.display = 'none';
