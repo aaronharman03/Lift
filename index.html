@@ -721,8 +721,14 @@ function openAddModal() {
     }
   };
 
+async function init() {
+  await loadTasks();
   createPages();
   render();
+}
+
+init();
+
 
 </script>
 
