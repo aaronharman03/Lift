@@ -8,6 +8,12 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<!-- Firebase Authentication -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
 <style>
   .nav-arrow {
@@ -236,10 +242,25 @@
 <body>
 
 <header>
+  
    <button class="nav-arrow" onclick="prevPage()">←</button>
   <h2 id="pageTitle">Monday</h2>
   <button class="nav-arrow" onclick="nextPage()">→</button>
 </header>
+
+  <div id="authContainer" style="padding:1rem; background:#111; color:#fff;">
+  <div id="userDetails" style="display:none;">
+    <span id="userEmail"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
+  <div id="authForms">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="signIn()">Sign In</button>
+  </div>
+</div>
+
 
 <main id="pages"></main>
 
@@ -273,63 +294,78 @@
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
- 
-<script>
-   const firebaseConfig = {
-  apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-  };
+  
 
-let db;
-try {
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  db = firebase.firestore();
-} catch (e) {
-  console.error("Firebase init failed:", e);
+<script>
+  // Initialize Firebase
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+  function signUp() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(userCredential => {
+      alert('Signed up successfully!');
+      loadUserData();
+    })
+    .catch(error => alert(error.message));
 }
+
+function signIn() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  auth.signInWithEmailAndPassword(email, password)
+    .then(userCredential => {
+      alert('Signed in!');
+      loadUserData();
+    })
+    .catch(error => alert(error.message));
+}
+
+function logout() {
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  if(user) {
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('userDetails').style.display = 'block';
+    document.getElementById('authForms').style.display = 'none';
+    loadUserData();
+  } else {
+    document.getElementById('userDetails').style.display = 'none';
+    document.getElementById('authForms').style.display = 'block';
+    tasks = Array(8).fill().map(() => []);
+    render();
+  }
+});
 
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-let tasks = Array(8).fill().map(() => []); // Default empty structure
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
 
-async function loadTasks() {
-  try {
-    const doc = await db.collection('schedules').doc('userTasks').get();
-    if (doc.exists) {
-      const data = doc.data();
-      if (data && Array.isArray(data.tasks) && data.tasks.length === 8) {
-        tasks = data.tasks;
-      } else {
-        tasks = Array(8).fill().map(() => []);
-      }
-    } else {
-      tasks = Array(8).fill().map(() => []);
-    }
-  } catch (err) {
-    console.error('Failed to load tasks:', err);
-    tasks = Array(8).fill().map(() => []);
+  let editIndex = null;
+  let editPage = null;
+
+  // We'll store lift exercises inside the task object, like task.exercises = []
+  // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
+
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
   }
-}
-
-// Save tasks to Firestore
-async function saveTasks() {
-  try {
-    await db.collection('schedules').doc('userTasks').set({ tasks });
-  } catch (err) {
-    console.error('Failed to save tasks:', err);
-  }
-}
-
 
   function createPages() {
     const main = document.getElementById('pages');
@@ -606,16 +642,15 @@ delBtn.onclick = () => {
     render();
   }
 
- function toggleMenu(event, page, idx) {
-  document.querySelectorAll('.menu').forEach(menu => {
-    menu.style.display = 'none';
-  });
-  const menu = document.getElementById(`menu-${page}-${idx}`);
-  if (menu) {
-    menu.style.display = 'block';
+  function toggleMenu(event, page, idx) {
+    // Hide any other menus
+    document.querySelectorAll('.menu').forEach(menu => {
+      if(menu.id !== `menu-${page}-${idx}`) menu.style.display = 'none';
+    });
+    const menu = document.getElementById(`menu-${page}-${idx}`);
+    if(menu.style.display === 'block') menu.style.display = 'none';
+    else menu.style.display = 'block';
   }
- }
-
 
   function deleteTask(page, idx) {
     if(confirm('Delete this task?')) {
@@ -724,13 +759,11 @@ function openAddModal() {
     }
   };
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadTasks();
   createPages();
   render();
-});
 
 </script>
 
 </body>
 </html>
+
