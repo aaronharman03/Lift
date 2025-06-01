@@ -385,8 +385,20 @@ async function loadUserData() {
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
   function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+  if (!currentUser) {
+    alert('Please sign in to save your tasks.');
+    return;
   }
+  const userDoc = doc(db, 'users', currentUser.uid);
+  setDoc(userDoc, { tasks })
+    .then(() => {
+      console.log('Tasks saved to Firestore.');
+    })
+    .catch((error) => {
+      console.error('Error saving tasks:', error);
+    });
+}
+
 
   function createPages() {
     const main = document.getElementById('pages');
