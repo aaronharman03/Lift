@@ -714,13 +714,11 @@ function openAddModal() {
   };
 
 document.addEventListener('DOMContentLoaded', async () => {
+ (async function initApp() {
   createPages();
-  await loadTasks();
+  await loadTasks();  // important!
   render();
-});
-
-init();
-
+})();
 
 </script>
 
