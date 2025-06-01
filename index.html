@@ -606,15 +606,16 @@ delBtn.onclick = () => {
     render();
   }
 
-  function toggleMenu(event, page, idx) {
-    // Hide any other menus
-    document.querySelectorAll('.menu').forEach(menu => {
-      if(menu.id !== `menu-${page}-${idx}`) menu.style.display = 'none';
-    });
-    const menu = document.getElementById(`menu-${page}-${idx}`);
-    if(menu.style.display === 'block') menu.style.display = 'none';
-    else menu.style.display = 'block';
+ function toggleMenu(event, page, idx) {
+  document.querySelectorAll('.menu').forEach(menu => {
+    menu.style.display = 'none';
+  });
+  const menu = document.getElementById(`menu-${page}-${idx}`);
+  if (menu) {
+    menu.style.display = 'block';
   }
+ }
+
 
   function deleteTask(page, idx) {
     if(confirm('Delete this task?')) {
@@ -724,11 +725,10 @@ function openAddModal() {
   };
 
 document.addEventListener('DOMContentLoaded', async () => {
- (async function initApp() {
+  await loadTasks();
   createPages();
-  await loadTasks();  // important!
   render();
-})();
+});
 
 </script>
 
