@@ -340,7 +340,7 @@ function logout() {
 
 auth.onAuthStateChanged(user => {
   if(user) {
-    if(!auth.currentUser) {
+    if(!User) {
   document.getElementById('addTaskBtn').style.display = 'none';
 } else {
   document.getElementById('addTaskBtn').style.display = 'block';
