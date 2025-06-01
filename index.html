@@ -390,19 +390,6 @@ async function loadUserData() {
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  function saveTasks() {
-  if (!currentUser) {
-    alert('Please sign in to save your tasks.');
-    return;
-  }
-  const userDoc = doc(db, 'users', currentUser.uid);
-  setDoc(userDoc, { tasks })
-    .then(() => {
-      console.log('Tasks saved to Firestore.');
-    })
-    .catch((error) => {
-      console.error('Error saving tasks:', error);
-    });
 }
 
 
