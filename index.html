@@ -318,15 +318,30 @@
     .catch(error => console.error("Error setting auth persistence:", error));
 
   firebase.auth().onAuthStateChanged(user => {
-    if (user) {
-      console.log('User logged in:', user.email);
-      loadTasks();
-      // Show main app UI here and hide login UI if needed
-    } else {
-      console.log('User logged out');
-      // Show login UI here and hide main app UI if needed
-    }
-  });
+  if (user) {
+    // User is logged in
+    console.log('User logged in:', user.email);
+
+    // Hide login screen
+    document.getElementById('login-screen').style.display = 'none';
+
+    // Show main app screen
+    document.getElementById('app-screen').style.display = 'block';
+
+    // Load your tasks or main app data
+    loadTasks();
+  } else {
+    // User is logged out
+    console.log('User logged out');
+
+    // Show login screen
+    document.getElementById('login-screen').style.display = 'block';
+
+    // Hide main app screen
+    document.getElementById('app-screen').style.display = 'none';
+  }
+});
+
 
   signUpBtn.onclick = () => {
     const email = emailInput.value;
