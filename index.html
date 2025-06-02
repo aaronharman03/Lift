@@ -655,7 +655,7 @@ delBtn.onclick = () => {
   function deleteTask(page, idx) {
     if(confirm('Delete this task?')) {
       tasks[page].splice(idx, 1);
-      saveTasks();
+      saveAllTasks();
       render();
     }
   }
