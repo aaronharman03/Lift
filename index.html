@@ -744,8 +744,7 @@ function openEditModal(dayIdx, taskIdx) {
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
   }
-
- function saveEdit(e) {
+function saveEdit(e) {
   e.preventDefault();
   const name = document.getElementById('editName').value.trim();
   const time = document.getElementById('editTime').value.trim();
@@ -772,6 +771,7 @@ function openEditModal(dayIdx, taskIdx) {
   closeEditModal();
   render();
 }
+
 
 
 function openAddModal() {
