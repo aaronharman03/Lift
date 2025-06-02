@@ -333,25 +333,6 @@ function render() {
   // ...your code to update the page with tasks...
 }
 
-// The loadTasks function to fetch tasks from Firestore
-function loadTasks() {
-  db.collection('tasks').doc('weeklySchedule').get()
-    .then(doc => {
-      if (doc.exists) {
-        tasks = doc.data().tasks;
-        render();
-      } else {
-        console.log('No tasks found in Firestore, using empty');
-        tasks = [];
-        render();
-      }
-    })
-    .catch(err => {
-      console.error('Error fetching tasks:', err);
-      render();
-    });
-}
-
 // Call loadTasks once when the page loads:
 loadTasks();
 
