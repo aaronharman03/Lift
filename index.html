@@ -310,6 +310,20 @@
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
 let tasks = Array(8).fill().map(() => []); // fallback empty structure
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    console.log('User logged in:', user.email);
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    loadTasks();
+  } else {
+    console.log('User logged out');
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('mainApp').style.display = 'none';
+    tasks = Array(8).fill().map(() => []);
+    render();
+  }
+});
 
   firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
   .then(() => {
