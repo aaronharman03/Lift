@@ -618,10 +618,11 @@ delBtn.onclick = () => {
     });
   }
 
-  function toggleDone(page, idx) {
-    tasks[page][idx].done = !tasks[page][idx].done;
-    saveTasks();
-    render();
+  function toggleDone(dayIdx, taskIdx) {
+  const task = tasks[dayIdx][taskIdx];
+  task.done = !task.done;
+  saveTasks(); // 🔹 Add this
+  render();
   }
 
   function toggleMenu(event, page, idx) {
