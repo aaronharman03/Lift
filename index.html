@@ -302,7 +302,7 @@ let tasks = Array(8).fill().map(() => []); // fallback empty structure
         render();
       } else {
         console.log('No tasks found in Firestore, using empty');
-        tasks = [];
+        tasks = Array(8).fill().map(() => []);
         render();
       }
     })
