@@ -774,12 +774,14 @@ function saveEdit(e) {
 
 
 
+
+
 function openAddModal() {
   editIndex = null;
-  editPage = currentPage; // <-- This is the fix
-  openEditModal();
-
+  editPage = currentPage; // important: set this so saveEdit knows where to save
+  openEditModal(null, null); // call with nulls because adding new
 }
+
 
   function prevPage() {
     currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
