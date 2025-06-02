@@ -390,6 +390,23 @@
     });
 }
 
+function addTask(task) {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    console.log('No user logged in. Cannot add task.');
+    return;
+  }
+
+  db.collection('users').doc(user.uid).collection('tasks')
+    .add(task)
+    .then((docRef) => {
+      console.log('Task added with ID:', docRef.id);
+      loadTasks(); // Reload tasks after adding
+    })
+    .catch((error) => {
+      console.error('Error adding task:', error);
+    });
+}
 
 
   function createPages() {
