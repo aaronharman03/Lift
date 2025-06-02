@@ -351,6 +351,47 @@ async function saveTasks() {
   await saveTasksToFirestore();
 }
 
+  // 1. Import Firestore functions
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+// 2. Initialize Firestore
+const db = getFirestore();
+
+// 3. Your user ID or unique doc ID - for now, use a fixed ID or get from auth
+const userDocId = "weeklyScheduleUser";  // Replace with dynamic user ID if you add auth later
+
+// 4. Load tasks from Firestore
+async function loadTasksFromFirestore() {
+  const docRef = doc(db, "weeklySchedules", userDocId);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    tasks = docSnap.data().tasks || Array(8).fill().map(() => []);
+  } else {
+    tasks = Array(8).fill().map(() => []);
+  }
+  render();
+}
+
+// 5. Save tasks to Firestore
+async function saveTasksToFirestore() {
+  const docRef = doc(db, "weeklySchedules", userDocId);
+  try {
+    await setDoc(docRef, { tasks });
+    console.log("Tasks saved to Firestore");
+  } catch (e) {
+    console.error("Error saving tasks:", e);
+  }
+}
+
+// 6. Replace your existing saveTasks function with this:
+function saveTasks() {
+  saveTasksToFirestore();
+}
+
+// 7. Replace your initial loading (where you read localStorage) with:
+loadTasksFromFirestore();
+
+
   function createPages() {
     const main = document.getElementById('pages');
     main.innerHTML = '';
