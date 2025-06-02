@@ -691,43 +691,26 @@ function openEditModal(dayIdx, taskIdx) {
     document.getElementById('editModal').style.display = 'none';
   }
 
-  function saveEdit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const time = form.time.value.trim();
-    const name = form.name.value.trim();
-    const desc = form.desc.value.trim();
-    const date = form.date.value;
+ function saveEdit() {
+  const editModal = document.getElementById('editModal');
+  const dayIdx = editModal.dataset.dayIdx;
+  const taskIdx = editModal.dataset.taskIdx;
 
-    if(!name) {
-      alert('Name is required');
-      return;
-    }
+  const newTitle = document.getElementById('editTitleInput').value.trim();
+  const newTime = document.getElementById('editTimeInput').value.trim();
 
-    if(editPage === null) {
-      // Add new task on current page except list page (7)
-    const pageToAdd = currentPage;
+  if (newTitle) {
+    tasks[dayIdx][taskIdx].title = newTitle;
+    tasks[dayIdx][taskIdx].time = newTime || null;
 
-      tasks[pageToAdd].push({
-        time,
-        name,
-        desc,
-        done: false,
-        date: pageToAdd === 7 ? date : undefined
-      });
-    } else {
-      // Edit existing
-      const task = tasks[editPage][editIndex];
-      task.time = time;
-      task.name = name;
-      task.desc = desc;
-      if(editPage === 7) task.date = date;
-    }
-
-    saveTasks();
-    closeEditModal();
-    render();
+    saveTasks();   // Persist changes
+    render();      // Update UI
   }
+
+  // Hide modal
+  editModal.style.display = 'none';
+}
+
 
 function openAddModal() {
   editIndex = null;
