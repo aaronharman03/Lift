@@ -373,25 +373,27 @@ signInBtn.onclick = () => {
 };
 
   function loadTasks() {
-  db.collection('tasks').doc('weeklySchedule').get()
+  const user = firebase.auth().currentUser;
+  if (!user) return; // Don’t try to load if not logged in
+
+  db.collection('tasks').doc(user.uid).get()
     .then(doc => {
       if (doc.exists) {
-        tasks = doc.data().tasks;
-        render();
+        tasks = doc.data().tasks || Array(8).fill().map(() => []);
+        console.log('Loaded tasks for user:', user.email);
       } else {
-        console.log('No tasks found in Firestore, using empty');
         tasks = Array(8).fill().map(() => []);
-        render();
+        console.log('No tasks found for this user. Starting fresh.');
       }
+      render();
     })
     .catch(err => {
       console.error('Error fetching tasks:', err);
+      tasks = Array(8).fill().map(() => []);
       render();
     });
-  }
+}
 
-// Call loadTasks once when the page loads:
-loadTasks();
 
 
   let editIndex = null;
