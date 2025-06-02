@@ -643,13 +643,24 @@ delBtn.onclick = () => {
     }
   }
 
-  function openEditModal(page=null, idx=null) {
-    editPage = page;
-    editIndex = idx;
-    const modal = document.getElementById('editModal');
-    const title = document.getElementById('editModalTitle');
-    const form = document.getElementById('editForm');
-    const dateLabel = document.getElementById('dateLabel');
+function openEditModal(dayIdx, taskIdx) {
+  const task = tasks[dayIdx][taskIdx];
+  const editModal = document.getElementById('editModal');
+  const editTitleInput = document.getElementById('editTitleInput');
+  const editTimeInput = document.getElementById('editTimeInput');
+
+  // Populate modal inputs
+  editTitleInput.value = task.title;
+  editTimeInput.value = task.time || '';
+
+  // Store indices for use in saveEdit
+  editModal.dataset.dayIdx = dayIdx;
+  editModal.dataset.taskIdx = taskIdx;
+
+  // Show modal
+  editModal.style.display = 'flex';
+}
+
 
     if(page === null) {
       title.textContent = 'Add Task';
