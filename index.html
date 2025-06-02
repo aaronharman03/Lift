@@ -294,126 +294,69 @@
   
 <script>
   const firebaseConfig = {
-     apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-    };
+    apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
+    authDomain: "gym-app-4fff1.firebaseapp.com",
+    databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "gym-app-4fff1",
+    storageBucket: "gym-app-4fff1.firebasestorage.app",
+    messagingSenderId: "1009678266608",
+    appId: "1:1009678266608:web:430ec88c296133a6b39235",
+    measurementId: "G-E0TDYJLMXH"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-  let currentPage = 0;
-  const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-let tasks = Array(8).fill().map(() => []); // fallback empty structure
-firebase.auth().onAuthStateChanged(user => {
-  if (user) {
-    console.log('User logged in:', user.email);
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
-    loadTasks();
-  } else {
-    console.log('User logged out');
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('mainApp').style.display = 'none';
-    tasks = Array(8).fill().map(() => []);
-    render();
-  }
-});
-
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .then(() => {
-    console.log("Auth persistence set to LOCAL");
-  })
-  .catch((error) => {
-    console.error("Error setting auth persistence:", error);
-  });
-  firebase.auth().onAuthStateChanged(user => {
-  if (user) {
-    console.log('User logged in:', user.email);
-    loadTasks(); // <-- this is the important part
-  } else {
-    console.log('User logged out');
-    tasks = Array(8).fill().map(() => []);
-    render();
-  }
-});
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
 
   const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const signUpBtn = document.getElementById('signup-btn');
-const signInBtn = document.getElementById('signin-btn');
+  const passwordInput = document.getElementById('password');
+  const signUpBtn = document.getElementById('signup-btn');
+  const signInBtn = document.getElementById('signin-btn');
 
-signUpBtn.onclick = () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      console.log('User signed up:', userCredential.user.email);
-      // You can now load tasks or update UI here
-    })
-    .catch(error => {
-      console.error('Sign up error:', error.message);
-      alert('Sign up failed: ' + error.message);
-    });
-};
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => console.log("Auth persistence set to LOCAL"))
+    .catch(error => console.error("Error setting auth persistence:", error));
 
-signInBtn.onclick = () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  firebase.auth().signInWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      console.log('User signed in:', userCredential.user.email);
-      // Nothing else needed here
-    })
-    .catch(error => {
-      console.error('Sign in error:', error.message);
-      alert('Sign in failed: ' + error.message);
-    });
-};
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      console.log('User logged in:', user.email);
+      loadTasks();
+      // Show main app UI here and hide login UI if needed
+    } else {
+      console.log('User logged out');
+      // Show login UI here and hide main app UI if needed
+    }
+  });
+
+  signUpBtn.onclick = () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        console.log('User signed up:', userCredential.user.email);
+      })
+      .catch(error => {
+        console.error('Sign up error:', error.message);
+        alert('Sign up failed: ' + error.message);
+      });
+  };
+
+  signInBtn.onclick = () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        console.log('User signed in:', userCredential.user.email);
+      })
+      .catch(error => {
+        console.error('Sign in error:', error.message);
+        alert('Sign in failed: ' + error.message);
+      });
+  };
 
   function loadTasks() {
-  const user = firebase.auth().currentUser;
-  if (!user) return; // Don’t try to load if not logged in
-
-  db.collection('tasks').doc(user.uid).get()
-    .then(doc => {
-      if (doc.exists) {
-        tasks = doc.data().tasks || Array(8).fill().map(() => []);
-        console.log('Loaded tasks for user:', user.email);
-      } else {
-        tasks = Array(8).fill().map(() => []);
-        console.log('No tasks found for this user. Starting fresh.');
-      }
-      render();
-    })
-    .catch(err => {
-      console.error('Error fetching tasks:', err);
-      tasks = Array(8).fill().map(() => []);
-      render();
-    });
-}
-
-
-
-  let editIndex = null;
-  let editPage = null;
-
-  // We'll store lift exercises inside the task object, like task.exercises = []
-  // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
-
- function saveTasks() {
-  const user = firebase.auth().currentUser;
-  if (!user) return; // Don't try to save if not logged in
-
-  db.collection('tasks').doc(user.uid).set({ tasks })
-    .then(() => console.log('Tasks saved to Firestore'))
-    .catch(err => console.error('Error saving tasks:', err));
-}
+    // your existing loadTasks code
+  }
 
 
   function createPages() {
