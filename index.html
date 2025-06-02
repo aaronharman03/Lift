@@ -362,16 +362,6 @@ signInBtn.onclick = () => {
     });
 };
 
-});
-
-      // Load user tasks or update UI here
-    })
-    .catch(error => {
-      console.error('Sign in error:', error.message);
-      alert('Sign in failed: ' + error.message);
-    });
-};
-
   function loadTasks() {
   const user = firebase.auth().currentUser;
   if (!user) return; // Don’t try to load if not logged in
