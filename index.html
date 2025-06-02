@@ -660,11 +660,11 @@ delBtn.onclick = () => {
     });
   }
 
-  function toggleDone(page, idx) {
-    tasks[page][idx].done = !tasks[page][idx].done;
-    await saveTasks();
-    render();
-  }
+  async function toggleDone(page, idx) {
+  tasks[page][idx].done = !tasks[page][idx].done;
+  await saveTasks();
+  render();
+}
 
   function toggleMenu(event, page, idx) {
     // Hide any other menus
