@@ -9,6 +9,9 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 
 <style>
   .nav-arrow {
@@ -275,6 +278,20 @@
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
+  <script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY_HERE",
+    authDomain: "YOUR_AUTH_DOMAIN_HERE",
+    projectId: "YOUR_PROJECT_ID_HERE",
+    storageBucket: "YOUR_STORAGE_BUCKET_HERE",
+    messagingSenderId: "YOUR_SENDER_ID_HERE",
+    appId: "YOUR_APP_ID_HERE"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
