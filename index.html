@@ -310,6 +310,56 @@ db.collection('tasks').doc('weeklySchedule').get()
     render();
   });
 
+  function loadTasks() {
+  db.collection('tasks').doc('weeklySchedule').get()
+    .then(doc => {
+      if (doc.exists) {
+        tasks = doc.data().tasks;
+        render();
+      } else {
+        console.log('No tasks found in Firestore, using empty');
+        tasks = [];
+        render();
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching tasks:', err);
+      render();
+    });
+}
+// Initialize Firebase (your config and init code)
+const db = firebase.firestore();
+
+// Your global tasks array
+let tasks = [];
+
+// Your render function (updates the UI)
+function render() {
+  // ...your code to update the page with tasks...
+}
+
+// The loadTasks function to fetch tasks from Firestore
+function loadTasks() {
+  db.collection('tasks').doc('weeklySchedule').get()
+    .then(doc => {
+      if (doc.exists) {
+        tasks = doc.data().tasks;
+        render();
+      } else {
+        console.log('No tasks found in Firestore, using empty');
+        tasks = [];
+        render();
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching tasks:', err);
+      render();
+    });
+}
+
+// Call loadTasks once when the page loads:
+loadTasks();
+
 
   let editIndex = null;
   let editPage = null;
@@ -317,9 +367,11 @@ db.collection('tasks').doc('weeklySchedule').get()
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }
+ function saveTasks() {
+  db.collection('tasks').doc('weeklySchedule').set({ tasks })
+    .then(() => console.log('Tasks saved to Firestore'))
+    .catch(err => console.error('Error saving tasks:', err));
+}
 
   function createPages() {
     const main = document.getElementById('pages');
