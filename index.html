@@ -294,8 +294,19 @@
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
+ let tasks = Array(8).fill().map(() => []);
+
+async function loadTasksFromFirestore() {
+  for (let i = 0; i < 8; i++) {
+    const doc = await db.collection('tasks').doc(i.toString()).get();
+    tasks[i] = doc.exists ? doc.data().tasks || [] : [];
+  }
+  render();
+}
+
+createPages();
+loadTasksFromFirestore();
+
 
   let editIndex = null;
   let editPage = null;
