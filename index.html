@@ -522,6 +522,8 @@ taskNameDiv.onclick = () => {
               nameInput.value = ex.name;
               nameInput.style.flex = '1';
               nameInput.oninput = e => ex.name = e.target.value;
+              nameInput.onblur = () => saveAllTasks();
+
 
               const weightInput = document.createElement('input');
               weightInput.type = 'text';
@@ -529,6 +531,7 @@ taskNameDiv.onclick = () => {
               weightInput.value = ex.weight;
               weightInput.style.width = '80px';
               weightInput.oninput = e => ex.weight = e.target.value;
+              weightInput.onblur = () => saveAllTasks();
 
               topRow.appendChild(nameInput);
               topRow.appendChild(weightInput);
@@ -544,6 +547,7 @@ taskNameDiv.onclick = () => {
                 setInput.value = setVal;
                 setInput.style.width = '40px';
                 setInput.oninput = e => ex.sets[setIdx] = e.target.value;
+                  setInput.onblur = () => saveAllTasks();
                 setsRow.appendChild(setInput);
               });
 
