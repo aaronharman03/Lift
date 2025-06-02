@@ -571,10 +571,9 @@ taskNameDiv.onclick = () => {
   };
 
   // Container for exercise summary and buttons
-  exDiv.style.display = 'flex';
-  exDiv.style.justifyContent = 'space-between';
-  exDiv.style.alignItems = 'center';
-  exDiv.appendChild(exerciseSummary);
+ exDiv.appendChild(exerciseSummary);
+exDiv.appendChild(editBtn);
+exDiv.appendChild(delBtn);
 
   const btnGroup = document.createElement('div');
   btnGroup.appendChild(editBtn);
