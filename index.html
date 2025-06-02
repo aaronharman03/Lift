@@ -274,23 +274,6 @@
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
-
-// Your Firebase config (replace with your actual config)
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-// Initialize Firebase app and Firestore DB
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -302,13 +285,9 @@ const db = getFirestore(app);
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-   addDoc(collection(db, "tasks"), {
-    title: task,
-    createdAt: new Date()
-  })
-  .then(docRef => console.log("Task saved with ID: ", docRef.id))
-  .catch(console.error);
-}
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
 
   function createPages() {
     const main = document.getElementById('pages');
