@@ -638,7 +638,7 @@ delBtn.onclick = () => {
 
   function toggleDone(page, idx) {
     tasks[page][idx].done = !tasks[page][idx].done;
-    saveTasks();
+    saveAllTasks();
     render();
   }
 
