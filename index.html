@@ -358,13 +358,15 @@ async function saveTasks() {
   if(!user) return;
 
   try {
-    await db.collection('users').doc(user.uid).update({
+    // Use set() to create or overwrite the document with tasks data
+    await db.collection('users').doc(user.uid).set({
       tasks: tasks
-    });
+    }, { merge: true }); // merge:true avoids overwriting other user fields
   } catch(e) {
     console.error('Save failed:', e);
   }
 }
+
 
 
 async function loadUserData() {
