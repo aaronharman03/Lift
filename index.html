@@ -719,7 +719,7 @@ delBtn.onclick = () => {
     document.getElementById('editModal').style.display = 'none';
   }
 
-  function saveEdit(e) {
+  async function saveEdit(e) {
     e.preventDefault();
     const form = e.target;
     const time = form.time.value.trim();
@@ -752,7 +752,7 @@ delBtn.onclick = () => {
       if(editPage === 7) task.date = date;
     }
 
-    saveTasks();
+    await saveTasks();
     closeEditModal();
     render();
   }
