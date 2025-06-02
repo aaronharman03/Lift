@@ -720,43 +720,32 @@ delBtn.onclick = () => {
     document.getElementById('editModal').style.display = 'none';
   }
 
-  async function saveEdit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const time = form.time.value.trim();
-    const name = form.name.value.trim();
-    const desc = form.desc.value.trim();
-    const date = form.date.value;
+ 
+  function saveEdit(e) {
+  e.preventDefault();
+  const time = document.getElementById('editTime').value;
+  const name = document.getElementById('editName').value;
+  const desc = document.getElementById('editDesc').value;
+  const date = document.getElementById('editDate').value;
 
-    if(!name) {
-      alert('Name is required');
-      return;
-    }
+  const task = { time, name, desc, done: false };
 
-    if(editPage === null) {
-      // Add new task on current page except list page (7)
-    const pageToAdd = currentPage;
-
-      tasks[pageToAdd].push({
-        time,
-        name,
-        desc,
-        done: false,
-        date: pageToAdd === 7 ? date : undefined
-      });
-    } else {
-      // Edit existing
-      const task = tasks[editPage][editIndex];
-      task.time = time;
-      task.name = name;
-      task.desc = desc;
-      if(editPage === 7) task.date = date;
-    }
-
-    await saveTasks();
-    closeEditModal();
-    render();
+  if (name === 'Lift') {
+    task.exercises = [];
   }
+  if (currentPage === 7) task.date = date;
+
+  if (editIndex != null) {
+    tasks[editPage][editIndex] = task;
+  } else {
+    tasks[currentPage].push(task);
+  }
+
+  closeEditModal();
+  saveTasks();
+  render();
+}
+
 
 function openAddModal() {
   editIndex = null;
