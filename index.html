@@ -326,12 +326,7 @@ db.collection('tasks').doc('weeklySchedule').get()
       console.error('Error fetching tasks:', err);
       render();
     });
-}
-// Initialize Firebase (your config and init code)
-const db = firebase.firestore();
-
-// Your global tasks array
-let tasks = [];
+  }
 
 // Your render function (updates the UI)
 function render() {
