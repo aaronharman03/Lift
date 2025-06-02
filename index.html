@@ -611,9 +611,10 @@ delBtn.onclick = () => {
   function deleteTask(page, idx) {
     if(confirm('Delete this task?')) {
       tasks[page].splice(idx, 1);
-      saveTasks();
-      render();
-    }
+      saveTasks().then(() => {
+  render();
+});
+}
   }
 
   function openEditModal(page=null, idx=null) {
