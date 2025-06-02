@@ -757,13 +757,11 @@ function openAddModal() {
     }
   };
 
- window.addEventListener('load', async () => {
+window.addEventListener('load', async () => {
   await loadTasksFromFirestore();
-  render(); // Make sure the page updates after loading
+  render();
+});
 
-    }
-  });
-};
 
 
 </script>
