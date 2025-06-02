@@ -676,13 +676,12 @@ delBtn.onclick = () => {
     else menu.style.display = 'block';
   }
 
-  function deleteTask(page, idx) {
-    if(confirm('Delete this task?')) {
-      tasks[page].splice(idx, 1);
-      await saveTasks();
-      render();
-    }
-  }
+  function deleteTask(page, index) {
+  tasks[page].splice(index, 1);
+  saveTasks();
+  render();
+}
+
 
   function openEditModal(page=null, idx=null) {
     editPage = page;
