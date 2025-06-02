@@ -361,6 +361,12 @@ async function saveTasksToFirestore() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }
 
+  async function saveAllTasks() {
+  saveTasks(); // save locally
+  await saveTasksToFirestore(); // save to Firestore
+}
+
+
   function createPages() {
     const main = document.getElementById('pages');
     main.innerHTML = '';
