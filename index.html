@@ -232,13 +232,12 @@
     touch-action: manipulation;
   }
 </style>
-   <!-- Firebase App (core SDK) -->
+  <!-- Firebase App (core SDK) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <!-- Firebase Firestore SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
 </head>
-
-
 <body>
 
 <header>
@@ -282,21 +281,19 @@
 <script>
   // Your Firebase config (replace with your own)
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  // ... any other config values ...
+ apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
+  authDomain: "gym-app-4fff1.firebaseapp.com",
+  databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "gym-app-4fff1",
+  storageBucket: "gym-app-4fff1.firebasestorage.app",
+  messagingSenderId: "1009678266608",
+  appId: "1:1009678266608:web:430ec88c296133a6b39235",
+  measurementId: "G-E0TDYJLMXH"
 };
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-  let editPage = null;
-let editIndex = null;
-
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // Firestore collection name for tasks
 const tasksCollection = db.collection('weeklyScheduleTasks');
@@ -351,52 +348,18 @@ async function saveTasksToFirestore() {
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-  let tasks = [];
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
 
-async function saveTasks() {
-  await saveTasksToFirestore();
-}
+  let editIndex = null;
+  let editPage = null;
 
-  // 1. Import Firestore functions
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+  // We'll store lift exercises inside the task object, like task.exercises = []
+  // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-// 2. Initialize Firestore
-const db = getFirestore();
-
-// 3. Your user ID or unique doc ID - for now, use a fixed ID or get from auth
-const userDocId = "weeklyScheduleUser";  // Replace with dynamic user ID if you add auth later
-
-// 4. Load tasks from Firestore
-async function loadTasksFromFirestore() {
-  const docRef = doc(db, "weeklySchedules", userDocId);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    tasks = docSnap.data().tasks || Array(8).fill().map(() => []);
-  } else {
-    tasks = Array(8).fill().map(() => []);
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
   }
-  render();
-}
-
-// 5. Save tasks to Firestore
-async function saveTasksToFirestore() {
-  const docRef = doc(db, "weeklySchedules", userDocId);
-  try {
-    await setDoc(docRef, { tasks });
-    console.log("Tasks saved to Firestore");
-  } catch (e) {
-    console.error("Error saving tasks:", e);
-  }
-}
-
-// 6. Replace your existing saveTasks function with this:
-function saveTasks() {
-  saveTasksToFirestore();
-}
-
-// 7. Replace your initial loading (where you read localStorage) with:
-loadTasksFromFirestore();
-
 
   function createPages() {
     const main = document.getElementById('pages');
@@ -766,12 +729,12 @@ delBtn.onclick = () => {
     render();
   }
 
-function openEditModal(page = null, idx = null) {
-  editPage = page;
-  editIndex = idx;
-  // ...rest unchanged
-}
+function openAddModal() {
+  editIndex = null;
+  editPage = currentPage; // <-- This is the fix
+  openEditModal();
 
+}
 
   function prevPage() {
     currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
@@ -790,12 +753,8 @@ function openEditModal(page = null, idx = null) {
     }
   };
 
- (async () => {
-  await loadTasksFromFirestore();
   createPages();
   render();
-})();
-
 
 </script>
 
