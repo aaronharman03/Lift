@@ -339,22 +339,18 @@ function logout() {
 
 auth.onAuthStateChanged(user => {
   if(user) {
-    if(!user) {
-  document.getElementById('addTaskBtn').style.display = 'none';
-} else {
-  document.getElementById('addTaskBtn').style.display = 'block';
-}
+    document.getElementById('addTaskBtn').style.display = 'block';
     document.getElementById('userDetails').style.display = 'block';
     document.getElementById('authForms').style.display = 'none';
     loadUserData();
   } else {
+    document.getElementById('addTaskBtn').style.display = 'none';
     document.getElementById('userDetails').style.display = 'none';
     document.getElementById('authForms').style.display = 'block';
     tasks = Array(8).fill().map(() => []);
     render();
   }
 });
-
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
