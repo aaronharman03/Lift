@@ -357,8 +357,6 @@ async function saveTasksToFirestore() {
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
   }
 
   async function saveAllTasks() {
