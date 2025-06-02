@@ -551,44 +551,42 @@ taskNameDiv.onclick = () => {
 
               exDiv.appendChild(exInputsDiv);
 
-            } else {
-              // Show exercise summary line
-              const exerciseSummary = document.createElement('span');
-const setsText = ex.sets.filter(s => s.trim() !== '').join(', ');
-const weightText = ex.weight ? ex.weight : '';
+  } else {
+  // Show exercise summary line
+  const exerciseSummary = document.createElement('span');
+  const setsText = ex.sets.filter(s => s.trim() !== '').join(', ');
+  const weightText = ex.weight ? ex.weight : '';
+  exerciseSummary.textContent = `${ex.name} - ${weightText} - ${setsText}`;
+  exerciseSummary.style.fontWeight = 'bold';
 
-exerciseSummary.textContent = `${ex.name} - ${weightText} - ${setsText}`;
-exerciseSummary.style.fontWeight = 'bold';
+  // Buttons for Edit and Delete
+  const editBtn = document.createElement('button');
+  editBtn.textContent = 'Edit';
+  editBtn.onclick = () => {
+    ex.editing = true;
+    render();
+  };
 
-const editBtn = document.createElement('button');
-editBtn.textContent = 'Edit';
-editBtn.onclick = () => {
-  ex.editing = true;
-  render();
-}
-};
+  const delBtn = document.createElement('button');
+  delBtn.textContent = 'Delete';
+  delBtn.onclick = () => {
+    task.exercises.splice(exIdx, 1);
+    saveTasks();
+    render();
+  };
 
-const delBtn = document.createElement('button');
-delBtn.textContent = 'Delete';
-delBtn.onclick = () => {
-  task.exercises.splice(exIdx, 1);
-  render();
-};
-
+  // Container for exercise summary and buttons
   exDiv.style.display = 'flex';
   exDiv.style.justifyContent = 'space-between';
   exDiv.style.alignItems = 'center';
-
-  // Container for buttons to group and align them properly
-  const btnContainer = document.createElement('div');
-  btnContainer.style.display = 'flex';
-  btnContainer.style.gap = '0.3rem';
-
-  btnContainer.appendChild(editBtn);
-  btnContainer.appendChild(delBtn);
-
   exDiv.appendChild(exerciseSummary);
-  exDiv.appendChild(btnContainer);
+
+  const btnGroup = document.createElement('div');
+  btnGroup.appendChild(editBtn);
+  btnGroup.appendChild(delBtn);
+
+  exDiv.appendChild(btnGroup);
+}
 
 
   };
