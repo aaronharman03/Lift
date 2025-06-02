@@ -317,17 +317,14 @@ let tasks = Array(8).fill().map(() => []); // fallback empty structure
   });
   firebase.auth().onAuthStateChanged(user => {
   if (user) {
-    console.log("User is signed in:", user.email);
-    document.getElementById("app").classList.remove("hidden");
-    loadTasks();
+    console.log('User logged in:', user.email);
+    loadTasks(); // <-- this is the important part
   } else {
-    console.log("No user signed in");
-    document.getElementById("app").classList.add("hidden");
-    // Show login form (optional)
+    console.log('User logged out');
+    tasks = Array(8).fill().map(() => []);
+    render();
   }
 });
-
-
 
   const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
