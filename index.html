@@ -8,12 +8,6 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
-<!-- Firebase App (the core Firebase SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<!-- Firebase Authentication -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-<!-- Firebase Firestore -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
 <style>
   .nav-arrow {
@@ -242,22 +236,10 @@
 <body>
 
 <header>
-  
    <button class="nav-arrow" onclick="prevPage()">←</button>
   <h2 id="pageTitle">Monday</h2>
   <button class="nav-arrow" onclick="nextPage()">→</button>
 </header>
- <div id="userDetails" style="display:none;">
-  <span id="userEmail"></span>
-</div>
-
-  
-  <div id="authForms">
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="signIn()">Sign In</button>
-  </div>
 
 <main id="pages"></main>
 
@@ -291,98 +273,11 @@
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
-  
-
 <script>
-  // Initialize Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.firestore();
-  function signUp() {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      alert('Signed up successfully!');
-      loadUserData();
-    })
-    .catch(error => alert(error.message));
-}
-
-function signIn() {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
-  auth.signInWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      alert('Signed in!');
-      loadUserData();
-    })
-    .catch(error => alert(error.message));
-}
-
-function logout() {
-  auth.signOut();
-}
-
-auth.onAuthStateChanged(user => {
-  if(user) {
-    document.getElementById('addTaskBtn').style.display = 'block';
-    document.getElementById('userDetails').style.display = 'block';
-    document.getElementById('authForms').style.display = 'none';
-    loadUserData();
-  } else {
-    document.getElementById('addTaskBtn').style.display = 'none';
-    document.getElementById('userDetails').style.display = 'none';
-    document.getElementById('authForms').style.display = 'block';
-    tasks = Array(8).fill().map(() => []);
-    render();
-  }
-});
-
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
- let tasks = Array(8).fill().map(() => []);
-async function saveTasks() {
-  const user = auth.currentUser;
-  if(!user) return;
-
-  try {
-    // Use set() to create or overwrite the document with tasks data
-   await db.collection('users').doc(user.uid).set({
-  tasks: tasks
-});
-
-  } catch(e) {
-    console.error('Save failed:', e);
-  }
-}
-
-
-
-async function loadUserData() {
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const doc = await db.collection('users').doc(user.uid).get();
-  if(doc.exists && doc.data().tasks) {
-    tasks = doc.data().tasks;
-  } else {
-    tasks = Array(8).fill().map(() => []);
-  }
-  render();
-}
-
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
 
   let editIndex = null;
   let editPage = null;
@@ -390,6 +285,9 @@ async function loadUserData() {
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
 
   function createPages() {
     const main = document.getElementById('pages');
@@ -513,17 +411,15 @@ taskNameDiv.onclick = () => {
           const addExerciseBtn = document.createElement('div');
           addExerciseBtn.className = 'add-exercise-btn';
           addExerciseBtn.textContent = '+ Add Exercise';
-         addExerciseBtn.onclick = () => {
-  task.exercises.push({
-    name: '',
-    weight: '',
-    sets: ['','',''],
-    editing: true
-  });
-  saveTasks();  // 🔁 Save immediately
-  render();
-};
-
+          addExerciseBtn.onclick = () => {
+            task.exercises.push({
+              name: '',
+              weight: '',
+              sets: ['','',''], // 3 empty sets by default
+              editing: true
+            });
+            render();
+          };
           exercisesDiv.appendChild(addExerciseBtn);
 
           // Render each exercise
@@ -595,7 +491,7 @@ taskNameDiv.onclick = () => {
                 } else {
                   ex.editing = false;
                 }
-                await saveTasks();
+                saveTasks();
                 render();
               };
 
@@ -662,11 +558,11 @@ delBtn.onclick = () => {
     });
   }
 
- function toggleDone(page, index) {
-  tasks[page][index].done = !tasks[page][index].done;
-  saveTasks();
-  render();
-}
+  function toggleDone(page, idx) {
+    tasks[page][idx].done = !tasks[page][idx].done;
+    saveTasks();
+    render();
+  }
 
   function toggleMenu(event, page, idx) {
     // Hide any other menus
@@ -678,12 +574,13 @@ delBtn.onclick = () => {
     else menu.style.display = 'block';
   }
 
-  function deleteTask(page, index) {
-  tasks[page].splice(index, 1);
-  render();
-  saveTasks();
-}
-
+  function deleteTask(page, idx) {
+    if(confirm('Delete this task?')) {
+      tasks[page].splice(idx, 1);
+      saveTasks();
+      render();
+    }
+  }
 
   function openEditModal(page=null, idx=null) {
     editPage = page;
@@ -722,32 +619,43 @@ delBtn.onclick = () => {
     document.getElementById('editModal').style.display = 'none';
   }
 
- 
   function saveEdit(e) {
-  e.preventDefault();
-  const time = document.getElementById('editTime').value;
-  const name = document.getElementById('editName').value;
-  const desc = document.getElementById('editDesc').value;
-  const date = document.getElementById('editDate').value;
+    e.preventDefault();
+    const form = e.target;
+    const time = form.time.value.trim();
+    const name = form.name.value.trim();
+    const desc = form.desc.value.trim();
+    const date = form.date.value;
 
-  const task = { time, name, desc, done: false };
+    if(!name) {
+      alert('Name is required');
+      return;
+    }
 
-  if (name === 'Lift') {
-    task.exercises = [];
+    if(editPage === null) {
+      // Add new task on current page except list page (7)
+    const pageToAdd = currentPage;
+
+      tasks[pageToAdd].push({
+        time,
+        name,
+        desc,
+        done: false,
+        date: pageToAdd === 7 ? date : undefined
+      });
+    } else {
+      // Edit existing
+      const task = tasks[editPage][editIndex];
+      task.time = time;
+      task.name = name;
+      task.desc = desc;
+      if(editPage === 7) task.date = date;
+    }
+
+    saveTasks();
+    closeEditModal();
+    render();
   }
-  if (currentPage === 7) task.date = date;
-
-  if (editIndex != null) {
-    tasks[editPage][editIndex] = task;
-  } else {
-    tasks[currentPage].push(task);
-  }
-
-  closeEditModal();
-  saveTasks();
-  render();
-}
-
 
 function openAddModal() {
   editIndex = null;
@@ -780,4 +688,3 @@ function openAddModal() {
 
 </body>
 </html>
-
