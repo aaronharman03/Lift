@@ -8,9 +8,6 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
- 
-</div>
-
 
 <style>
   .nav-arrow {
@@ -235,16 +232,14 @@
     touch-action: manipulation;
   }
 </style>
+   <!-- Firebase App (core SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<!-- Firebase Firestore SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
+
+
 <body>
-<div id="auth-container">
-  <input type="email" id="email" placeholder="Email" required />
-<input type="password" id="password" placeholder="Password" required />
-
-<button id="signup-btn">Sign Up</button>
-<button id="signin-btn">Sign In</button>
-
-</div>
 
 <header>
    <button class="nav-arrow" onclick="prevPage()">←</button>
@@ -260,14 +255,13 @@
     <h3 id="editModalTitle">Add Task</h3>
     <form id="editForm" onsubmit="saveEdit(event)">
       <label>
-  Time:<br/>
-  <input type="text" id="editTime" name="time" />
-</label>
-<label>
-  Name:<br/>
-  <input type="text" id="editName" name="name" required />
-</label>
-
+        Time:<br/>
+        <input type="time" name="time" id="editTime" />
+      </label>
+      <label>
+        Name:<br/>
+        <input type="text" name="name" id="editName" required />
+      </label>
       <label>
         Description:<br/>
         <textarea name="desc" id="editDesc"></textarea>
@@ -281,125 +275,88 @@
     </form>
   </div>
 </div>
-<div id="app" class="hidden">
-  <!-- your main content -->
-</div>
 
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-    authDomain: "gym-app-4fff1.firebaseapp.com",
-    databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "gym-app-4fff1",
-    storageBucket: "gym-app-4fff1.firebasestorage.app",
-    messagingSenderId: "1009678266608",
-    appId: "1:1009678266608:web:430ec88c296133a6b39235",
-    measurementId: "G-E0TDYJLMXH"
-  };
+  // Your Firebase config (replace with your own)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  // ... any other config values ...
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const auth = firebase.auth();
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const signUpBtn = document.getElementById('signup-btn');
-  const signInBtn = document.getElementById('signin-btn');
+// Firestore collection name for tasks
+const tasksCollection = db.collection('weeklyScheduleTasks');
 
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => console.log("Auth persistence set to LOCAL"))
-    .catch(error => console.error("Error setting auth persistence:", error));
-
- firebase.auth().onAuthStateChanged(user => {
-  if (user) {
-    console.log('User logged in:', user.email);
-
-    document.getElementById('auth-container').style.display = 'none';  // hide login inputs
-    document.getElementById('app').classList.remove('hidden');         // show app
-
-    loadTasks();
-  } else {
-    console.log('User logged out');
-
-    document.getElementById('auth-container').style.display = 'block';  // show login inputs
-    document.getElementById('app').classList.add('hidden');             // hide app
+// Instead of localStorage, load tasks from Firestore
+async function loadTasksFromFirestore() {
+  try {
+    const snapshot = await tasksCollection.get();
+    if (snapshot.empty) {
+      // No data in Firestore, initialize empty array of 8 empty lists (for 7 days + List)
+      tasks = Array(8).fill().map(() => []);
+      saveTasksToFirestore(); // initialize Firestore with empty data
+    } else {
+      // Firestore stores tasks per page/day, let's reconstruct tasks array
+      // Assuming each document has { page: Number, task: Object }
+      tasks = Array(8).fill().map(() => []);
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.page >= 0 && data.page < 8 && data.task) {
+          tasks[data.page].push(data.task);
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error loading tasks from Firestore:", err);
   }
-});
-
-
-
-  signUpBtn.onclick = () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then(userCredential => {
-        console.log('User signed up:', userCredential.user.email);
-      })
-      .catch(error => {
-        console.error('Sign up error:', error.message);
-        alert('Sign up failed: ' + error.message);
-      });
-  };
-
-  signInBtn.onclick = () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(userCredential => {
-        console.log('User signed in:', userCredential.user.email);
-      })
-      .catch(error => {
-        console.error('Sign in error:', error.message);
-        alert('Sign in failed: ' + error.message);
-      });
-  };
-
-  function loadTasks() {
-  const user = firebase.auth().currentUser;
-  if (!user) {
-    console.log('No user logged in. Cannot load tasks.');
-    return;
-  }
-
-  db.collection('users').doc(user.uid).collection('tasks')
-    .get()
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        const task = doc.data();
-        console.log(`Task ID: ${doc.id}`, task);
-        // TODO: Update your UI with the task data here
-      });
-    })
-    .catch((error) => {
-      console.error('Error loading tasks:', error);
-    });
 }
 
-function addTask(task) {
-  const user = firebase.auth().currentUser;
-  if (!user) {
-    console.log('No user logged in. Cannot add task.');
-    return;
-  }
+// Save all tasks to Firestore by overwriting all documents
+async function saveTasksToFirestore() {
+  try {
+    // Delete all old docs first (optional, but clean)
+    const snapshot = await tasksCollection.get();
+    const batch = db.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
 
-  db.collection('users').doc(user.uid).collection('tasks')
-    .add(task)
-    .then((docRef) => {
-      console.log('Task added with ID:', docRef.id);
-      loadTasks(); // Reload tasks after adding
-    })
-    .catch((error) => {
-      console.error('Error adding task:', error);
+    // Add all tasks fresh
+    const batchSet = db.batch();
+    tasks.forEach((taskList, page) => {
+      taskList.forEach(task => {
+        // Add a doc per task with page info
+        const docRef = tasksCollection.doc();
+        batchSet.set(docRef, { page, task });
+      });
     });
+    await batchSet.commit();
+  } catch (err) {
+    console.error("Error saving tasks to Firestore:", err);
+  }
 }
 
+  let currentPage = 0;
+  const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
+
+  let editIndex = null;
+  let editPage = null;
+
+  // We'll store lift exercises inside the task object, like task.exercises = []
+  // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
+
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
 
   function createPages() {
     const main = document.getElementById('pages');
@@ -619,41 +576,43 @@ taskNameDiv.onclick = () => {
 
               exDiv.appendChild(exInputsDiv);
 
-  } else {
-  // Show exercise summary line
-  const exerciseSummary = document.createElement('span');
-  const setsText = ex.sets.filter(s => s.trim() !== '').join(', ');
-  const weightText = ex.weight ? ex.weight : '';
-  exerciseSummary.textContent = `${ex.name} - ${weightText} - ${setsText}`;
-  exerciseSummary.style.fontWeight = 'bold';
+            } else {
+              // Show exercise summary line
+              const exerciseSummary = document.createElement('span');
+const setsText = ex.sets.filter(s => s.trim() !== '').join(', ');
+const weightText = ex.weight ? ex.weight : '';
 
-  // Buttons for Edit and Delete
-  const editBtn = document.createElement('button');
-  editBtn.textContent = 'Edit';
-  editBtn.onclick = () => {
-    ex.editing = true;
-    render();
-  };
+exerciseSummary.textContent = `${ex.name} - ${weightText} - ${setsText}`;
+exerciseSummary.style.fontWeight = 'bold';
 
-  const delBtn = document.createElement('button');
-  delBtn.textContent = 'Delete';
-  delBtn.onclick = () => {
-    task.exercises.splice(exIdx, 1);
-    saveTasks();
-    render();
-  };
+const editBtn = document.createElement('button');
+editBtn.textContent = 'Edit';
+editBtn.onclick = () => {
+  ex.editing = true;
+  render();
+};
 
-  // Container for exercise summary and buttons
- exDiv.appendChild(exerciseSummary);
-exDiv.appendChild(editBtn);
-exDiv.appendChild(delBtn);
+const delBtn = document.createElement('button');
+delBtn.textContent = 'Delete';
+delBtn.onclick = () => {
+  task.exercises.splice(exIdx, 1);
+  render();
+};
 
-  const btnGroup = document.createElement('div');
-  btnGroup.appendChild(editBtn);
-  btnGroup.appendChild(delBtn);
+  exDiv.style.display = 'flex';
+  exDiv.style.justifyContent = 'space-between';
+  exDiv.style.alignItems = 'center';
 
-  exDiv.appendChild(btnGroup);
-}
+  // Container for buttons to group and align them properly
+  const btnContainer = document.createElement('div');
+  btnContainer.style.display = 'flex';
+  btnContainer.style.gap = '0.3rem';
+
+  btnContainer.appendChild(editBtn);
+  btnContainer.appendChild(delBtn);
+
+  exDiv.appendChild(exerciseSummary);
+  exDiv.appendChild(btnContainer);
 
 
   };
@@ -668,11 +627,10 @@ exDiv.appendChild(delBtn);
     });
   }
 
-  function toggleDone(dayIdx, taskIdx) {
-  const task = tasks[dayIdx][taskIdx];
-  task.done = !task.done;
-  saveTasks(); // 🔹 Add this
-  render();
+  function toggleDone(page, idx) {
+    tasks[page][idx].done = !tasks[page][idx].done;
+    saveTasks();
+    render();
   }
 
   function toggleMenu(event, page, idx) {
@@ -685,92 +643,95 @@ exDiv.appendChild(delBtn);
     else menu.style.display = 'block';
   }
 
- function deleteTask(dayIdx, taskIdx) {
-  tasks[dayIdx].splice(taskIdx, 1);
-  saveTasks();      // Make sure to persist the deletion
-  render();         // Re-render UI
-
-    }
-function openEditModal(dayIdx, taskIdx) {
-  const editModal = document.getElementById('editModal');
-  const editNameInput = document.getElementById('editName');
-  const editTimeInput = document.getElementById('editTime');
-  const editDescInput = document.getElementById('editDesc');
-  const editDateInput = document.getElementById('editDate');
-  const dateLabel = document.getElementById('dateLabel');
-
-  if (dayIdx === null || taskIdx === null) {
-    // Adding new task
-    editNameInput.value = '';
-    editTimeInput.value = '';
-    editDescInput.value = '';
-    editDateInput.value = '';
-    dateLabel.style.display = 'none';
-  } else {
-    // Editing existing task
-    const task = tasks[dayIdx][taskIdx];
-    editNameInput.value = task.name || '';
-    editTimeInput.value = task.time || '';
-    editDescInput.value = task.desc || '';
-    if(dayIdx === 7) {
-      dateLabel.style.display = 'block';
-      editDateInput.value = task.date || '';
-    } else {
-      dateLabel.style.display = 'none';
-      editDateInput.value = '';
+  function deleteTask(page, idx) {
+    if(confirm('Delete this task?')) {
+      tasks[page].splice(idx, 1);
+      saveTasks();
+      render();
     }
   }
 
-  // Save indices so saveEdit can find the right task
-  editPage = dayIdx;
-  editIndex = taskIdx;
+  function openEditModal(page=null, idx=null) {
+    editPage = page;
+    editIndex = idx;
+    const modal = document.getElementById('editModal');
+    const title = document.getElementById('editModalTitle');
+    const form = document.getElementById('editForm');
+    const dateLabel = document.getElementById('dateLabel');
 
-  editModal.style.display = 'flex';
-  editNameInput.focus();
-}
-
+    if(page === null) {
+      title.textContent = 'Add Task';
+      form.time.value = '';
+      form.name.value = '';
+      form.desc.value = '';
+      form.date.value = '';
+      dateLabel.style.display = 'none';
+    } else {
+      title.textContent = 'Edit Task';
+      const task = tasks[page][idx];
+      form.time.value = task.time || '';
+      form.name.value = task.name || '';
+      form.desc.value = task.desc || '';
+      if(page === 7) {
+        dateLabel.style.display = 'block';
+        form.date.value = task.date || '';
+      } else {
+        dateLabel.style.display = 'none';
+        form.date.value = '';
+      }
+    }
+    modal.style.display = 'flex';
+    form.name.focus();
+  }
 
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
   }
-function saveEdit(e) {
-  e.preventDefault();
-  const name = document.getElementById('editName').value.trim();
-  const time = document.getElementById('editTime').value.trim();
-  const desc = document.getElementById('editDesc').value.trim();
-  const date = document.getElementById('editDate')?.value.trim();
 
-  if (!name) {
-    alert("Task name is required.");
-    return;
+  function saveEdit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const time = form.time.value.trim();
+    const name = form.name.value.trim();
+    const desc = form.desc.value.trim();
+    const date = form.date.value;
+
+    if(!name) {
+      alert('Name is required');
+      return;
+    }
+
+    if(editPage === null) {
+      // Add new task on current page except list page (7)
+    const pageToAdd = currentPage;
+
+      tasks[pageToAdd].push({
+        time,
+        name,
+        desc,
+        done: false,
+        date: pageToAdd === 7 ? date : undefined
+      });
+    } else {
+      // Edit existing
+      const task = tasks[editPage][editIndex];
+      task.time = time;
+      task.name = name;
+      task.desc = desc;
+      if(editPage === 7) task.date = date;
+    }
+
+    saveTasks();
+    closeEditModal();
+    render();
   }
-
-  const task = { name, time, desc };
-  if (currentPage === 7 && date) {
-    task.date = date;
-  }
-
-  if (editIndex !== null && editPage !== null) {
-    tasks[editPage][editIndex] = task;
-  } else {
-    tasks[currentPage].push(task);
-  }
-
-  saveTasks();
-  closeEditModal();
-  render();
-}
-
-
-
-
 
 function openAddModal() {
   editIndex = null;
-  editPage = currentPage; // important: set this so saveEdit knows where to save
-  openEditModal(null, null); // call with nulls because adding new
-}
+  editPage = currentPage; // <-- This is the fix
+  openEditModal();
 
+}
 
   function prevPage() {
     currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
