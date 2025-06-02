@@ -370,8 +370,26 @@
   };
 
   function loadTasks() {
-    // your existing loadTasks code
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    console.log('No user logged in. Cannot load tasks.');
+    return;
   }
+
+  db.collection('users').doc(user.uid).collection('tasks')
+    .get()
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        const task = doc.data();
+        console.log(`Task ID: ${doc.id}`, task);
+        // TODO: Update your UI with the task data here
+      });
+    })
+    .catch((error) => {
+      console.error('Error loading tasks:', error);
+    });
+}
+
 
 
   function createPages() {
