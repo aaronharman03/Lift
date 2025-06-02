@@ -635,11 +635,11 @@ delBtn.onclick = () => {
     else menu.style.display = 'block';
   }
 
-  function deleteTask(page, idx) {
-    if(confirm('Delete this task?')) {
-      tasks[page].splice(idx, 1);
-      saveTasks();
-      render();
+ function deleteTask(dayIdx, taskIdx) {
+  tasks[dayIdx].splice(taskIdx, 1);
+  saveTasks();      // Make sure to persist the deletion
+  render();         // Re-render UI
+
     }
   }
 
