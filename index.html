@@ -766,12 +766,12 @@ delBtn.onclick = () => {
     render();
   }
 
-function openAddModal() {
-  editIndex = null;
-  editPage = currentPage; // <-- This is the fix
-  openEditModal();
-
+function openEditModal(page = null, idx = null) {
+  editPage = page;
+  editIndex = idx;
+  // ...rest unchanged
 }
+
 
   function prevPage() {
     currentPage = (currentPage - 1 + pageNames.length) % pageNames.length;
