@@ -760,11 +760,16 @@ function openAddModal() {
     }
   };
 
-  window.onload = async () => {
-  await loadTasksFromFirestore(); // Load from Firestore first
-  createPages(); // Then build the UI
-  render(); // Then render tasks
+  window.onload = () => {
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      await loadTasksFromFirestore();
+      createPages();
+      render();
+    }
+  });
 };
+
 
 </script>
 
