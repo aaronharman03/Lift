@@ -743,8 +743,12 @@ function openAddModal() {
     }
   };
 
+ (async () => {
+  await loadTasksFromFirestore();
   createPages();
   render();
+})();
+
 
 </script>
 
