@@ -401,10 +401,14 @@ loadTasks();
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
  function saveTasks() {
-  db.collection('tasks').doc('weeklySchedule').set({ tasks })
+  const user = firebase.auth().currentUser;
+  if (!user) return; // Don't try to save if not logged in
+
+  db.collection('tasks').doc(user.uid).set({ tasks })
     .then(() => console.log('Tasks saved to Firestore'))
     .catch(err => console.error('Error saving tasks:', err));
 }
+
 
   function createPages() {
     const main = document.getElementById('pages');
