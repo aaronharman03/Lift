@@ -488,13 +488,14 @@ taskNameDiv.onclick = () => {
           addExerciseBtn.className = 'add-exercise-btn';
           addExerciseBtn.textContent = '+ Add Exercise';
           addExerciseBtn.onclick = () => {
-            task.exercises.push({
-              name: '',
-              weight: '',
-              sets: ['','',''], // 3 empty sets by default
-              editing: true
-            });
-            render();
+  task.exercises.push({
+    name: '',
+    weight: '',
+    sets: ['','',''],
+    editing: true
+  });
+  saveAllTasks(); // <-- ADD THIS
+  render();
           };
           exercisesDiv.appendChild(addExerciseBtn);
 
