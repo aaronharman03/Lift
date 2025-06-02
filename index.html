@@ -696,50 +696,44 @@ exDiv.appendChild(delBtn);
   render();         // Re-render UI
 
     }
-
 function openEditModal(dayIdx, taskIdx) {
-  const task = tasks[dayIdx][taskIdx];
   const editModal = document.getElementById('editModal');
-  const editTitleInput = document.getElementById('editTitleInput');
-  const editTimeInput = document.getElementById('editTimeInput');
+  const editNameInput = document.getElementById('editName');
+  const editTimeInput = document.getElementById('editTime');
+  const editDescInput = document.getElementById('editDesc');
+  const editDateInput = document.getElementById('editDate');
+  const dateLabel = document.getElementById('dateLabel');
 
-  // Populate modal inputs
-  editTitleInput.value = task.title;
-  editTimeInput.value = task.time || '';
+  if (dayIdx === null || taskIdx === null) {
+    // Adding new task
+    editNameInput.value = '';
+    editTimeInput.value = '';
+    editDescInput.value = '';
+    editDateInput.value = '';
+    dateLabel.style.display = 'none';
+  } else {
+    // Editing existing task
+    const task = tasks[dayIdx][taskIdx];
+    editNameInput.value = task.name || '';
+    editTimeInput.value = task.time || '';
+    editDescInput.value = task.desc || '';
+    if(dayIdx === 7) {
+      dateLabel.style.display = 'block';
+      editDateInput.value = task.date || '';
+    } else {
+      dateLabel.style.display = 'none';
+      editDateInput.value = '';
+    }
+  }
 
-  // Store indices for use in saveEdit
-  editModal.dataset.dayIdx = dayIdx;
-  editModal.dataset.taskIdx = taskIdx;
+  // Save indices so saveEdit can find the right task
+  editPage = dayIdx;
+  editIndex = taskIdx;
 
-  // Show modal
   editModal.style.display = 'flex';
+  editNameInput.focus();
 }
 
-
-    if(page === null) {
-      title.textContent = 'Add Task';
-      form.time.value = '';
-      form.name.value = '';
-      form.desc.value = '';
-      form.date.value = '';
-      dateLabel.style.display = 'none';
-    } else {
-      title.textContent = 'Edit Task';
-      const task = tasks[page][idx];
-      form.time.value = task.time || '';
-      form.name.value = task.name || '';
-      form.desc.value = task.desc || '';
-      if(page === 7) {
-        dateLabel.style.display = 'block';
-        form.date.value = task.date || '';
-      } else {
-        dateLabel.style.display = 'none';
-        form.date.value = '';
-      }
-    }
-    modal.style.display = 'flex';
-    form.name.focus();
-  }
 
   function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
