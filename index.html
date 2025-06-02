@@ -302,9 +302,13 @@ const db = getFirestore(app);
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }
+   addDoc(collection(db, "tasks"), {
+    title: task,
+    createdAt: new Date()
+  })
+  .then(docRef => console.log("Task saved with ID: ", docRef.id))
+  .catch(console.error);
+}
 
   function createPages() {
     const main = document.getElementById('pages');
