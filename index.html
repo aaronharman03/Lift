@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -276,12 +277,18 @@
 <script>
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
 
   let editIndex = null;
   let editPage = null;
 
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
+
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
 
   function createPages() {
     const main = document.getElementById('pages');
@@ -485,6 +492,7 @@ taskNameDiv.onclick = () => {
                 } else {
                   ex.editing = false;
                 }
+                saveTasks();
                 render();
               };
 
@@ -553,7 +561,7 @@ delBtn.onclick = () => {
 
   function toggleDone(page, idx) {
     tasks[page][idx].done = !tasks[page][idx].done;
-    
+    saveTasks();
     render();
   }
 
@@ -570,7 +578,7 @@ delBtn.onclick = () => {
   function deleteTask(page, idx) {
     if(confirm('Delete this task?')) {
       tasks[page].splice(idx, 1);
-      
+      saveTasks();
       render();
     }
   }
@@ -645,7 +653,7 @@ delBtn.onclick = () => {
       if(editPage === 7) task.date = date;
     }
 
-
+    saveTasks();
     closeEditModal();
     render();
   }
