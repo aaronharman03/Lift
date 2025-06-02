@@ -294,22 +294,6 @@
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
 let tasks = Array(8).fill().map(() => []); // fallback empty structure
 
-// Fetch from Firestore
-db.collection('tasks').doc('weeklySchedule').get()
-  .then(doc => {
-    if(doc.exists) {
-      tasks = doc.data().tasks;
-      render();
-    } else {
-      console.log('No tasks found in Firestore, using empty');
-      render();
-    }
-  })
-  .catch(err => {
-    console.error('Error fetching tasks:', err);
-    render();
-  });
-
   function loadTasks() {
   db.collection('tasks').doc('weeklySchedule').get()
     .then(doc => {
