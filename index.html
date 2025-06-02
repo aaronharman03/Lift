@@ -314,9 +314,11 @@ loadTasksFromFirestore();
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+  async function saveTasks() {
+  for (let i = 0; i < tasks.length; i++) {
+    await db.collection('tasks').doc(i.toString()).set({ tasks: tasks[i] });
   }
+}
 
   function createPages() {
     const main = document.getElementById('pages');
