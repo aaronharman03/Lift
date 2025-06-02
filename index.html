@@ -257,13 +257,14 @@
     <h3 id="editModalTitle">Add Task</h3>
     <form id="editForm" onsubmit="saveEdit(event)">
       <label>
-        Time:<br/>
-        const editNameInput = document.getElementById('editName');
-      </label>
-      <label>
-        Name:<br/>
-        const editTimeInput = document.getElementById('editTime');
-      </label>
+  Time:<br/>
+  <input type="text" id="editTime" name="time" />
+</label>
+<label>
+  Name:<br/>
+  <input type="text" id="editName" name="name" required />
+</label>
+
       <label>
         Description:<br/>
         <textarea name="desc" id="editDesc"></textarea>
