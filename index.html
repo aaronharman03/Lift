@@ -522,9 +522,10 @@ taskNameDiv.onclick = () => {
                 } else {
                   ex.editing = false;
                 }
-                saveTasks();
-                render();
-              };
+              saveTasks().then(() => {
+  render();
+});
+
 
               const btnRow = document.createElement('div');
               btnRow.style.marginTop = '0.3rem';
