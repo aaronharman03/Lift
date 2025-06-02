@@ -513,15 +513,17 @@ taskNameDiv.onclick = () => {
           const addExerciseBtn = document.createElement('div');
           addExerciseBtn.className = 'add-exercise-btn';
           addExerciseBtn.textContent = '+ Add Exercise';
-          addExerciseBtn.onclick = () => {
-            task.exercises.push({
-              name: '',
-              weight: '',
-              sets: ['','',''], // 3 empty sets by default
-              editing: true
-            });
-            render();
-          };
+         addExerciseBtn.onclick = () => {
+  task.exercises.push({
+    name: '',
+    weight: '',
+    sets: ['','',''],
+    editing: true
+  });
+  saveTasks();  // 🔁 Save immediately
+  render();
+};
+
           exercisesDiv.appendChild(addExerciseBtn);
 
           // Render each exercise
