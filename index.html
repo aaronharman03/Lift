@@ -232,11 +232,6 @@
     touch-action: manipulation;
   }
 </style>
-  <!-- Firebase App (core SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<!-- Firebase Firestore SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
 
@@ -279,73 +274,6 @@
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
-  // Your Firebase config (replace with your own)
-const firebaseConfig = {
- apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Firestore collection name for tasks
-const tasksCollection = db.collection('weeklyScheduleTasks');
-
-// Instead of localStorage, load tasks from Firestore
-async function loadTasksFromFirestore() {
-  try {
-    const snapshot = await tasksCollection.get();
-    if (snapshot.empty) {
-      // No data in Firestore, initialize empty array of 8 empty lists (for 7 days + List)
-      tasks = Array(8).fill().map(() => []);
-      saveTasksToFirestore(); // initialize Firestore with empty data
-    } else {
-      // Firestore stores tasks per page/day, let's reconstruct tasks array
-      // Assuming each document has { page: Number, task: Object }
-      tasks = Array(8).fill().map(() => []);
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.page >= 0 && data.page < 8 && data.task) {
-          tasks[data.page].push(data.task);
-        }
-      });
-    }
-  } catch (err) {
-    console.error("Error loading tasks from Firestore:", err);
-  }
-}
-
-// Save all tasks to Firestore by overwriting all documents
-async function saveTasksToFirestore() {
-  try {
-    // Delete all old docs first (optional, but clean)
-    const snapshot = await tasksCollection.get();
-    const batch = db.batch();
-    snapshot.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-
-    // Add all tasks fresh
-    const batchSet = db.batch();
-    tasks.forEach((taskList, page) => {
-      taskList.forEach(task => {
-        // Add a doc per task with page info
-        const docRef = tasksCollection.doc();
-        batchSet.set(docRef, { page, task });
-      });
-    });
-    await batchSet.commit();
-  } catch (err) {
-    console.error("Error saving tasks to Firestore:", err);
-  }
-}
-
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
