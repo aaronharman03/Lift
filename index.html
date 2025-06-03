@@ -335,12 +335,23 @@ async function saveTasksToFirestore() {
 
     // Add all tasks fresh
     const batchSet = db.batch();
-    tasks.forEach((taskList, page) => {
-      taskList.forEach(task => {
-        // Add a doc per task with page info
-        const docRef = tasksCollection.doc();
-        batchSet.set(docRef, { page, task });
-      });
+   tasks.forEach((task) => {
+  const docRef = doc(...);
+  
+  // Clone the task so we don't modify the original
+  const cleanTask = { ...task };
+
+  // Remove all fields with undefined values
+  Object.keys(cleanTask).forEach((key) => {
+    if (cleanTask[key] === undefined) {
+      delete cleanTask[key];
+    }
+  });
+
+  // Now safe to save
+  batch.set(docRef, cleanTask);
+});
+
     const pageElement = document.getElementById('page');
 
     });
