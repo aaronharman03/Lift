@@ -359,7 +359,6 @@ async function saveTasksToFirestore() {
 
 
   async function saveAllTasks() {
-  saveTasks(); // save locally (localStorage)
   await saveTasksToFirestore(); // save to Firestore
 
 }
