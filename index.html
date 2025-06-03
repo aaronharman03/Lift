@@ -371,7 +371,7 @@ async function saveTasksToFirestore() {
       const page = document.createElement('div');
       page.className = 'page';
       page.id = `page${i}`;
-      page.innerHTML = `<div id="taskList${i}"></div>`;
+    page.innerHTML += `<div id="taskList${i}"></div>`;
       main.appendChild(page);
     });
   }
