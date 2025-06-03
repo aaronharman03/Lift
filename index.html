@@ -362,11 +362,6 @@ async function saveTasksToFirestore() {
   } catch (err) {
     console.error("Error saving tasks to Firestore:", err);
   }
-}
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('addTaskBtn').addEventListener('click', openAddModal);
-});
-
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
