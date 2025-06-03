@@ -327,8 +327,20 @@
     saveTasksToFirestore(currentPage);
   }
 window.openAddModal = function() {
-  alert("openAddModal function called!");
-}
+  const modal = document.getElementById('editModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('editModalTitle').textContent = 'Add Task';
+    // Clear the form for adding a new task:
+    document.getElementById('editForm').reset();
+    // Reset editPage and editIndex so saveEdit knows this is a new task:
+    editPage = null;
+    editIndex = null;
+  } else {
+    alert('Modal element not found!');
+  }
+};
+
 
 
 
