@@ -618,13 +618,13 @@ function openAddModal() {
       // Add new task on current page except list page (7)
       const pageToAdd = currentPage;
       const newTask = {
-        time,
-        name,
-        desc,
-        done: false,
-        ...(pageToAdd === 7 ? { date } : {})
+  time: document.getElementById('editTime').value,
+  name: document.getElementById('editName').value,
+  desc: document.getElementById('editDesc').value,
+  date: currentPage === 7 ? document.getElementById('editDate').value = task.date || '';
+  done: false
+};
 
-      };
       tasks[pageToAdd].push(newTask);
       await saveTasksToFirestore(pageToAdd);
     } else {
