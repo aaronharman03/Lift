@@ -619,7 +619,8 @@ function openAddModal() {
         name,
         desc,
         done: false,
-        date: pageToAdd === 7 ? date : undefined
+        ...(pageToAdd === 7 ? { date } : {})
+
       };
       tasks[pageToAdd].push(newTask);
       await saveTasksToFirestore(pageToAdd);
