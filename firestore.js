@@ -9,13 +9,14 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
   authDomain: "gym-app-4fff1.firebaseapp.com",
+  databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "gym-app-4fff1",
   storageBucket: "gym-app-4fff1.firebasestorage.app",
   messagingSenderId: "1009678266608",
   appId: "1:1009678266608:web:430ec88c296133a6b39235",
+  measurementId: "G-E0TDYJLMXH"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-export { db };
+const analytics = getAnalytics(app);
