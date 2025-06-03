@@ -8,10 +8,6 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
-  <div id="page"></div>
-  <div id="taskListsContainer"></div>
-
-
 
 <style>
   .nav-arrow {
@@ -236,11 +232,6 @@
     touch-action: manipulation;
   }
 </style>
-  <!-- Firebase App (core SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<!-- Firebase Firestore SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
 
@@ -279,108 +270,14 @@
   </div>
 </div>
 
-<div id="addTaskBtn" title="Add Task">+</div>
-
+<!-- Floating Add Task Button -->
+<div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
-  console.log('Script loaded');
-
-window.addEventListener('load', () => {
-  const addBtn = document.getElementById('addTaskBtn');
-  if (!addBtn) {
-    console.error('addTaskBtn not found!');
-    return;
-  }
-  addBtn.addEventListener('click', () => {
-    console.log('Add Task button clicked');
-    openAddModal();
-  });
-});
-
-  // Your Firebase config (replace with your own)
-const firebaseConfig = {
-  apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
-  authDomain: "gym-app-4fff1.firebaseapp.com",
-  databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "gym-app-4fff1",
-  storageBucket: "gym-app-4fff1.firebasestorage.app",
-  messagingSenderId: "1009678266608",
-  appId: "1:1009678266608:web:430ec88c296133a6b39235",
-  measurementId: "G-E0TDYJLMXH"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Firestore collection name for tasks
-const tasksCollection = db.collection('weeklyScheduleTasks');
-
-// Instead of localStorage, load tasks from Firestore
-async function loadTasksFromFirestore() {
-  try {
-    const snapshot = await tasksCollection.get();
-    if (snapshot.empty) {
-      // No data in Firestore, initialize empty array of 8 empty lists (for 7 days + List)
-      tasks = Array(8).fill().map(() => []);
-      saveTasksToFirestore(); // initialize Firestore with empty data
-    } else {
-      // Firestore stores tasks per page/day, let's reconstruct tasks array
-      // Assuming each document has { page: Number, task: Object }
-      tasks = Array(8).fill().map(() => []);
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.page >= 0 && data.page < 8 && data.task) {
-          tasks[data.page].push(data.task);
-        }
-      });
-    }
-  } catch (err) {
-    console.error("Error loading tasks from Firestore:", err);
-  }
-}
-
-async function saveTasksToFirestore() {
-  try {
-    // Clear existing tasks from Firestore
-    const snapshot = await tasksCollection.get();
-    const batch = db.batch();
-    snapshot.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-
-    // Save all tasks
-    const batchSet = db.batch();
-
-    // Loop through each page's task list
-    tasks.forEach((taskList, pageIndex) => {
-      taskList.forEach((task) => {
-        const docRef = tasksCollection.doc(); // ✅ Create new doc reference
-
-        // ✅ CLEAN THE TASK OBJECT HERE
-        const cleanTask = { ...task };
-        Object.keys(cleanTask).forEach((key) => {
-          if (cleanTask[key] === undefined) {
-            delete cleanTask[key];
-          }
-        });
-
-        // ✅ Add to Firestore batch with page and cleaned task
-        batchSet.set(docRef, {
-          page: pageIndex,
-          task: cleanTask
-        });
-      });
-    });
-
-    await batchSet.commit(); // ✅ Commit the batch
-  } catch (err) {
-    console.error("Error saving tasks to Firestore:", err);
-  }
-
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
- let tasks = Array(8).fill().map(() => []);
-
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
 
   let editIndex = null;
   let editPage = null;
@@ -388,103 +285,75 @@ async function saveTasksToFirestore() {
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-
-  async function saveAllTasks() {
-  await saveTasksToFirestore(); // save to Firestore
-
-}
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
 
   function createPages() {
     const main = document.getElementById('pages');
     main.innerHTML = '';
     pageNames.forEach((day, i) => {
-     const newPageDiv = document.createElement('div');
-newPageDiv.className = 'page';
-newPageDiv.id = `page${i}`;
-newPageDiv.innerHTML = `<div id="taskList${i}"></div>`;
-main.appendChild(newPageDiv);
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.id = `page${i}`;
+      page.innerHTML = `<div id="taskList${i}"></div>`;
+      main.appendChild(page);
     });
   }
-function render() {
-  // 1. Create taskList containers
-  let html = '';
-  for (let i = 0; i < 8; i++) {
-    html += `<div id="taskList${i}"></div>`;
-  }
-  document.getElementById('taskListsContainer').innerHTML = html;
 
-  // 2. Update page active class and title
-  document.querySelectorAll('.page').forEach((p, i) => {
-    p.classList.toggle('active', i === currentPage);
-  });
-  document.getElementById('pageTitle').textContent = pageNames[currentPage];
-
-  // 3. Render tasks inside those containers
-  tasks.forEach((taskList, i) => {
-    const container = document.getElementById(`taskList${i}`);
-    if (!container) {
-      console.warn(`Container taskList${i} not found`);
-      return;  // Skip if container missing
-    }
-    container.innerHTML = '';
-
-    let sorted = [...taskList];
-    if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-    sorted.forEach((task, idx) => {
-      const div = document.createElement('div');
-      div.className = 'task' + (task.done ? ' done' : '');
-      div.style.flexDirection = 'column'; // so exercises can go below
-
-      // Main task line
-      const taskLine = document.createElement('div');
-      taskLine.style.display = 'flex';
-      taskLine.style.justifyContent = 'space-between';
-      taskLine.style.alignItems = 'center';
-      taskLine.style.width = '100%';
-
-      // Left side: checkbox + name clickable
-      const leftDiv = document.createElement('div');
-      leftDiv.style.display = 'flex';
-      leftDiv.style.alignItems = 'center';
-      leftDiv.style.gap = '0.5rem';
-      leftDiv.style.flexGrow = '1';
-
-      const checkBtn = document.createElement('button');
-      checkBtn.className = 'check-btn';
-      checkBtn.title = 'Toggle done';
-      checkBtn.textContent = task.done ? '✔' : '◻';
-      checkBtn.onclick = () => toggleDone(i, idx);
-
-      const taskNameDiv = document.createElement('div');
-      taskNameDiv.style.flexGrow = '1';
-      taskNameDiv.style.cursor = 'pointer';
-      taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-      taskNameDiv.onclick = () => {
-        // Toggle description visibility on click
-        task.showDesc = !task.showDesc;
-
-        // Optional: keep existing lift toggle behavior
-        if(task.name === 'Lift') {
-          task.showExercises = !task.showExercises;
-        }
-        render();
-      };
-
-      // Append left side elements
-      leftDiv.appendChild(checkBtn);
-      leftDiv.appendChild(taskNameDiv);
-      taskLine.appendChild(leftDiv);
-
-      // TODO: Append right side (menu buttons) here if you want
-
-      div.appendChild(taskLine);
-
-      // Append the task div to the container
-      container.appendChild(div);
+  function render() {
+    document.querySelectorAll('.page').forEach((p, i) => {
+      p.classList.toggle('active', i === currentPage);
     });
-  });
-}
+    document.getElementById('pageTitle').textContent = pageNames[currentPage];
 
+    tasks.forEach((taskList, i) => {
+      const container = document.getElementById(`taskList${i}`);
+      container.innerHTML = '';
+      let sorted = [...taskList];
+      if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+      sorted.forEach((task, idx) => {
+        const div = document.createElement('div');
+        div.className = 'task' + (task.done ? ' done' : '');
+        div.style.flexDirection = 'column'; // so exercises can go below
+
+        // Main task line
+        const taskLine = document.createElement('div');
+        taskLine.style.display = 'flex';
+        taskLine.style.justifyContent = 'space-between';
+        taskLine.style.alignItems = 'center';
+        taskLine.style.width = '100%';
+
+        // Left side: checkbox + name clickable
+        const leftDiv = document.createElement('div');
+        leftDiv.style.display = 'flex';
+        leftDiv.style.alignItems = 'center';
+        leftDiv.style.gap = '0.5rem';
+        leftDiv.style.flexGrow = '1';
+
+        const checkBtn = document.createElement('button');
+        checkBtn.className = 'check-btn';
+        checkBtn.title = 'Toggle done';
+        checkBtn.textContent = task.done ? '✔' : '◻';
+        checkBtn.onclick = () => toggleDone(i, idx);
+
+        const taskNameDiv = document.createElement('div');
+taskNameDiv.style.flexGrow = '1';
+taskNameDiv.style.cursor = 'pointer';
+taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+taskNameDiv.onclick = () => {
+  // Toggle description visibility on click
+  task.showDesc = !task.showDesc;
+
+  // Optional: keep existing lift toggle behavior
+  if(task.name === 'Lift') {
+    task.showExercises = !task.showExercises;
+  }
+  render();
+};
+
+        leftDiv.appendChild(checkBtn);
+        leftDiv.appendChild(taskNameDiv);
 
         // Right side: menu button
         const rightDiv = document.createElement('div');
@@ -543,14 +412,13 @@ function render() {
           addExerciseBtn.className = 'add-exercise-btn';
           addExerciseBtn.textContent = '+ Add Exercise';
           addExerciseBtn.onclick = () => {
-  task.exercises.push({
-    name: '',
-    weight: '',
-    sets: ['','',''],
-    editing: true
-  });
-  saveAllTasks(); // <-- ADD THIS
-  render();
+            task.exercises.push({
+              name: '',
+              weight: '',
+              sets: ['','',''], // 3 empty sets by default
+              editing: true
+            });
+            render();
           };
           exercisesDiv.appendChild(addExerciseBtn);
 
@@ -577,8 +445,6 @@ function render() {
               nameInput.value = ex.name;
               nameInput.style.flex = '1';
               nameInput.oninput = e => ex.name = e.target.value;
-              nameInput.onblur = () => saveAllTasks();
-
 
               const weightInput = document.createElement('input');
               weightInput.type = 'text';
@@ -586,7 +452,6 @@ function render() {
               weightInput.value = ex.weight;
               weightInput.style.width = '80px';
               weightInput.oninput = e => ex.weight = e.target.value;
-              weightInput.onblur = () => saveAllTasks();
 
               topRow.appendChild(nameInput);
               topRow.appendChild(weightInput);
@@ -602,7 +467,6 @@ function render() {
                 setInput.value = setVal;
                 setInput.style.width = '40px';
                 setInput.oninput = e => ex.sets[setIdx] = e.target.value;
-                  setInput.onblur = () => saveAllTasks();
                 setsRow.appendChild(setInput);
               });
 
@@ -627,7 +491,7 @@ function render() {
                 } else {
                   ex.editing = false;
                 }
-                saveAllTasks();
+                saveTasks();
                 render();
               };
 
@@ -696,7 +560,7 @@ delBtn.onclick = () => {
 
   function toggleDone(page, idx) {
     tasks[page][idx].done = !tasks[page][idx].done;
-    saveAllTasks();
+    saveTasks();
     render();
   }
 
@@ -713,7 +577,7 @@ delBtn.onclick = () => {
   function deleteTask(page, idx) {
     if(confirm('Delete this task?')) {
       tasks[page].splice(idx, 1);
-      saveAllTasks();
+      saveTasks();
       render();
     }
   }
@@ -788,14 +652,14 @@ delBtn.onclick = () => {
       if(editPage === 7) task.date = date;
     }
 
-    saveAllTasks();
+    saveTasks();
     closeEditModal();
     render();
   }
 
 function openAddModal() {
   editIndex = null;
-  editPage = null; // <-- This is the fix
+  editPage = currentPage; // <-- This is the fix
   openEditModal();
 
 }
@@ -816,11 +680,9 @@ function openAddModal() {
       });
     }
   };
-window.addEventListener('load', async () => {
-  await loadTasksFromFirestore();
+
+  createPages();
   render();
-  document.getElementById('addTaskBtn').addEventListener('click', openAddModal);
-});
 
 </script>
 
