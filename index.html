@@ -234,8 +234,6 @@
 </style>
 </head>
 <body>
-  <script type="module" src="index.js"></script>
-
 
 <header>
    <button class="nav-arrow" onclick="prevPage()">←</button>
@@ -276,9 +274,6 @@
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
-  import { db } from './firebaseConfig'; // Adjust path if needed
-import { collection, addDoc, getDocs } from 'firebase/firestore';
-  
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
