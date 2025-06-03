@@ -633,8 +633,8 @@ exText.textContent = parts.join(' - ');
 
   // Handle form submission for adding/editing tasks
   async function saveEdit(e) {
-    console.log('Saving task:', { editPage, editIndex });
     e.preventDefault();
+        console.log('Saving task:', { editPage, editIndex });
     const form = e.target;
     const time = form.time.value.trim();
     const name = form.name.value.trim();
