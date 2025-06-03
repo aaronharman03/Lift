@@ -289,10 +289,13 @@ async function loadTasks() {
   }
 }
 
+
+import { saveTasksToFirestore } from './firestore.js';
+
 async function saveTasks() {
-  const docRef = doc(db, "weeklySchedule", "tasks");
-  await setDoc(docRef, { tasks });
+  await saveTasksToFirestore(tasks);
 }
+
 
 // When your app loads:
 (async () => {
