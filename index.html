@@ -578,7 +578,9 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
               const exText = document.createElement('div');
             let parts = [ex.name];
 if (ex.weight) parts.push(ex.weight);
-if (ex.sets && ex.sets.length > 0) parts.push(ex.sets.join(', '));
+if (ex.sets && ex.sets.filter(s => s.trim() !== '').length > 0) {
+  parts.push(ex.sets.filter(s => s.trim() !== '').join(', '));
+}
 exText.textContent = parts.join(' - ');
 
               exText.style.cursor = 'pointer';
