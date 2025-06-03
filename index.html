@@ -600,6 +600,7 @@ function openAddModal() {
   // Handle form submission for adding/editing tasks
   async function saveEdit(e) {
     e.preventDefault();
+    console.log('Adding task:', newTask, 'to page', pageToAdd);
     const form = e.target;
     const time = form.time.value.trim();
     const name = form.name.value.trim();
