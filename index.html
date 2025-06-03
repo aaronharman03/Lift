@@ -326,42 +326,44 @@ async function loadTasksFromFirestore() {
   }
 }
 
-// Save all tasks to Firestore by overwriting all documents
 async function saveTasksToFirestore() {
   try {
-    // Delete all old docs first (optional, but clean)
+    // Clear existing tasks from Firestore
     const snapshot = await tasksCollection.get();
     const batch = db.batch();
     snapshot.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
 
-    // Add all tasks fresh
+    // Save all tasks
     const batchSet = db.batch();
-   tasks.forEach((task) => {
-  const docRef = doc(...);
-  
-  // Clone the task so we don't modify the original
-  const cleanTask = { ...task };
 
-  // Remove all fields with undefined values
-  Object.keys(cleanTask).forEach((key) => {
-    if (cleanTask[key] === undefined) {
-      delete cleanTask[key];
-    }
-  });
+    // Loop through each page's task list
+    tasks.forEach((taskList, pageIndex) => {
+      taskList.forEach((task) => {
+        const docRef = tasksCollection.doc(); // ✅ Create new doc reference
 
-  // Now safe to save
-  batch.set(docRef, cleanTask);
-});
+        // ✅ CLEAN THE TASK OBJECT HERE
+        const cleanTask = { ...task };
+        Object.keys(cleanTask).forEach((key) => {
+          if (cleanTask[key] === undefined) {
+            delete cleanTask[key];
+          }
+        });
 
-    const pageElement = document.getElementById('page');
-
+        // ✅ Add to Firestore batch with page and cleaned task
+        batchSet.set(docRef, {
+          page: pageIndex,
+          task: cleanTask
+        });
+      });
     });
-    await batchSet.commit();
+
+    await batchSet.commit(); // ✅ Commit the batch
   } catch (err) {
     console.error("Error saving tasks to Firestore:", err);
   }
 }
+
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
