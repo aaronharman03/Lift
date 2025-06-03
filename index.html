@@ -576,7 +576,11 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
               exDiv.appendChild(exInputsDiv);
             } else {
               const exText = document.createElement('div');
-             exText.textContent = `${ex.name} - ${ex.weight} - ${ex.sets.join(', ')}`;
+            let parts = [ex.name];
+if (ex.weight) parts.push(ex.weight);
+if (ex.sets && ex.sets.length > 0) parts.push(ex.sets.join(', '));
+exText.textContent = parts.join(' - ');
+
               exText.style.cursor = 'pointer';
               exText.onclick = () => {
                 ex.editing = true;
