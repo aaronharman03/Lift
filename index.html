@@ -329,15 +329,22 @@ async function signInAnonymously() {
   }
 }
 
-// Run this on page load
-auth.onAuthStateChanged(user => {
+import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { auth } from "./firebase"; // adjust if needed
+
+onAuthStateChanged(auth, async (user) => {
   if (user) {
-    console.log('User signed in:', user.uid);
-    init(); // now safe to load user-specific tasks
+    console.log("User signed in:", user.uid);
+    init(); // ✅ only call init() once auth is ready
   } else {
-    signInAnonymously();
+    try {
+      await signInAnonymously(auth); // 🔐 anonymous sign-in fallback
+    } catch (error) {
+      console.error("Auth error:", error);
+    }
   }
 });
+
 
 
   // Save tasks for a page to Firestore
