@@ -273,32 +273,7 @@
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
-
-  <!-- Firebase App (the core Firebase SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<!-- Firebase Firestore SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script type="module" src="firestore.js"></script>
-
 <script>
-  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
-import { db } from './firestore.js';
-
-let tasks = Array(8).fill().map(() => []);
-
-async function loadTasks() {
-  try {
-    const doc = await db.collection('tasksData').doc('weeklySchedule').get();
-    if(doc.exists) {
-      tasks = doc.data().tasks;
-    }
-  } catch(e) {
-    console.error('Error loading tasks:', e);
-  }
-}
-
-
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -310,15 +285,9 @@ async function loadTasks() {
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  async function saveTasks() {
-  try {
-    // For demo, save entire tasks array under a single document
-    await db.collection('tasksData').doc('weeklySchedule').set({ tasks });
-  } catch(e) {
-    console.error('Error saving tasks:', e);
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
   }
-}
-
 
   function createPages() {
     const main = document.getElementById('pages');
