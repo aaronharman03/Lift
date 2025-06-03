@@ -273,12 +273,36 @@
 <!-- Floating Add Task Button -->
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
+
   <!-- Firebase App (the core Firebase SDK) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <!-- Firebase Firestore SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script type="module" src="firestore.js"></script>
 
 <script>
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
+import { db } from './firestore.js';
+
+let tasks = Array(8).fill().map(() => []);
+
+async function loadTasks() {
+  try {
+    const snapshot = await db.collection('tasks').get();
+    const allTasks = [];
+    snapshot.forEach(doc => {
+      allTasks.push(doc.data());
+    });
+    // Assuming you store tasks as an array for each day, or you can adapt
+    if(allTasks.length) {
+      tasks = allTasks;
+    }
+  } catch(e) {
+    console.error('Error loading tasks:', e);
+  }
+}
+
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
