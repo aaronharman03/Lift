@@ -606,7 +606,8 @@ function openAddModal() {
     const time = form.time.value.trim();
     const name = form.name.value.trim();
     const desc = form.desc.value.trim();
-    const date = form.date.value;
+    const date = document.getElementById('editDate').value;
+
 
     if(!name) {
       alert('Name is required');
