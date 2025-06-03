@@ -343,7 +343,9 @@ auth.onAuthStateChanged(user => {
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
     try {
-      await db.collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
+  const userId = auth.currentUser.uid;
+await db.collection('users').doc(userId).collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
+
     } catch(err) {
       console.error("Error saving tasks for", pageNames[page], err);
     }
