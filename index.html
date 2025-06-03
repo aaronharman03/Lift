@@ -283,6 +283,20 @@
 
 
 <script>
+  console.log('Script loaded');
+
+window.addEventListener('load', () => {
+  const addBtn = document.getElementById('addTaskBtn');
+  if (!addBtn) {
+    console.error('addTaskBtn not found!');
+    return;
+  }
+  addBtn.addEventListener('click', () => {
+    console.log('Add Task button clicked');
+    openAddModal();
+  });
+});
+
   // Your Firebase config (replace with your own)
 const firebaseConfig = {
   apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
