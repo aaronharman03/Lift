@@ -550,18 +550,22 @@ document.getElementById('dateLabel').style.display = 'block';
                 await saveTasksToFirestore(i);
                 render();
               };
-              const cancelBtn = document.createElement('button');
+  const cancelBtn = document.createElement('button');
 cancelBtn.textContent = 'Cancel';
 cancelBtn.style.marginTop = '0.3rem';
 cancelBtn.onclick = () => {
-  // If the exercise is brand new (empty), remove it
-  if (!ex.name && !ex.weight && ex.sets.every(s => !s)) {
+  // Remove the exercise if it's new and empty
+  const isNewAndEmpty = !ex.name && !ex.weight && ex.sets.every(s => !s);
+  if (isNewAndEmpty) {
     task.exercises.splice(exIdx, 1);
   } else {
     ex.editing = false;
   }
   render();
 };
+
+exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
+
 
 
               exInputsDiv.appendChild(topRow);
