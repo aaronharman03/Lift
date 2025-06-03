@@ -415,6 +415,15 @@ function openAddModal() {
 
         leftDiv.appendChild(checkBtn);
         leftDiv.appendChild(taskNameDiv);
+        if (i === 7 && task.date) {
+  const dateDiv = document.createElement('div');
+  dateDiv.style.fontSize = '0.8rem';
+  dateDiv.style.color = '#666';
+  dateDiv.style.marginLeft = '0.5rem';
+  dateDiv.textContent = `Date: ${task.date}`;
+  leftDiv.appendChild(dateDiv);
+}
+
 
         const rightDiv = document.createElement('div');
         rightDiv.style.position = 'relative';
