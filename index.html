@@ -381,6 +381,7 @@ async function saveTasksToFirestore() {
   }
 
   function render() {
+    const page = document.getElementById('page');
     document.querySelectorAll('.page').forEach((p, i) => {
       p.classList.toggle('active', i === currentPage);
     });
