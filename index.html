@@ -703,19 +703,26 @@ function openAddModal() {
   }
 });
 
-  document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('addTaskBtn').addEventListener('click', function() {
-    const modal = document.getElementById('editModal');
-    if (modal) {
-      modal.style.display = 'flex';
-      document.getElementById('editModalTitle').textContent = 'Add Task';
-      document.getElementById('editForm').reset();
-      editPage = null;
-      editIndex = null;
-    } else {
-      console.error('Modal not found!');
-    }
-  });
+ document.addEventListener('DOMContentLoaded', function() {
+  const addTaskBtn = document.getElementById('addTaskBtn');
+  if (addTaskBtn) {
+    addTaskBtn.addEventListener('click', function() {
+      const modal = document.getElementById('editModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('editModalTitle').textContent = 'Add Task';
+        document.getElementById('editForm').reset();
+        editPage = null;
+        editIndex = null;
+      } else {
+        console.error('Modal not found!');
+      }
+    });
+  } else {
+    console.error('AddTaskBtn not found!');
+  }
+});
+
 
   function prevPage() {
   switchPage(-1);
