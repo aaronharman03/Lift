@@ -304,7 +304,8 @@
     for(let i = 0; i < pageNames.length; i++) {
       const pageName = pageNames[i];
       try {
-        const snapshot = await db.collection('tasks').doc(pageName).get();
+        const userId = auth.currentUser.uid;
+const snapshot = await db.collection('users').doc(userId).collection('tasks').doc(pageName).get();
         if(snapshot.exists) {
           tasks[i] = snapshot.data().tasks || [];
         } else {
