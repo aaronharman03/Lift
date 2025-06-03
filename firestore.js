@@ -11,7 +11,6 @@ import {
 const firebaseConfig = {
  apiKey: "AIzaSyBeY7gbFGHJFWlIqVuEGUoaaDTBagsJLZw",
   authDomain: "gym-app-4fff1.firebaseapp.com",
-  databaseURL: "https://gym-app-4fff1-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "gym-app-4fff1",
   storageBucket: "gym-app-4fff1.firebasestorage.app",
   messagingSenderId: "1009678266608",
