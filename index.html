@@ -341,7 +341,7 @@ async function saveTasksToFirestore() {
         const docRef = tasksCollection.doc();
         batchSet.set(docRef, { page, task });
       });
-      const page = document.getElementById('page');
+    const pageElement = document.getElementById('page');
 
     });
     await batchSet.commit();
@@ -371,7 +371,7 @@ async function saveTasksToFirestore() {
     const main = document.getElementById('pages');
     main.innerHTML = '';
     pageNames.forEach((day, i) => {
-      const page = document.createElement('div');
+     const newPageDiv = document.createElement('div');
       page.className = 'page';
       page.id = `page${i}`;
     page.innerHTML += `<div id="taskList${i}"></div>`;
