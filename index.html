@@ -550,6 +550,19 @@ document.getElementById('dateLabel').style.display = 'block';
                 await saveTasksToFirestore(i);
                 render();
               };
+              const cancelBtn = document.createElement('button');
+cancelBtn.textContent = 'Cancel';
+cancelBtn.style.marginTop = '0.3rem';
+cancelBtn.onclick = () => {
+  // If the exercise is brand new (empty), remove it
+  if (!ex.name && !ex.weight && ex.sets.every(s => !s)) {
+    task.exercises.splice(exIdx, 1);
+  } else {
+    ex.editing = false;
+  }
+  render();
+};
+
 
               exInputsDiv.appendChild(topRow);
               exInputsDiv.appendChild(setsRow);
