@@ -274,10 +274,47 @@
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
+  import { db, doc, getDoc, setDoc } from './firestore.js';
+
+let tasks = Array(8).fill().map(() => []);
+
+async function loadTasks() {
+  const docRef = doc(db, "weeklySchedule", "tasks");
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    tasks = docSnap.data().tasks || Array(8).fill().map(() => []);
+  } else {
+    // First time: save empty tasks to Firestore
+    await saveTasks();
+  }
+}
+
+async function saveTasks() {
+  const docRef = doc(db, "weeklySchedule", "tasks");
+  await setDoc(docRef, { tasks });
+}
+
+// When your app loads:
+(async () => {
+  await loadTasks();
+  createPages();
+  render();
+})();
+
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-let tasks = JSON.parse(localStorage.getItem('tasks') || 'null');
-if (!tasks || tasks.length !== 8) tasks = Array(8).fill(null).map(() => []);
+let tasks = Array(8).fill().map(() => []);
+
+async function loadTasksFromFirestore() {
+  const data = await loadTasks(); // your firestore fetch function
+  if (data && data.tasks) {
+    tasks = data.tasks;
+  }
+  render();
+}
+
+loadTasksFromFirestore();
+
 
 
   let editIndex = null;
