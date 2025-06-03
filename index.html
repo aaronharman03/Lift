@@ -279,8 +279,8 @@
   </div>
 </div>
 
-<!-- Floating Add Task Button -->
-<div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
+<div id="addTaskBtn" title="Add Task">+</div>
+
 
 <script>
   // Your Firebase config (replace with your own)
@@ -363,6 +363,9 @@ async function saveTasksToFirestore() {
     console.error("Error saving tasks to Firestore:", err);
   }
 }
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('addTaskBtn').addEventListener('click', openAddModal);
+});
 
 
   let currentPage = 0;
