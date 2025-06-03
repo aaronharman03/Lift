@@ -358,6 +358,14 @@ window.openAddModal = function() {
       main.appendChild(page);
     });
   }
+function openAddModal() {
+  editPage = null;
+  editIndex = null;
+  document.getElementById('editModalTitle').textContent = 'Add Task';
+  document.getElementById('editForm').reset();
+  document.getElementById('editDate').value = ''; // clear optional date
+  document.getElementById('editModal').style.display = 'flex';
+}
 
   function render() {
     document.querySelectorAll('.page').forEach((p, i) => {
