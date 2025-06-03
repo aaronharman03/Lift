@@ -339,6 +339,8 @@ async function saveTasksToFirestore() {
         const docRef = tasksCollection.doc();
         batchSet.set(docRef, { page, task });
       });
+      const page = document.getElementById('page');
+
     });
     await batchSet.commit();
   } catch (err) {
