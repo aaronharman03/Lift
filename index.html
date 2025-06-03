@@ -246,6 +246,14 @@
 </header>
 
 <main id="pages"></main>
+<div id="authContainer">
+  <h2>Login or Sign Up</h2>
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="signUp()">Sign Up</button>
+  <button onclick="logIn()">Log In</button>
+  <button onclick="logOut()">Log Out</button>
+</div>
 
 <!-- Edit Task Modal (used for add and edit) -->
 <div id="editModal">
@@ -355,6 +363,53 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+<script>
+  const auth = firebase.auth(); // Already included
+
+  function signUp() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        console.log("Signed up:", userCredential.user.uid);
+        init(); // Load tasks after signup
+      })
+      .catch(error => {
+        alert("Sign Up Error: " + error.message);
+      });
+  }
+
+  function logIn() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    auth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        console.log("Logged in:", userCredential.user.uid);
+        init(); // Load tasks after login
+      })
+      .catch(error => {
+        alert("Login Error: " + error.message);
+      });
+  }
+
+  function logOut() {
+    auth.signOut().then(() => {
+      alert("Logged out");
+      location.reload(); // Reload app on logout
+    });
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      console.log("Authenticated as", user.uid);
+      init(); // Safe to load tasks
+    } else {
+      console.log("Not authenticated");
+    }
+  });
+</script>
 
 
   // Save tasks for a page to Firestore
