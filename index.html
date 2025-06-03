@@ -387,10 +387,14 @@ for (let i = 0; i < 8; i++) {
   html += `<div id="taskList${i}"></div>`;
 }
 page.innerHTML = html;  // This creates all 8 containers at once
-v
     tasks.forEach((taskList, i) => {
-      const container = document.getElementById(`taskList${i}`);
-      container.innerHTML = '';
+  const container = document.getElementById(`taskList${i}`);
+  if (!container) {
+    console.warn(`Container taskList${i} not found`);
+    return;  // Skip if container missing
+  }
+  container.innerHTML = '';
+
       let sorted = [...taskList];
       if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
       sorted.forEach((task, idx) => {
