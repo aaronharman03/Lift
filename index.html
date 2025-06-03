@@ -495,30 +495,6 @@ document.getElementById('dateLabel').style.display = 'block';
             exDiv.className = 'exercise-row';
 
             if(ex.editing) {
-      } else {
-  const exInfo = document.createElement('div');
-  exInfo.textContent = `${ex.name} — ${ex.weight}`;
-  exInfo.style.flex = '1';
-
-  const editBtn = document.createElement('button');
-  editBtn.textContent = 'Edit';
-  editBtn.onclick = () => {
-    ex.editing = true;
-    render();
-  };
-
-  const deleteBtn = document.createElement('button');
-  deleteBtn.textContent = 'Delete';
-  deleteBtn.onclick = () => {
-    task.exercises.splice(exIdx, 1);
-    saveTasksToFirestore(i).then(() => render());
-  };
-
-  exDiv.appendChild(exInfo);
-  exDiv.appendChild(editBtn);
-  exDiv.appendChild(deleteBtn);
-}
-
               const exInputsDiv = document.createElement('div');
               exInputsDiv.style.display = 'flex';
               exInputsDiv.style.flexDirection = 'column';
@@ -613,23 +589,6 @@ exText.textContent = parts.join(' - ');
                 render();
               };
               exDiv.appendChild(exText);
-          const editBtn = document.createElement('button');
-editBtn.textContent = 'Edit';
-editBtn.onclick = () => {
-  ex.editing = true;
-  render();
-};
-
-const deleteBtn = document.createElement('button');
-deleteBtn.textContent = 'Delete';
-deleteBtn.onclick = () => {
-  task.exercises.splice(exIdx, 1);
-  saveTasksToFirestore(i).then(() => render());
-};
-
-exDiv.appendChild(editBtn);
-exDiv.appendChild(deleteBtn);
-
             }
 
             exercisesDiv.appendChild(exDiv);
@@ -826,4 +785,3 @@ function nextPage() {
 
 </body>
 </html>
-
