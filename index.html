@@ -276,6 +276,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 <script>
   // Firebase config - REPLACE THIS WITH YOUR ACTUAL CONFIG
   const firebaseConfig = {
@@ -315,6 +316,28 @@
       }
     }
   }
+  const auth = firebase.auth();
+
+// Optional: Show a simple login prompt
+async function signInAnonymously() {
+  try {
+    await auth.signInAnonymously();
+    console.log('Signed in anonymously');
+  } catch (error) {
+    console.error('Auth error:', error);
+  }
+}
+
+// Run this on page load
+auth.onAuthStateChanged(user => {
+  if (user) {
+    console.log('User signed in:', user.uid);
+    init(); // now safe to load user-specific tasks
+  } else {
+    signInAnonymously();
+  }
+});
+
 
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
