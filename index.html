@@ -626,13 +626,14 @@ document.getElementById('dateLabel').style.display = 'block';
     if(editPage === null) {
       // Add new task on current page except list page (7)
       const pageToAdd = currentPage;
-      const newTask = {
-  time: document.getElementById('editTime').value,
-  name: document.getElementById('editName').value,
-  desc: document.getElementById('editDesc').value,
-  date: currentPage === 7 ? document.getElementById('editDate').value = task.date || 
+     const newTask = {
+  time,
+  name,
+  desc,
+  date: currentPage === 7 ? date : '',
   done: false
 };
+
 
       tasks[pageToAdd].push(newTask);
       await saveTasksToFirestore(pageToAdd);
