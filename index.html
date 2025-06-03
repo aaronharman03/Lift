@@ -807,13 +807,11 @@ function openAddModal() {
       });
     }
   };
-
 window.addEventListener('load', async () => {
   await loadTasksFromFirestore();
   render();
+  document.getElementById('addTaskBtn').addEventListener('click', openAddModal);
 });
-
-
 
 </script>
 
