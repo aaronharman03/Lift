@@ -289,7 +289,9 @@
 
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-  let tasks = Array(8).fill().map(() => []); // init empty arrays for 8 pages
+  let tasks = Array(8);
+for(let i=0; i<8; i++) tasks[i] = [];
+
 
   let editIndex = null;
   let editPage = null;
