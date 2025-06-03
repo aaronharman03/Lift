@@ -274,8 +274,6 @@
 <div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
 
 <script>
-  import { getTasks, addTask, editTask, deleteTask } from './firestore.js';
-
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
   let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -302,10 +300,6 @@
       main.appendChild(page);
     });
   }
-  async function loadTasks() {
-  const tasks = await getTasks();  // Fetch tasks from Firestore
-  renderTasks(tasks);               // Your existing render function
-}
 
   function render() {
     document.querySelectorAll('.page').forEach((p, i) => {
