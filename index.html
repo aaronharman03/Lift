@@ -618,7 +618,6 @@ function openAddModal() {
       // Add new task on current page except list page (7)
       const pageToAdd = currentPage;
       const newTask = {
-        await addDoc(collection(db, "tasks"), newTask);
         time,
         name,
         desc,
