@@ -524,29 +524,23 @@ document.getElementById('dateLabel').style.display = 'block';
               const setsRow = document.createElement('div');
               setsRow.style.display = 'flex';
               setsRow.style.gap = '0.3rem';
-          setsDiv.style.display = 'flex';
-setsDiv.style.gap = '0.5rem';
-setsDiv.style.alignItems = 'center';
+              ex.sets.forEach((setVal, setIdx) => {
+                const setInput = document.createElement('input');
+                setInput.type = 'text';
+                setInput.placeholder = 'Set';
+                setInput.value = setVal;
+                setInput.style.width = '40px';
+                setInput.oninput = e => ex.sets[setIdx] = e.target.value;
+                setsRow.appendChild(setInput);
+              });
 
-ex.sets.forEach((set, setIdx) => {
-  const setInput = document.createElement('input');
-  setInput.type = 'text';
-  setInput.value = set;
-  setInput.placeholder = `Set ${setIdx + 1}`;
-  setInput.oninput = (e) => {
-    ex.sets[setIdx] = e.target.value;
-  };
-  setsDiv.appendChild(setInput);
-});
-
-const addSetBtn = document.createElement('button');
-addSetBtn.textContent = '+';
-addSetBtn.style.padding = '0 0.5rem';
-addSetBtn.onclick = () => {
-  ex.sets.push('');
-  render();
-};
-
+              const addSetBtn = document.createElement('button');
+              addSetBtn.textContent = '+ Set';
+              addSetBtn.style.marginTop = '0.3rem';
+              addSetBtn.onclick = () => {
+                ex.sets.push('');
+                render();
+              };
 
               const saveBtn = document.createElement('button');
               saveBtn.textContent = 'Save';
@@ -569,24 +563,20 @@ cancelBtn.onclick = () => {
   }
   render();
 };
+
+exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
+
+
+
               exInputsDiv.appendChild(topRow);
               exInputsDiv.appendChild(setsRow);
               exInputsDiv.appendChild(addSetBtn);
-              const buttonContainer = document.createElement('div');
-buttonContainer.style.display = 'flex';
-buttonContainer.style.flexDirection = 'column';
-buttonContainer.style.gap = '0.3rem';
-buttonContainer.style.marginTop = '0.5rem';
-
-buttonContainer.appendChild(saveBtn);
-buttonContainer.appendChild(cancelBtn);
-exInputsDiv.appendChild(buttonContainer);
-
+              exInputsDiv.appendChild(saveBtn);
 
               exDiv.appendChild(exInputsDiv);
             } else {
               const exText = document.createElement('div');
-              exText.textContent = `${ex.name} - ${ex.weight} lbs - Sets: ${ex.sets.join(', ')}`;
+             exText.textContent = `${ex.name} - ${ex.weight} - ${ex.sets.join(', ')}`;
               exText.style.cursor = 'pointer';
               exText.onclick = () => {
                 ex.editing = true;
