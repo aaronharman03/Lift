@@ -391,69 +391,86 @@ newPageDiv.innerHTML = `<div id="taskList${i}"></div>`;
 main.appendChild(newPageDiv);
     });
   }
+function render() {
+  // 1. Create taskList containers
+  let html = '';
+  for (let i = 0; i < 8; i++) {
+    html += `<div id="taskList${i}"></div>`;
+  }
+  document.getElementById('taskListsContainer').innerHTML = html;
 
-  function render() {
-    document.querySelectorAll('.page').forEach((p, i) => {
-      p.classList.toggle('active', i === currentPage);
+  // 2. Update page active class and title
+  document.querySelectorAll('.page').forEach((p, i) => {
+    p.classList.toggle('active', i === currentPage);
+  });
+  document.getElementById('pageTitle').textContent = pageNames[currentPage];
+
+  // 3. Render tasks inside those containers
+  tasks.forEach((taskList, i) => {
+    const container = document.getElementById(`taskList${i}`);
+    if (!container) {
+      console.warn(`Container taskList${i} not found`);
+      return;  // Skip if container missing
+    }
+    container.innerHTML = '';
+
+    let sorted = [...taskList];
+    if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+    sorted.forEach((task, idx) => {
+      const div = document.createElement('div');
+      div.className = 'task' + (task.done ? ' done' : '');
+      div.style.flexDirection = 'column'; // so exercises can go below
+
+      // Main task line
+      const taskLine = document.createElement('div');
+      taskLine.style.display = 'flex';
+      taskLine.style.justifyContent = 'space-between';
+      taskLine.style.alignItems = 'center';
+      taskLine.style.width = '100%';
+
+      // Left side: checkbox + name clickable
+      const leftDiv = document.createElement('div');
+      leftDiv.style.display = 'flex';
+      leftDiv.style.alignItems = 'center';
+      leftDiv.style.gap = '0.5rem';
+      leftDiv.style.flexGrow = '1';
+
+      const checkBtn = document.createElement('button');
+      checkBtn.className = 'check-btn';
+      checkBtn.title = 'Toggle done';
+      checkBtn.textContent = task.done ? '✔' : '◻';
+      checkBtn.onclick = () => toggleDone(i, idx);
+
+      const taskNameDiv = document.createElement('div');
+      taskNameDiv.style.flexGrow = '1';
+      taskNameDiv.style.cursor = 'pointer';
+      taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+      taskNameDiv.onclick = () => {
+        // Toggle description visibility on click
+        task.showDesc = !task.showDesc;
+
+        // Optional: keep existing lift toggle behavior
+        if(task.name === 'Lift') {
+          task.showExercises = !task.showExercises;
+        }
+        render();
+      };
+
+      // Append left side elements
+      leftDiv.appendChild(checkBtn);
+      leftDiv.appendChild(taskNameDiv);
+      taskLine.appendChild(leftDiv);
+
+      // TODO: Append right side (menu buttons) here if you want
+
+      div.appendChild(taskLine);
+
+      // Append the task div to the container
+      container.appendChild(div);
     });
-    document.getElementById('pageTitle').textContent = pageNames[currentPage];
-// Assuming `page` is your main container element for the task lists
-let html = '';
-for (let i = 0; i < 8; i++) {
-  html += `<div id="taskList${i}"></div>`;
+  });
 }
-    tasks.forEach((taskList, i) => {
-  const container = document.getElementById(`taskList${i}`);
-  if (!container) {
-    console.warn(`Container taskList${i} not found`);
-    return;  // Skip if container missing
-  }
-  container.innerHTML = '';
 
-      let sorted = [...taskList];
-      if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-      sorted.forEach((task, idx) => {
-        const div = document.createElement('div');
-        div.className = 'task' + (task.done ? ' done' : '');
-        div.style.flexDirection = 'column'; // so exercises can go below
-
-        // Main task line
-        const taskLine = document.createElement('div');
-        taskLine.style.display = 'flex';
-        taskLine.style.justifyContent = 'space-between';
-        taskLine.style.alignItems = 'center';
-        taskLine.style.width = '100%';
-
-        // Left side: checkbox + name clickable
-        const leftDiv = document.createElement('div');
-        leftDiv.style.display = 'flex';
-        leftDiv.style.alignItems = 'center';
-        leftDiv.style.gap = '0.5rem';
-        leftDiv.style.flexGrow = '1';
-
-        const checkBtn = document.createElement('button');
-        checkBtn.className = 'check-btn';
-        checkBtn.title = 'Toggle done';
-        checkBtn.textContent = task.done ? '✔' : '◻';
-        checkBtn.onclick = () => toggleDone(i, idx);
-
-        const taskNameDiv = document.createElement('div');
-taskNameDiv.style.flexGrow = '1';
-taskNameDiv.style.cursor = 'pointer';
-taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-taskNameDiv.onclick = () => {
-  // Toggle description visibility on click
-  task.showDesc = !task.showDesc;
-
-  // Optional: keep existing lift toggle behavior
-  if(task.name === 'Lift') {
-    task.showExercises = !task.showExercises;
-  }
-  render();
-};
-
-        leftDiv.appendChild(checkBtn);
-        leftDiv.appendChild(taskNameDiv);
 
         // Right side: menu button
         const rightDiv = document.createElement('div');
