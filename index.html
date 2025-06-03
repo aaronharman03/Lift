@@ -698,9 +698,24 @@ window.openAddModal = function() {
     e.preventDefault();
     closeEditModal();
   });
+  document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('addTaskBtn').addEventListener('click', function() {
+    const modal = document.getElementById('editModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      document.getElementById('editModalTitle').textContent = 'Add Task';
+      document.getElementById('editForm').reset();
+      editPage = null;
+      editIndex = null;
+    } else {
+      console.error('Modal not found!');
+    }
+  });
+
 </script>
 <!-- Floating Add Task Button -->
-<div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
+<div id="addTaskBtn" title="Add Task">+</div>
+
 
 </body>
 </html>
