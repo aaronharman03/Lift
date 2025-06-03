@@ -372,10 +372,10 @@ async function saveTasksToFirestore() {
     main.innerHTML = '';
     pageNames.forEach((day, i) => {
      const newPageDiv = document.createElement('div');
-      page.className = 'page';
-      page.id = `page${i}`;
-    page.innerHTML += `<div id="taskList${i}"></div>`;
-      main.appendChild(page);
+newPageDiv.className = 'page';
+newPageDiv.id = `page${i}`;
+newPageDiv.innerHTML = `<div id="taskList${i}"></div>`;
+main.appendChild(newPageDiv);
     });
   }
 
@@ -389,7 +389,6 @@ let html = '';
 for (let i = 0; i < 8; i++) {
   html += `<div id="taskList${i}"></div>`;
 }
-page.innerHTML = html;  // This creates all 8 containers at once
     tasks.forEach((taskList, i) => {
   const container = document.getElementById(`taskList${i}`);
   if (!container) {
