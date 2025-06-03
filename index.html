@@ -364,7 +364,9 @@ function openAddModal() {
   document.getElementById('editModalTitle').textContent = 'Add Task';
   document.getElementById('editForm').reset();
   document.getElementById('editDate').value = ''; // clear optional date
+  document.getElementById('dateLabel').style.display = currentPage === 7 ? 'block' : 'none';
   document.getElementById('editModal').style.display = 'flex';
+
 }
 
   function render() {
