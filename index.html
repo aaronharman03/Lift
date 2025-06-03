@@ -314,9 +314,15 @@ async function loadTasks() {
   // We'll store lift exercises inside the task object, like task.exercises = []
   // Each exercise: { name, weight, sets: [set1, set2, ...], editing: false }
 
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+  async function saveTasks() {
+  try {
+    // For demo, save entire tasks array under a single document
+    await db.collection('tasksData').doc('weeklySchedule').set({ tasks });
+  } catch(e) {
+    console.error('Error saving tasks:', e);
   }
+}
+
 
   function createPages() {
     const main = document.getElementById('pages');
