@@ -684,6 +684,7 @@ function openAddModal() {
   // Initialize app after loading tasks from Firestore
   async function init() {
     await loadTasksFromFirestore();
+    console.log('Loaded tasks for page', pageName, tasks[i]);
     createPages();
     render();
   }
