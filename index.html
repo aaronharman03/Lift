@@ -276,8 +276,9 @@
 <script>
   let currentPage = 0;
   const pageNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "List"];
-  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-  if (tasks.length === 0) tasks = Array(8).fill().map(() => []);
+let tasks = JSON.parse(localStorage.getItem('tasks') || 'null');
+if (!tasks || tasks.length !== 8) tasks = Array(8).fill(null).map(() => []);
+
 
   let editIndex = null;
   let editPage = null;
