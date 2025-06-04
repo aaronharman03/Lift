@@ -775,20 +775,19 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
     render();
   }
 
-  init();
-
-  // Attach saveEdit to form submit
-  document.getElementById('editForm').addEventListener('submit', saveEdit);
-
-  // Attach closeEditModal to cancel button
-  document.addEventListener('DOMContentLoaded', function() {
-  const el = document.getElementById('someElementId');
-  if (el) {
-    el.addEventListener('click', function() {
-      // your code here
-    });
+ auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    // User is signed in
+    document.getElementById('authContainer').style.display = 'none';  // hide login form
+    document.getElementById('pages').style.display = 'block';         // show app UI
+    await loadTasksFromFirestore(user.uid);
+    createPages();
+    render();
   } else {
-    console.warn('Element with ID someElementId not found!');
+    // User not signed in
+    document.getElementById('authContainer').style.display = 'flex';   // show login form
+    document.getElementById('pages').style.display = 'none';           // hide app UI
+    tasks = Array(8).fill().map(() => []);                             // clear local task data
   }
 });
 
