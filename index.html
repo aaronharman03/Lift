@@ -614,12 +614,13 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
         container.appendChild(div);
       
 
-  // Toggle done status
-  async function toggleDone(page, idx) {
-    tasks[page][idx].done = !tasks[page][idx].done;
-    await saveTasksToFirestore(page);
-    render();
+  function toggleDone(dayIndex, taskId) {
+  const task = tasks[dayIndex].find(t => t.id === taskId);
+  if (task) {
+    task.done = !task.done;
   }
+  render();
+}}
 
   // Open edit modal
   function openEditModal(page, idx) {
