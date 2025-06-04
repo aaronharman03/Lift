@@ -347,11 +347,15 @@ async function signInAnonymously() {
   }
 }
 
-const userId = auth.currentUser?.uid;
-if (!userId) {
-  console.error("User not authenticated");
-  return;
+function main() {
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    console.error("User not authenticated");
+    return; // now this return is legal
+  }
+  
 }
+
 
 
 onAuthStateChanged(auth, async (user) => {
