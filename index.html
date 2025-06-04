@@ -198,9 +198,6 @@
     gap: 0.5rem;
     margin-bottom: 0.3rem;
   }
-   .exercise-row button:first-of-type {
-  margin-left: auto;
-}
   .exercise-row input[type="text"] {
     background: #111;
     border: 1px solid #444;
@@ -219,6 +216,12 @@
   .exercise-row button:hover {
     background: #333;
   }
+  .btn-group {
+  margin-left: auto;    /* Push this whole button group to the far right */
+  display: flex;        /* Keep buttons in a row */
+  gap: 0.5rem;          /* Space between Edit and Delete buttons */
+}
+
 
   .add-exercise-btn {
     font-weight: bold;
