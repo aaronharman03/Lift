@@ -8,23 +8,6 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
-  <div id="authContainer" style="display:flex; flex-direction: column; max-width: 300px; margin: 1rem;">
-  <h2>Login / Sign Up</h2>
-  <input id="emailInput" type="email" placeholder="Email" />
-  <input id="passwordInput" type="password" placeholder="Password" />
-  <button id="loginBtn">Login</button>
-  <button id="signupButton">Sign Up</button>
-  <div id="authError" style="color:red; margin-top: 0.5rem;"></div>
-</div>
-
-  <div id="authContainer">
-  <!-- your signup/login inputs and buttons here -->
-</div>
-
-<div id="mainApp" style="display: none;">
-  <!-- your actual app UI here -->
-</div>
-
 
 <style>
   .nav-arrow {
@@ -252,10 +235,6 @@
   html, body {
     touch-action: manipulation;
   }
-  #pages {
-  display: none;
-}
-
 </style>
 </head>
 <body>
@@ -294,11 +273,8 @@
     </form>
   </div>
 </div>
-<!-- Firebase core -->
+
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<!-- Firebase Auth -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-<!-- Firebase Firestore -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 <script>
   // Firebase config - REPLACE THIS WITH YOUR ACTUAL CONFIG
@@ -313,7 +289,6 @@
 
   // Initialize Firebase and Firestore
   firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
   const db = firebase.firestore();
 
   let currentPage = 0;
@@ -324,31 +299,27 @@
   let editPage = null;
 
   // Load tasks from Firestore on startup
-  // Load tasks from Firestore on startup - accept userId as parameter
-
-async function loadTasksFromFirestore(userId) {
-  for(let i = 0; i < pageNames.length; i++) {
-    const pageName = pageNames[i];
-    try {
-      const snapshot = await db.collection('users').doc(userId).collection('tasks').doc(pageName).get();
-      if(snapshot.exists) {
-        tasks[i] = snapshot.data().tasks || [];
-      } else {
+  async function loadTasksFromFirestore() {
+    for(let i = 0; i < pageNames.length; i++) {
+      const pageName = pageNames[i];
+      try {
+        const snapshot = await db.collection('tasks').doc(pageName).get();
+        if(snapshot.exists) {
+          tasks[i] = snapshot.data().tasks || [];
+        } else {
+          tasks[i] = [];
+        }
+      } catch(err) {
+        console.error("Error loading tasks for", pageName, err);
         tasks[i] = [];
       }
-    } catch(err) {
-      console.error("Error loading tasks for", pageName, err);
-      tasks[i] = [];
     }
   }
-}
-
-
 
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
     try {
-      await db.collection('users').doc(user.uid).collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
+      await db.collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
     } catch(err) {
       console.error("Error saving tasks for", pageNames[page], err);
     }
@@ -373,29 +344,6 @@ window.openAddModal = function() {
     alert('Modal element not found!');
   }
 };
-
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const email = document.getElementById('emailInput').value;
-  const password = document.getElementById('passwordInput').value;
-  const errorDiv = document.getElementById('authError');
-  errorDiv.textContent = '';
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-  } catch(e) {
-    errorDiv.textContent = e.message;
-  }
-});
-
-signupButton.addEventListener('click', async () => {
-  const email = document.getElementById('signupEmail').value;
-  const password = document.getElementById('signupPassword').value;
-  try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    // Firebase will auto-log them in, which triggers onAuthStateChanged
-  } catch (error) {
-    alert("Signup error: " + error.message);
-  }
-});
 
 
 
@@ -817,23 +765,22 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
     render();
   }
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // User is signed in
-    document.getElementById('authContainer').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
+  init();
 
-    currentUserId = user.uid; // store user ID for later use
-    createPages();            // create the UI only now
-    loadTasksFromFirestore(currentUserId); // load their data
+  // Attach saveEdit to form submit
+  document.getElementById('editForm').addEventListener('submit', saveEdit);
+
+  // Attach closeEditModal to cancel button
+  document.addEventListener('DOMContentLoaded', function() {
+  const el = document.getElementById('someElementId');
+  if (el) {
+    el.addEventListener('click', function() {
+      // your code here
+    });
   } else {
-    // User is signed out
-    document.getElementById('authContainer').style.display = 'block';
-    document.getElementById('mainApp').style.display = 'none';
+    console.warn('Element with ID someElementId not found!');
   }
 });
-
-
 
  document.addEventListener('DOMContentLoaded', function() {
   const addTaskBtn = document.getElementById('addTaskBtn');
