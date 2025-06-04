@@ -328,13 +328,16 @@
 
 
   // Save tasks for a page to Firestore
-  async function saveTasksToFirestore(page) {
-    try {
-     await db.collection('users').doc(currentUser.uid).collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
-    } catch(err) {
-      console.error("Error saving tasks for", pageNames[page], err);
-    }
-  }
+ async function saveTasksToFirestore(page) {
+  if (!currentUser) return; // ✅ Prevent writing if not logged in
+
+  await db.collection('users')
+    .doc(currentUser.uid)
+    .collection('tasks')
+    .doc(pageNames[page])
+    .set({ tasks: tasks[page] });
+}
+
 
   // Override saveTasks function to save to Firestore instead of localStorage
   function saveTasks() {
