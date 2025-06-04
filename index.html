@@ -358,6 +358,12 @@ window.openAddModal = function() {
     alert('Modal element not found!');
   }
 };
+function getCurrentPageName() {
+  // Example: return the last part of URL path (adjust if your app uses a different logic)
+  const path = window.location.pathname;
+  const page = path.substring(path.lastIndexOf('/') + 1);
+  return page || 'defaultPage';  // fallback if empty
+}
 
 const auth = firebase.auth();
 let currentUser = null;
