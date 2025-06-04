@@ -913,11 +913,12 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
   });
 
   // Initialize app after loading tasks from Firestore
-  async function init() {
-    await loadTasksFromFirestore();
-    createPages();
-    render();
-  }
+ async function init() {
+  if (!currentUser) return;  // no user, do nothing
+  await loadTasksFromFirestore();
+  createPages();
+  render();
+}
 
   init();
 
