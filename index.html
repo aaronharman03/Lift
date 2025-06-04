@@ -812,7 +812,16 @@ auth.onAuthStateChanged(user => {
     render();
   }
 
-  init();
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    init(); // ✅ Only call init now that user is signed in
+  } else {
+    currentUser = null;
+    // Optional: Show login UI or hide tasks
+  }
+});
+
 
   // Attach saveEdit to form submit
   document.getElementById('editForm').addEventListener('submit', saveEdit);
