@@ -244,6 +244,10 @@
   html, body {
     touch-action: manipulation;
   }
+  #pages {
+  display: none;
+}
+
 </style>
 </head>
 <body>
@@ -313,7 +317,7 @@
     for(let i = 0; i < pageNames.length; i++) {
       const pageName = pageNames[i];
       try {
-        const snapshot = await db.collection('tasks').doc(pageName).get();
+        const snapshot = await db.collection('users').doc(userId).collection('tasks').doc(pageName)
         if(snapshot.exists) {
           tasks[i] = snapshot.data().tasks || [];
         } else {
@@ -329,7 +333,7 @@
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
     try {
-      await db.collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
+      await db.collection('users').doc(user.uid).collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
     } catch(err) {
       console.error("Error saving tasks for", pageNames[page], err);
     }
@@ -355,6 +359,29 @@ window.openAddModal = function() {
   }
 };
 
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('emailInput').value;
+  const password = document.getElementById('passwordInput').value;
+  const errorDiv = document.getElementById('authError');
+  errorDiv.textContent = '';
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch(e) {
+    errorDiv.textContent = e.message;
+  }
+});
+
+document.getElementById('signupBtn').addEventListener('click', async () => {
+  const email = document.getElementById('emailInput').value;
+  const password = document.getElementById('passwordInput').value;
+  const errorDiv = document.getElementById('authError');
+  errorDiv.textContent = '';
+  try {
+    await auth.createUserWithEmailAndPassword(email, password);
+  } catch(e) {
+    errorDiv.textContent = e.message;
+  }
+});
 
 
 
