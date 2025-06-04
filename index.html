@@ -414,26 +414,71 @@ auth.onAuthStateChanged(user => {
     render();
   }
 });
+const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+const loginContainer = document.getElementById('loginContainer');
+const appContainer = document.getElementById('appContainer');
 
 document.getElementById('googleLoginBtn').addEventListener('click', () => {
   auth.signInWithPopup(googleProvider)
     .then((result) => {
-      const user = result.user;
-      console.log('User signed in:', user.displayName, user.email);
-      // Now you can show the app content for signed-in users or save user data
+      // Signed in
+      console.log("User signed in:", result.user.displayName);
     })
     .catch((error) => {
-      console.error('Login error:', error);
+      console.error("Google Sign-in error:", error);
     });
 });
+
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+const loginContainer = document.getElementById('loginContainer');
+const appContainer = document.getElementById('appContainer');
+
+document.getElementById('googleLoginBtn').addEventListener('click', () => {
+  auth.signInWithPopup(googleProvider)
+    .then((result) => {
+      // Signed in
+      console.log("User signed in:", result.user.displayName);
+    })
+    .catch((error) => {
+      console.error("Google Sign-in error:", error);
+    });
+});
+
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+const loginContainer = document.getElementById('loginContainer');
+const appContainer = document.getElementById('appContainer');
+
+document.getElementById('googleLoginBtn').addEventListener('click', () => {
+  auth.signInWithPopup(googleProvider)
+    .then((result) => {
+      // Signed in
+      console.log("User signed in:", result.user.displayName);
+    })
+    .catch((error) => {
+      console.error("Google Sign-in error:", error);
+    });
+});
+
 auth.onAuthStateChanged(user => {
-  if (user) {
-    console.log('User is signed in:', user.displayName);
-    // Show app UI or user info
+  if(user) {
+    // User is signed in - show app, hide login button
+    loginContainer.style.display = 'none';
+    appContainer.style.display = 'block';
+    currentUser = user;  // store user globally
+    init();              // load tasks & render UI
   } else {
-    console.log('No user signed in');
-    // Show login button or prompt
+    // No user - show login, hide app
+    loginContainer.style.display = 'flex';
+    appContainer.style.display = 'none';
+    currentUser = null;
+    tasks = Array(8).fill().map(() => []); // clear tasks
+    render();
   }
 });
 
