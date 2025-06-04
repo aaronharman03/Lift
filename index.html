@@ -8,6 +8,15 @@
   <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
+  <div id="authContainer" style="display:flex; flex-direction: column; max-width: 300px; margin: 1rem;">
+  <h2>Login / Sign Up</h2>
+  <input id="emailInput" type="email" placeholder="Email" />
+  <input id="passwordInput" type="password" placeholder="Password" />
+  <button id="loginBtn">Login</button>
+  <button id="signupBtn">Sign Up</button>
+  <div id="authError" style="color:red; margin-top: 0.5rem;"></div>
+</div>
+
 
 <style>
   .nav-arrow {
@@ -273,7 +282,7 @@
     </form>
   </div>
 </div>
-
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 <script>
@@ -289,6 +298,7 @@
 
   // Initialize Firebase and Firestore
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.firestore();
 
   let currentPage = 0;
