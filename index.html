@@ -446,24 +446,23 @@ document.getElementById('dateLabel').style.display = 'block';
 
       div.appendChild(taskLine);
 
-      if (task.showDesc) {
-        const descDiv = document.createElement('div');
-        descDiv.className = 'description';
-        descDiv.textContent = task.description || '';
-        div.appendChild(descDiv);
-      }
+      
+if (task.showDesc) {
+  const descDiv = document.createElement('div');
+  descDiv.textContent = task.description || '(no description)';
+  descDiv.style.marginTop = '0.25rem';
+  div.appendChild(descDiv);
 
-      if (task.showExercises) {
-        const exercisesDiv = document.createElement('div');
-        exercisesDiv.className = 'exercises';
-        exercisesDiv.textContent = (task.exercises || []).join(', ');
-        div.appendChild(exercisesDiv);
-      }
-
-      container.appendChild(div);
-    });
-  });
+  if (task.name === 'Lift' && task.showExercises) {
+    const exercisesDiv = document.createElement('div');
+    exercisesDiv.textContent = 'Here goes exercises info or list...';  // replace with real data
+    exercisesDiv.style.marginTop = '0.5rem';
+    exercisesDiv.style.fontSize = '0.9rem';
+    exercisesDiv.style.color = '#555';
+    div.appendChild(exercisesDiv);
+  }
 }
+
 
           exercisesDiv.appendChild(addExerciseBtn);
 
