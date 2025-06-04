@@ -373,57 +373,49 @@ document.getElementById('dateLabel').style.display = 'block';
 
 }
 
- function render() {
-  document.querySelectorAll('.page').forEach((p, i) => {
-    p.classList.toggle('active', i === currentPage);
-  });
-  document.getElementById('pageTitle').textContent = pageNames[currentPage];
-
-  tasks.forEach((taskList, i) => {
-    const container = document.getElementById(`taskList${i}`);
-    container.innerHTML = '';
-    let sorted = [...taskList];
-    if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    sorted.forEach((task) => {
-      const div = document.createElement('div');
-      div.className = 'task' + (task.done ? ' done' : '');
-      div.style.flexDirection = 'column';
-
-      const taskText = document.createElement('div');
-      taskText.style.display = 'flex';
-      taskText.style.justifyContent = 'space-between';
-      taskText.style.alignItems = 'center';
-      taskText.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-
-      const controls = document.createElement('div');
-      controls.className = 'task-controls';
-
-      const checkBtn = document.createElement('button');
-      checkBtn.textContent = task.done ? '✔' : '◻';
-      checkBtn.title = 'Toggle done';
-      checkBtn.onclick = () => toggleDone(i, task.id);
-
-      const editBtn = document.createElement('button');
-      editBtn.textContent = '✏️';
-      editBtn.title = 'Edit task';
-      editBtn.onclick = () => editTask(i, task.id);
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = '🗑️';
-      deleteBtn.title = 'Delete task';
-      deleteBtn.onclick = () => deleteTask(i, task.id);
-
-      controls.appendChild(checkBtn);
-      controls.appendChild(editBtn);
-      controls.appendChild(deleteBtn);
-
-      div.appendChild(taskText);
-      div.appendChild(controls);
-      container.appendChild(div);
+  function render() {
+    document.querySelectorAll('.page').forEach((p, i) => {
+      p.classList.toggle('active', i === currentPage);
     });
-  });
-}
+    document.getElementById('pageTitle').textContent = pageNames[currentPage];
+
+    tasks.forEach((taskList, i) => {
+      const container = document.getElementById(`taskList${i}`);
+      container.innerHTML = '';
+      let sorted = [...taskList];
+      if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+      sorted.forEach((task, idx) => {
+        const div = document.createElement('div');
+        div.className = 'task' + (task.done ? ' done' : '');
+        div.style.flexDirection = 'column';
+
+        const taskLine = document.createElement('div');
+        taskLine.style.display = 'flex';
+        taskLine.style.justifyContent = 'space-between';
+        taskLine.style.alignItems = 'center';
+        taskLine.style.width = '100%';
+
+        const leftDiv = document.createElement('div');
+        leftDiv.style.display = 'flex';
+        leftDiv.style.alignItems = 'center';
+        leftDiv.style.gap = '0.5rem';
+        leftDiv.style.flexGrow = '1';
+
+        const checkBtn = document.createElement('button');
+        checkBtn.className = 'check-btn';
+        checkBtn.title = 'Toggle done';
+        checkBtn.textContent = task.done ? '✔' : '◻';
+        checkBtn.onclick = () => toggleDone(i, idx);
+
+        const taskNameDiv = document.createElement('div');
+        taskNameDiv.style.flexGrow = '1';
+        taskNameDiv.style.cursor = 'pointer';
+        taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+        taskNameDiv.onclick = () => {
+          task.showDesc = !task.showDesc;
+          if(task.name === 'Lift') task.showExercises = !task.showExercises;
+          render();
+        };
 
         leftDiv.appendChild(checkBtn);
         leftDiv.appendChild(taskNameDiv);
