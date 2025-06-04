@@ -9,6 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
 
+
 <style>
   .nav-arrow {
   font-size: 2rem; /* You can increase this to 2.5rem or 3rem if needed */
@@ -251,6 +252,9 @@
 
 <main id="pages"></main>
 
+  <button id="googleLoginBtn">Sign in with Google</button>
+
+
 <!-- Edit Task Modal (used for add and edit) -->
 <div id="editModal">
   <div id="editModalContent">
@@ -390,6 +394,28 @@ auth.onAuthStateChanged(user => {
     // Clear tasks and UI
     tasks = Array(8).fill().map(() => []);
     render();
+  }
+});
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+document.getElementById('googleLoginBtn').addEventListener('click', () => {
+  auth.signInWithPopup(googleProvider)
+    .then((result) => {
+      const user = result.user;
+      console.log('User signed in:', user.displayName, user.email);
+      // Now you can show the app content for signed-in users or save user data
+    })
+    .catch((error) => {
+      console.error('Login error:', error);
+    });
+});
+auth.onAuthStateChanged(user => {
+  if (user) {
+    console.log('User is signed in:', user.displayName);
+    // Show app UI or user info
+  } else {
+    console.log('No user signed in');
+    // Show login button or prompt
   }
 });
 
