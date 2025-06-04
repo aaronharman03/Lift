@@ -250,6 +250,14 @@
 </header>
 
 <main id="pages"></main>
+  
+<div id="authSection">
+  <button id="signInBtn">Sign In with Google</button>
+  <div id="userInfo" style="display:none;">
+    <span id="userName"></span>
+    <button id="signOutBtn">Sign Out</button>
+  </div>
+</div>
 
 <!-- Edit Task Modal (used for add and edit) -->
 <div id="editModal">
@@ -280,6 +288,8 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
 <script>
   // Firebase config - REPLACE THIS WITH YOUR ACTUAL CONFIG
   const firebaseConfig = {
@@ -349,6 +359,8 @@ window.openAddModal = function() {
   }
 };
 
+const auth = firebase.auth();
+let currentUser = null;
 
 
 
@@ -763,6 +775,35 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
     if(e.key === 'ArrowLeft') switchPage(-1);
     else if(e.key === 'ArrowRight') switchPage(1);
   });
+
+  document.getElementById('signInBtn').onclick = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    console.error("Google Sign-In error:", err);
+  });
+};
+
+document.getElementById('signOutBtn').onclick = () => {
+  auth.signOut();
+};
+
+// Monitor auth state
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('authSection').style.display = 'block';
+    document.getElementById('signInBtn').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'inline';
+    document.getElementById('userName').textContent = `Signed in as: ${user.displayName}`;
+    init(); // Load tasks only after sign-in
+  } else {
+    currentUser = null;
+    document.getElementById('authSection').style.display = 'block';
+    document.getElementById('signInBtn').style.display = 'inline';
+    document.getElementById('userInfo').style.display = 'none';
+    // Optional: clear UI or show guest mode
+  }
+});
 
   // Initialize app after loading tasks from Firestore
   async function init() {
