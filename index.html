@@ -497,49 +497,41 @@ exercisesDiv.innerHTML = '';
           };
           exercisesDiv.appendChild(addExerciseBtn);
 
-          task.exercises.forEach((ex, exIdx) => {
-            const exDiv = document.createElement('div');
-            exDiv.className = 'exercise-row';
+          task.exercise.forEach((exercise, index) => {
+  const exerciseDiv = document.createElement('div');
+  exerciseDiv.style.display = 'flex';
+  exerciseDiv.style.justifyContent = 'space-between';
+  exerciseDiv.style.alignItems = 'center';
+  exerciseDiv.style.marginTop = '4px';
 
-            if(ex.editing) {
-              const exInputsDiv = document.createElement('div');
-              exInputsDiv.style.display = 'flex';
-              exInputsDiv.style.flexDirection = 'column';
-              exInputsDiv.style.gap = '0.3rem';
+  const exerciseText = document.createElement('div');
+  exerciseText.textContent = `${exercise.name} - Sets: ${exercise.sets}, Reps: ${exercise.reps}`;
 
-              const topRow = document.createElement('div');
-              topRow.style.display = 'flex';
-              topRow.style.gap = '0.5rem';
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.gap = '6px';
 
-              const nameInput = document.createElement('input');
-              nameInput.type = 'text';
-              nameInput.placeholder = 'Exercise';
-              nameInput.value = ex.name;
-              nameInput.style.flex = '1';
-              nameInput.oninput = e => ex.name = e.target.value;
+  const editBtn = document.createElement('button');
+  editBtn.textContent = 'Edit';
+  editBtn.className = 'edit-exercise';
+  editBtn.setAttribute('data-task-index', index);
+  editBtn.setAttribute('data-day', day);
+  editBtn.setAttribute('data-exercise-index', index);
 
-              const weightInput = document.createElement('input');
-              weightInput.type = 'text';
-              weightInput.placeholder = 'Weight';
-              weightInput.value = ex.weight;
-              weightInput.style.width = '80px';
-              weightInput.oninput = e => ex.weight = e.target.value;
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.className = 'delete-exercise';
+  deleteBtn.setAttribute('data-task-index', index);
+  deleteBtn.setAttribute('data-day', day);
+  deleteBtn.setAttribute('data-exercise-index', index);
 
-              topRow.appendChild(nameInput);
-              topRow.appendChild(weightInput);
+  buttonContainer.appendChild(editBtn);
+  buttonContainer.appendChild(deleteBtn);
 
-              const setsRow = document.createElement('div');
-              setsRow.style.display = 'flex';
-              setsRow.style.gap = '0.3rem';
-              ex.sets.forEach((setVal, setIdx) => {
-                const setInput = document.createElement('input');
-                setInput.type = 'text';
-                setInput.placeholder = 'Set';
-                setInput.value = setVal;
-                setInput.style.width = '40px';
-                setInput.oninput = e => ex.sets[setIdx] = e.target.value;
-                setsRow.appendChild(setInput);
-              });
+  exerciseDiv.appendChild(exerciseText);
+  exerciseDiv.appendChild(buttonContainer);
+  taskDiv.appendChild(exerciseDiv);
+});
 
               const addSetBtn = document.createElement('button');
               addSetBtn.textContent = '+ Set';
