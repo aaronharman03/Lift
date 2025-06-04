@@ -17,6 +17,14 @@
   <div id="authError" style="color:red; margin-top: 0.5rem;"></div>
 </div>
 
+  <div id="authContainer">
+  <!-- your signup/login inputs and buttons here -->
+</div>
+
+<div id="mainApp" style="display: none;">
+  <!-- your actual app UI here -->
+</div>
+
 
 <style>
   .nav-arrow {
@@ -809,21 +817,21 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
     render();
   }
 
- auth.onAuthStateChanged(async (user) => {
+onAuthStateChanged(auth, (user) => {
   if (user) {
-    // User is signed in
-    document.getElementById('authContainer').style.display = 'none';  // hide login form
-    document.getElementById('pages').style.display = 'block';         // show app UI
-    await loadTasksFromFirestore(user.uid);
-    createPages();
-    render();
+    // Show the main app
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    currentUserId = user.uid;
+    createPages(); // make sure days/pages exist
+    loadTasksFromFirestore(currentUserId); // load this user's tasks
   } else {
-    // User not signed in
-    document.getElementById('authContainer').style.display = 'flex';   // show login form
-    document.getElementById('pages').style.display = 'none';           // hide app UI
-    tasks = Array(8).fill().map(() => []);                             // clear local task data
+    // Show login/signup form
+    document.getElementById('authContainer').style.display = 'block';
+    document.getElementById('mainApp').style.display = 'none';
   }
 });
+
 
  document.addEventListener('DOMContentLoaded', function() {
   const addTaskBtn = document.getElementById('addTaskBtn');
