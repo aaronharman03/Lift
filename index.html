@@ -834,15 +834,16 @@ auth.onAuthStateChanged(user => {
 
   // Attach closeEditModal to cancel button
   document.addEventListener('DOMContentLoaded', function() {
-  const el = document.getElementById('someElementId');
-  if (el) {
+  
+
     el.addEventListener('click', function() {
-      // your code here
-    });
-  } else {
-    console.warn('Element with ID someElementId not found!');
-  }
-});
+ const el = document.getElementById('someElementId');
+if (el) {
+  el.innerHTML = '...';
+} else {
+  console.warn('Element with id "someElementId" not found!');
+}
+
 
  document.addEventListener('DOMContentLoaded', function() {
   const addTaskBtn = document.getElementById('addTaskBtn');
