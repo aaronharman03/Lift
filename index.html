@@ -688,13 +688,10 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
     render();
   }
 
-  // Delete task with confirmation
-  async function deleteTask(page, idx) {
-    if(confirm('Delete this task?')) {
-      tasks[page].splice(idx, 1);
-      await saveTasksToFirestore(page);
-      render();
-    }
+ function deleteTask(dayIndex, taskId) {
+  tasks[dayIndex] = tasks[dayIndex].filter(task => task.id !== taskId);
+  render();
+}
   }
 
   // Toggle menu visibility
