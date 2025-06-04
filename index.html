@@ -252,7 +252,7 @@
 
 <main id="pages"></main>
 
-  <button id="googleLoginBtn">Sign in with Google</button>
+  
 
 
 <!-- Edit Task Modal (used for add and edit) -->
@@ -281,6 +281,24 @@
     </form>
   </div>
 </div>
+  <!-- Add this above your button and main app -->
+<div id="loginContainer" style="display: flex; justify-content:center; margin-top: 20px;">
+  <button id="googleLoginBtn">Sign in with Google</button>
+</div>
+
+<div id="appContainer" style="display:none;">
+  <header>
+     <button class="nav-arrow" onclick="prevPage()">←</button>
+    <h2 id="pageTitle">Monday</h2>
+    <button class="nav-arrow" onclick="nextPage()">→</button>
+  </header>
+
+  <main id="pages"></main>
+
+  <!-- Your Edit Modal here as you have it -->
+  <!-- ...rest of your app HTML here... -->
+</div>
+
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
