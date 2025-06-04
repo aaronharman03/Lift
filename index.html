@@ -280,6 +280,8 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
 <script>
   // Firebase config - REPLACE THIS WITH YOUR ACTUAL CONFIG
   const firebaseConfig = {
@@ -348,6 +350,43 @@ window.openAddModal = function() {
     alert('Modal element not found!');
   }
 };
+const auth = firebase.auth();
+
+let currentUser = null;
+
+// Elements references for login UI (we'll create these next)
+const loginContainer = document.getElementById('loginContainer');
+const appContainer = document.getElementById('appContainer');
+const signInBtn = document.getElementById('signInBtn');
+const signOutBtn = document.getElementById('signOutBtn');
+
+signInBtn.onclick = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(console.error);
+};
+
+signOutBtn.onclick = () => {
+  auth.signOut();
+};
+
+// Listen for auth state changes
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if (user) {
+    // Hide login, show app
+    loginContainer.style.display = 'none';
+    appContainer.style.display = 'block';
+    // Load tasks for this user
+    init();
+  } else {
+    // Show login, hide app
+    loginContainer.style.display = 'flex';
+    appContainer.style.display = 'none';
+    // Clear tasks and UI
+    tasks = Array(8).fill().map(() => []);
+    render();
+  }
+});
 
 
 
