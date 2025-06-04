@@ -392,7 +392,6 @@ window.openAddModal = function() {
     alert('Modal element not found!');
   }
 };
-const auth = firebase.auth();
 
 let currentUser = null;
 
@@ -446,12 +445,6 @@ document.getElementById('googleLoginBtn').addEventListener('click', () => {
     });
 });
 
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-
-const loginContainer = document.getElementById('loginContainer');
-const appContainer = document.getElementById('appContainer');
-
 document.getElementById('googleLoginBtn').addEventListener('click', () => {
   auth.signInWithPopup(googleProvider)
     .then((result) => {
@@ -462,12 +455,6 @@ document.getElementById('googleLoginBtn').addEventListener('click', () => {
       console.error("Google Sign-in error:", error);
     });
 });
-
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-
-const loginContainer = document.getElementById('loginContainer');
-const appContainer = document.getElementById('appContainer');
 
 document.getElementById('googleLoginBtn').addEventListener('click', () => {
   auth.signInWithPopup(googleProvider)
