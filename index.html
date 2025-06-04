@@ -386,17 +386,17 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('signupBtn').addEventListener('click', async () => {
-  const email = document.getElementById('emailInput').value;
-  const password = document.getElementById('passwordInput').value;
-  const errorDiv = document.getElementById('authError');
-  errorDiv.textContent = '';
+signupButton.addEventListener('click', async () => {
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
   try {
-    await auth.createUserWithEmailAndPassword(email, password);
-  } catch(e) {
-    errorDiv.textContent = e.message;
+    await createUserWithEmailAndPassword(auth, email, password);
+    // Firebase will auto-log them in, which triggers onAuthStateChanged
+  } catch (error) {
+    alert("Signup error: " + error.message);
   }
 });
+
 
 
 
