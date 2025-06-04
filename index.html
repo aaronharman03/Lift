@@ -9,7 +9,6 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
 
-
 <style>
   .nav-arrow {
   font-size: 2rem; /* You can increase this to 2.5rem or 3rem if needed */
@@ -252,9 +251,6 @@
 
 <main id="pages"></main>
 
-  
-
-
 <!-- Edit Task Modal (used for add and edit) -->
 <div id="editModal">
   <div id="editModalContent">
@@ -281,29 +277,9 @@
     </form>
   </div>
 </div>
-  <!-- Add this above your button and main app -->
-<div id="loginContainer" style="display: flex; justify-content:center; margin-top: 20px;">
-  <button id="googleLoginBtn">Sign in with Google</button>
-</div>
-
-<div id="appContainer" style="display:none;">
-  <header>
-     <button class="nav-arrow" onclick="prevPage()">←</button>
-    <h2 id="pageTitle">Monday</h2>
-    <button class="nav-arrow" onclick="nextPage()">→</button>
-  </header>
-
-  <main id="pages"></main>
-
-  <!-- Your Edit Modal here as you have it -->
-  <!-- ...rest of your app HTML here... -->
-</div>
-
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-
 <script>
   // Firebase config - REPLACE THIS WITH YOUR ACTUAL CONFIG
   const firebaseConfig = {
@@ -326,43 +302,23 @@
   let editIndex = null;
   let editPage = null;
 
+  // Load tasks from Firestore on startup
   async function loadTasksFromFirestore() {
-  if (!currentUser) return; // no user, no load
-
-  for(let i = 0; i < pageNames.length; i++) {
-    const pageName = pageNames[i];
-    try {
-      const snapshot = await db.collection('users')
-        .doc(currentUser.uid)
-        .collection('tasks')
-        .doc(pageName)
-        .get();
-
-      if(snapshot.exists) {
-        tasks[i] = snapshot.data().tasks || [];
-      } else {
+    for(let i = 0; i < pageNames.length; i++) {
+      const pageName = pageNames[i];
+      try {
+        const snapshot = await db.collection('tasks').doc(pageName).get();
+        if(snapshot.exists) {
+          tasks[i] = snapshot.data().tasks || [];
+        } else {
+          tasks[i] = [];
+        }
+      } catch(err) {
+        console.error("Error loading tasks for", pageName, err);
         tasks[i] = [];
       }
-    } catch(err) {
-      console.error("Error loading tasks for", pageName, err);
-      tasks[i] = [];
     }
   }
-}
-async function saveTasksToFirestore(page) {
-  if (!currentUser) return; // no user, no save
-
-  try {
-    await db.collection('users')
-      .doc(currentUser.uid)
-      .collection('tasks')
-      .doc(pageNames[page])
-      .set({ tasks: tasks[page] });
-  } catch(err) {
-    console.error("Error saving tasks for", pageNames[page], err);
-  }
-}
-
 
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
@@ -392,97 +348,6 @@ window.openAddModal = function() {
     alert('Modal element not found!');
   }
 };
-
-let currentUser = null;
-
-// Elements references for login UI (we'll create these next)
-const loginContainer = document.getElementById('loginContainer');
-const appContainer = document.getElementById('appContainer');
-const signInBtn = document.getElementById('signInBtn');
-const signOutBtn = document.getElementById('signOutBtn');
-
-signInBtn.onclick = () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(console.error);
-};
-
-signOutBtn.onclick = () => {
-  auth.signOut();
-};
-
-// Listen for auth state changes
-auth.onAuthStateChanged(user => {
-  currentUser = user;
-  if (user) {
-    // Hide login, show app
-    loginContainer.style.display = 'none';
-    appContainer.style.display = 'block';
-    // Load tasks for this user
-    init();
-  } else {
-    // Show login, hide app
-    loginContainer.style.display = 'flex';
-    appContainer.style.display = 'none';
-    // Clear tasks and UI
-    tasks = Array(8).fill().map(() => []);
-    render();
-  }
-});
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-
-const loginContainer = document.getElementById('loginContainer');
-const appContainer = document.getElementById('appContainer');
-
-document.getElementById('googleLoginBtn').addEventListener('click', () => {
-  auth.signInWithPopup(googleProvider)
-    .then((result) => {
-      // Signed in
-      console.log("User signed in:", result.user.displayName);
-    })
-    .catch((error) => {
-      console.error("Google Sign-in error:", error);
-    });
-});
-
-document.getElementById('googleLoginBtn').addEventListener('click', () => {
-  auth.signInWithPopup(googleProvider)
-    .then((result) => {
-      // Signed in
-      console.log("User signed in:", result.user.displayName);
-    })
-    .catch((error) => {
-      console.error("Google Sign-in error:", error);
-    });
-});
-
-document.getElementById('googleLoginBtn').addEventListener('click', () => {
-  auth.signInWithPopup(googleProvider)
-    .then((result) => {
-      // Signed in
-      console.log("User signed in:", result.user.displayName);
-    })
-    .catch((error) => {
-      console.error("Google Sign-in error:", error);
-    });
-});
-
-auth.onAuthStateChanged(user => {
-  if(user) {
-    // User is signed in - show app, hide login button
-    loginContainer.style.display = 'none';
-    appContainer.style.display = 'block';
-    currentUser = user;  // store user globally
-    init();              // load tasks & render UI
-  } else {
-    // No user - show login, hide app
-    loginContainer.style.display = 'flex';
-    appContainer.style.display = 'none';
-    currentUser = null;
-    tasks = Array(8).fill().map(() => []); // clear tasks
-    render();
-  }
-});
 
 
 
@@ -900,12 +765,11 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
   });
 
   // Initialize app after loading tasks from Firestore
- async function init() {
-  if (!currentUser) return;  // no user, do nothing
-  await loadTasksFromFirestore();
-  createPages();
-  render();
-}
+  async function init() {
+    await loadTasksFromFirestore();
+    createPages();
+    render();
+  }
 
   init();
 
