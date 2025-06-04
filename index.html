@@ -317,7 +317,7 @@
     for(let i = 0; i < pageNames.length; i++) {
       const pageName = pageNames[i];
       try {
-        const snapshot = await db.collection('tasks').doc(pageName).get();
+     const snapshot = await db.collection('users').doc(currentUser.uid).collection('tasks').doc(pageName).get();
         if(snapshot.exists) {
           tasks[i] = snapshot.data().tasks || [];
         } else {
@@ -333,7 +333,7 @@
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
     try {
-      await db.collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
+     await db.collection('users').doc(currentUser.uid).collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
     } catch(err) {
       console.error("Error saving tasks for", pageNames[page], err);
     }
