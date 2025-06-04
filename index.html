@@ -382,9 +382,9 @@ document.getElementById('dateLabel').style.display = 'block';
     tasks.forEach((taskList, i) => {
       const container = document.getElementById(`taskList${i}`);
       container.innerHTML = '';
-      let sorted = [...taskList];
-      if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-    sorted.forEach((task, displayIdx) => {
+    let sorted = taskList.map((task, originalIndex) => ({ task, originalIndex }));
+if (i === 7) sorted.sort((a, b) => new Date(a.task.date) - new Date(b.task.date));
+sorted.forEach(({ task, originalIndex }) => {
   const originalIdx = tasks[i].indexOf(task); // Map back to real index
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
