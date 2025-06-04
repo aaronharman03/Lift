@@ -373,125 +373,98 @@ document.getElementById('dateLabel').style.display = 'block';
 
 }
 
-  function render() {
-    document.querySelectorAll('.page').forEach((p, i) => {
-      p.classList.toggle('active', i === currentPage);
+ function render() {
+  document.querySelectorAll('.page').forEach((p, i) => {
+    p.classList.toggle('active', i === currentPage);
+  });
+  document.getElementById('pageTitle').textContent = pageNames[currentPage];
+
+  tasks.forEach((taskList, i) => {
+    const container = document.getElementById(`taskList${i}`);
+    container.innerHTML = '';
+
+    let sorted = [...taskList];
+    if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    sorted.forEach((task) => {
+      const div = document.createElement('div');
+      div.className = 'task' + (task.done ? ' done' : '');
+      div.style.flexDirection = 'column';
+
+      const taskLine = document.createElement('div');
+      taskLine.style.display = 'flex';
+      taskLine.style.justifyContent = 'space-between';
+      taskLine.style.alignItems = 'center';
+      taskLine.style.width = '100%';
+
+      const leftDiv = document.createElement('div');
+      leftDiv.style.display = 'flex';
+      leftDiv.style.alignItems = 'center';
+      leftDiv.style.gap = '0.5rem';
+      leftDiv.style.flexGrow = '1';
+
+      const checkBtn = document.createElement('button');
+      checkBtn.className = 'check-btn';
+      checkBtn.title = 'Toggle done';
+      checkBtn.textContent = task.done ? '✔' : '◻';
+      checkBtn.onclick = () => toggleDone(i, task.id);
+
+      const taskNameDiv = document.createElement('div');
+      taskNameDiv.style.flexGrow = '1';
+      taskNameDiv.style.cursor = 'pointer';
+      taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
+      taskNameDiv.onclick = () => {
+        task.showDesc = !task.showDesc;
+        if(task.name === 'Lift') task.showExercises = !task.showExercises;
+        render();
+      };
+
+      leftDiv.appendChild(checkBtn);
+      leftDiv.appendChild(taskNameDiv);
+
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.style.display = 'flex';
+      buttonsDiv.style.gap = '0.25rem';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-btn';
+      editBtn.title = 'Edit task';
+      editBtn.textContent = '✎';
+      editBtn.onclick = () => editTask(i, task.id);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.title = 'Delete task';
+      deleteBtn.textContent = '✖';
+      deleteBtn.onclick = () => deleteTask(i, task.id);
+
+      buttonsDiv.appendChild(editBtn);
+      buttonsDiv.appendChild(deleteBtn);
+
+      taskLine.appendChild(leftDiv);
+      taskLine.appendChild(buttonsDiv);
+
+      div.appendChild(taskLine);
+
+      if (task.showDesc) {
+        const descDiv = document.createElement('div');
+        descDiv.className = 'description';
+        descDiv.textContent = task.description || '';
+        div.appendChild(descDiv);
+      }
+
+      if (task.showExercises) {
+        const exercisesDiv = document.createElement('div');
+        exercisesDiv.className = 'exercises';
+        exercisesDiv.textContent = (task.exercises || []).join(', ');
+        div.appendChild(exercisesDiv);
+      }
+
+      container.appendChild(div);
     });
-    document.getElementById('pageTitle').textContent = pageNames[currentPage];
-
-    tasks.forEach((taskList, i) => {
-      const container = document.getElementById(`taskList${i}`);
-      container.innerHTML = '';
-      let sorted = [...taskList];
-      if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-      sorted.forEach((task, idx) => {
-        const div = document.createElement('div');
-        div.className = 'task' + (task.done ? ' done' : '');
-        div.style.flexDirection = 'column';
-
-        const taskLine = document.createElement('div');
-        taskLine.style.display = 'flex';
-        taskLine.style.justifyContent = 'space-between';
-        taskLine.style.alignItems = 'center';
-        taskLine.style.width = '100%';
-
-        const leftDiv = document.createElement('div');
-        leftDiv.style.display = 'flex';
-        leftDiv.style.alignItems = 'center';
-        leftDiv.style.gap = '0.5rem';
-        leftDiv.style.flexGrow = '1';
-
-        const checkBtn = document.createElement('button');
-        checkBtn.className = 'check-btn';
-        checkBtn.title = 'Toggle done';
-        checkBtn.textContent = task.done ? '✔' : '◻';
-        checkBtn.onclick = () => toggleDone(i, idx);
-
-        const taskNameDiv = document.createElement('div');
-        taskNameDiv.style.flexGrow = '1';
-        taskNameDiv.style.cursor = 'pointer';
-        taskNameDiv.innerHTML = `<strong>${task.time || ''} ${task.name}</strong>`;
-        taskNameDiv.onclick = () => {
-          task.showDesc = !task.showDesc;
-          if(task.name === 'Lift') task.showExercises = !task.showExercises;
-          render();
-        };
-
-        leftDiv.appendChild(checkBtn);
-        leftDiv.appendChild(taskNameDiv);
-        if (i === 7 && task.date) {
-  const dateDiv = document.createElement('div');
-  dateDiv.style.fontSize = '0.8rem';
-  dateDiv.style.color = '#666';
-  dateDiv.style.marginLeft = '0.5rem';
-  dateDiv.textContent = `Date: ${task.date}`;
-  leftDiv.appendChild(dateDiv);
+  });
 }
 
-
-        const rightDiv = document.createElement('div');
-        rightDiv.style.position = 'relative';
-
-        const menuBtn = document.createElement('button');
-        menuBtn.className = 'menu-btn';
-        menuBtn.title = 'Options';
-        menuBtn.textContent = '⋮';
-        menuBtn.onclick = (event) => {
-          event.stopPropagation();
-          toggleMenu(event, i, idx);
-        };
-
-        const menuDiv = document.createElement('div');
-        menuDiv.className = 'menu';
-        menuDiv.id = `menu-${i}-${idx}`;
-        menuDiv.style.display = 'none';
-
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => openEditModal(i, idx);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.onclick = () => deleteTask(i, idx);
-
-        menuDiv.appendChild(editBtn);
-        menuDiv.appendChild(deleteBtn);
-
-        rightDiv.appendChild(menuBtn);
-        rightDiv.appendChild(menuDiv);
-
-        taskLine.appendChild(leftDiv);
-        taskLine.appendChild(rightDiv);
-
-        div.appendChild(taskLine);
-        if (task.showDesc && task.desc) {
-          const descDiv = document.createElement('div');
-          descDiv.style.marginTop = '0.3rem';
-          descDiv.style.whiteSpace = 'pre-wrap';
-          descDiv.style.color = '#aaa';
-          descDiv.textContent = task.desc;
-          div.appendChild(descDiv);
-        }
-
-        // Your existing lift exercises code remains unchanged
-        if(task.name === 'Lift' && task.showExercises) {
-          if(!task.exercises) task.exercises = [];
-
-          const exercisesDiv = document.createElement('div');
-          exercisesDiv.className = 'lift-exercises';
-exercisesDiv.innerHTML = '';
-          const addExerciseBtn = document.createElement('div');
-          addExerciseBtn.className = 'add-exercise-btn';
-          addExerciseBtn.textContent = '+ Add Exercise';
-          addExerciseBtn.onclick = () => {
-            task.exercises.push({
-              name: '',
-              weight: '',
-              sets: ['','',''],
-              editing: true
-            });
-            render();
-          };
           exercisesDiv.appendChild(addExerciseBtn);
 
           task.exercises.forEach((ex, exIdx) => {
