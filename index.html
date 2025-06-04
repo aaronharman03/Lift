@@ -198,6 +198,9 @@
     gap: 0.5rem;
     margin-bottom: 0.3rem;
   }
+   .exercise-row button:first-of-type {
+  margin-left: auto;
+}
   .exercise-row input[type="text"] {
     background: #111;
     border: 1px solid #444;
@@ -216,6 +219,7 @@
   .exercise-row button:hover {
     background: #333;
   }
+
   .add-exercise-btn {
     font-weight: bold;
     cursor: pointer;
@@ -247,7 +251,7 @@
 <div id="editModal">
   <div id="editModalContent">
     <h3 id="editModalTitle">Add Task</h3>
-    <form id="editForm" onsubmit="saveEdit(event)">
+    <form id="editForm">
       <label>
         Time:<br/>
         <input type="time" name="time" id="editTime" />
@@ -475,7 +479,7 @@ document.getElementById('dateLabel').style.display = 'block';
 
           const exercisesDiv = document.createElement('div');
           exercisesDiv.className = 'lift-exercises';
-
+exercisesDiv.innerHTML = '';
           const addExerciseBtn = document.createElement('div');
           addExerciseBtn.className = 'add-exercise-btn';
           addExerciseBtn.textContent = '+ Add Exercise';
@@ -574,22 +578,59 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
               exInputsDiv.appendChild(saveBtn);
 
               exDiv.appendChild(exInputsDiv);
-            } else {
-              const exText = document.createElement('div');
-            let parts = [ex.name];
-if (ex.weight) parts.push(ex.weight);
-if (ex.sets && ex.sets.filter(s => s.trim() !== '').length > 0) {
-  parts.push(ex.sets.filter(s => s.trim() !== '').join(', '));
-}
-exText.textContent = parts.join(' - ');
+            
+            }  else {
+  // Create container for exercise display + menu buttons
+  const exContentDiv = document.createElement('div');
+  exContentDiv.style.display = 'flex';
+  exContentDiv.style.justifyContent = 'space-between';
+  exContentDiv.style.alignItems = 'center';
+  exContentDiv.style.width = '100%';
 
-              exText.style.cursor = 'pointer';
-              exText.onclick = () => {
-                ex.editing = true;
-                render();
-              };
-              exDiv.appendChild(exText);
-            }
+  // Exercise text display
+  const exText = document.createElement('div');
+  let parts = [ex.name];
+  if (ex.weight) parts.push(ex.weight);
+  if (ex.sets && ex.sets.filter(s => s.trim() !== '').length > 0) {
+    parts.push(ex.sets.filter(s => s.trim() !== '').join(', '));
+  }
+  exText.textContent = parts.join(' - ');
+  exText.style.flexGrow = '1';
+  exText.style.cursor = 'default'; // no click to toggle edit anymore
+
+  // Menu container for exercise
+  const exMenuDiv = document.createElement('div');
+  exMenuDiv.style.display = 'flex';
+  exMenuDiv.style.gap = '0.5rem';
+
+  // Edit exercise button
+  const exEditBtn = document.createElement('button');
+  exEditBtn.textContent = 'Edit';
+  exEditBtn.onclick = () => {
+    ex.editing = true;
+    render();
+  };
+
+  // Delete exercise button
+  const exDeleteBtn = document.createElement('button');
+  exDeleteBtn.textContent = 'Delete';
+  exDeleteBtn.onclick = async () => {
+    if (confirm('Delete this exercise?')) {
+      task.exercises.splice(exIdx, 1);
+      await saveTasksToFirestore(i);
+      render();
+    }
+  };
+
+  exMenuDiv.appendChild(exEditBtn);
+  exMenuDiv.appendChild(exDeleteBtn);
+
+  exContentDiv.appendChild(exText);
+  exContentDiv.appendChild(exMenuDiv);
+
+  exDiv.appendChild(exContentDiv);
+}
+
 
             exercisesDiv.appendChild(exDiv);
           });
@@ -634,6 +675,7 @@ exText.textContent = parts.join(' - ');
   // Handle form submission for adding/editing tasks
   async function saveEdit(e) {
     e.preventDefault();
+        console.log('Saving task:', { editPage, editIndex });
     const form = e.target;
     const time = form.time.value.trim();
     const name = form.name.value.trim();
@@ -768,8 +810,18 @@ exText.textContent = parts.join(' - ');
 function nextPage() {
   switchPage(1);
 }
+  document.addEventListener('DOMContentLoaded', () => {
+  const editForm = document.getElementById('editForm');
+  if (editForm) {
+    // Remove any existing listeners first (optional but safe)
+    editForm.removeEventListener('submit', saveEdit);
+    editForm.addEventListener('submit', saveEdit);
+  }
+});
+
 </script>
-<div id="addTaskBtn" title="Add Task" onclick="openAddModal()">+</div>
+<div id="addTaskBtn" title="Add Task">+</div>
+
 
 
 </body>
