@@ -316,22 +316,26 @@
   let editPage = null;
 
   // Load tasks from Firestore on startup
-  async function loadTasksFromFirestore() {
-    for(let i = 0; i < pageNames.length; i++) {
-      const pageName = pageNames[i];
-      try {
-        const snapshot = await db.collection('users').doc(userId).collection('tasks').doc(pageName)
-        if(snapshot.exists) {
-          tasks[i] = snapshot.data().tasks || [];
-        } else {
-          tasks[i] = [];
-        }
-      } catch(err) {
-        console.error("Error loading tasks for", pageName, err);
+  // Load tasks from Firestore on startup - accept userId as parameter
+
+async function loadTasksFromFirestore(userId) {
+  for(let i = 0; i < pageNames.length; i++) {
+    const pageName = pageNames[i];
+    try {
+      const snapshot = await db.collection('users').doc(userId).collection('tasks').doc(pageName).get();
+      if(snapshot.exists) {
+        tasks[i] = snapshot.data().tasks || [];
+      } else {
         tasks[i] = [];
       }
+    } catch(err) {
+      console.error("Error loading tasks for", pageName, err);
+      tasks[i] = [];
     }
   }
+}
+
+
 
   // Save tasks for a page to Firestore
   async function saveTasksToFirestore(page) {
