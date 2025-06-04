@@ -819,18 +819,20 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // Show the main app
+    // User is signed in
     document.getElementById('authContainer').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
-    currentUserId = user.uid;
-    createPages(); // make sure days/pages exist
-    loadTasksFromFirestore(currentUserId); // load this user's tasks
+
+    currentUserId = user.uid; // store user ID for later use
+    createPages();            // create the UI only now
+    loadTasksFromFirestore(currentUserId); // load their data
   } else {
-    // Show login/signup form
+    // User is signed out
     document.getElementById('authContainer').style.display = 'block';
     document.getElementById('mainApp').style.display = 'none';
   }
 });
+
 
 
  document.addEventListener('DOMContentLoaded', function() {
