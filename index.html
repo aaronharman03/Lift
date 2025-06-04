@@ -312,9 +312,11 @@
   let editIndex = null;
   let editPage = null;
 
-  // Load tasks from Firestore on startup
- async function loadTasksFromFirestore() {
-  if (!currentUser) return; // ✅ Prevent errors if user is not logged in
+async function loadTasksFromFirestore() {
+  const pageName = getCurrentPageName();  // now this will work
+  // ... rest of your code to load tasks filtered by pageName
+}
+
 
   const pageName = getCurrentPageName();
   const docRef = db.collection('users').doc(currentUser.uid).collection('tasks').doc(pageName);
