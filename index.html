@@ -384,7 +384,8 @@ document.getElementById('dateLabel').style.display = 'block';
       container.innerHTML = '';
       let sorted = [...taskList];
       if (i === 7) sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-      sorted.forEach((task, idx) => {
+    sorted.forEach((task, displayIdx) => {
+  const originalIdx = tasks[i].indexOf(task); // Map back to real index
         const div = document.createElement('div');
         div.className = 'task' + (task.done ? ' done' : '');
         div.style.flexDirection = 'column';
@@ -405,7 +406,7 @@ document.getElementById('dateLabel').style.display = 'block';
         checkBtn.className = 'check-btn';
         checkBtn.title = 'Toggle done';
         checkBtn.textContent = task.done ? '✔' : '◻';
-        checkBtn.onclick = () => toggleDone(i, idx);
+        checkBtn.onclick = () => toggleDone(i, originalIdx);
 
         const taskNameDiv = document.createElement('div');
         taskNameDiv.style.flexGrow = '1';
