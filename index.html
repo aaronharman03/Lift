@@ -198,6 +198,9 @@
     gap: 0.5rem;
     margin-bottom: 0.3rem;
   }
+   .exercise-row button:first-of-type {
+  margin-left: auto;
+}
   .exercise-row input[type="text"] {
     background: #111;
     border: 1px solid #444;
@@ -216,12 +219,6 @@
   .exercise-row button:hover {
     background: #333;
   }
-  .btn-group {
-  margin-left: auto;    /* Push this whole button group to the far right */
-  display: flex;        /* Keep buttons in a row */
-  gap: 0.5rem;          /* Space between Edit and Delete buttons */
-}
-
 
   .add-exercise-btn {
     font-weight: bold;
@@ -497,41 +494,49 @@ exercisesDiv.innerHTML = '';
           };
           exercisesDiv.appendChild(addExerciseBtn);
 
-          task.exercise.forEach((exercise, index) => {
-  const exerciseDiv = document.createElement('div');
-  exerciseDiv.style.display = 'flex';
-  exerciseDiv.style.justifyContent = 'space-between';
-  exerciseDiv.style.alignItems = 'center';
-  exerciseDiv.style.marginTop = '4px';
+          task.exercises.forEach((ex, exIdx) => {
+            const exDiv = document.createElement('div');
+            exDiv.className = 'exercise-row';
 
-  const exerciseText = document.createElement('div');
-  exerciseText.textContent = `${exercise.name} - Sets: ${exercise.sets}, Reps: ${exercise.reps}`;
+            if(ex.editing) {
+              const exInputsDiv = document.createElement('div');
+              exInputsDiv.style.display = 'flex';
+              exInputsDiv.style.flexDirection = 'column';
+              exInputsDiv.style.gap = '0.3rem';
 
-  const buttonContainer = document.createElement('div');
-  buttonContainer.style.display = 'flex';
-  buttonContainer.style.gap = '6px';
+              const topRow = document.createElement('div');
+              topRow.style.display = 'flex';
+              topRow.style.gap = '0.5rem';
 
-  const editBtn = document.createElement('button');
-  editBtn.textContent = 'Edit';
-  editBtn.className = 'edit-exercise';
-  editBtn.setAttribute('data-task-index', index);
-  editBtn.setAttribute('data-day', day);
-  editBtn.setAttribute('data-exercise-index', index);
+              const nameInput = document.createElement('input');
+              nameInput.type = 'text';
+              nameInput.placeholder = 'Exercise';
+              nameInput.value = ex.name;
+              nameInput.style.flex = '1';
+              nameInput.oninput = e => ex.name = e.target.value;
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.textContent = 'Delete';
-  deleteBtn.className = 'delete-exercise';
-  deleteBtn.setAttribute('data-task-index', index);
-  deleteBtn.setAttribute('data-day', day);
-  deleteBtn.setAttribute('data-exercise-index', index);
+              const weightInput = document.createElement('input');
+              weightInput.type = 'text';
+              weightInput.placeholder = 'Weight';
+              weightInput.value = ex.weight;
+              weightInput.style.width = '80px';
+              weightInput.oninput = e => ex.weight = e.target.value;
 
-  buttonContainer.appendChild(editBtn);
-  buttonContainer.appendChild(deleteBtn);
+              topRow.appendChild(nameInput);
+              topRow.appendChild(weightInput);
 
-  exerciseDiv.appendChild(exerciseText);
-  exerciseDiv.appendChild(buttonContainer);
-  taskDiv.appendChild(exerciseDiv);
-});
+              const setsRow = document.createElement('div');
+              setsRow.style.display = 'flex';
+              setsRow.style.gap = '0.3rem';
+              ex.sets.forEach((setVal, setIdx) => {
+                const setInput = document.createElement('input');
+                setInput.type = 'text';
+                setInput.placeholder = 'Set';
+                setInput.value = setVal;
+                setInput.style.width = '40px';
+                setInput.oninput = e => ex.sets[setIdx] = e.target.value;
+                setsRow.appendChild(setInput);
+              });
 
               const addSetBtn = document.createElement('button');
               addSetBtn.textContent = '+ Set';
@@ -631,7 +636,7 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
           });
 
           div.appendChild(exercisesDiv);
-        });
+        }
 
         container.appendChild(div);
       });
