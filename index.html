@@ -437,10 +437,7 @@ sorted.forEach(({ task, originalIndex }) => {
         menuBtn.className = 'menu-btn';
         menuBtn.title = 'Options';
         menuBtn.textContent = '⋮';
-        menuBtn.onclick = (event) => {
-          event.stopPropagation();
-          toggleMenu(event, i, idx);
-        };
+        menuBtn.onclick = (event) => { event.stopPropagation(); toggleMenu(event, i, originalIndex); };
 
         const menuDiv = document.createElement('div');
         menuDiv.className = 'menu';
@@ -449,11 +446,13 @@ sorted.forEach(({ task, originalIndex }) => {
 
         const editBtn = document.createElement('button');
         editBtn.textContent = 'Edit';
-        editBtn.onclick = () => openEditModal(i, idx);
+        editBtn.onclick = () => openEditModal(i, originalIndex);
 
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete';
-        deleteBtn.onclick = () => deleteTask(i, idx);
+        deleteBtn.onclick = () => deleteTask(i, originalIndex);
+
+
 
         menuDiv.appendChild(editBtn);
         menuDiv.appendChild(deleteBtn);
