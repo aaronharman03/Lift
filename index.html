@@ -250,14 +250,6 @@
 </header>
 
 <main id="pages"></main>
-  
-<div id="authSection">
-  <button id="signInBtn">Sign In with Google</button>
-  <div id="userInfo" style="display:none;">
-    <span id="userName"></span>
-    <button id="signOutBtn">Sign Out</button>
-  </div>
-</div>
 
 <!-- Edit Task Modal (used for add and edit) -->
 <div id="editModal">
@@ -288,8 +280,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-
 <script>
   // Firebase config - REPLACE THIS WITH YOUR ACTUAL CONFIG
   const firebaseConfig = {
@@ -312,34 +302,32 @@
   let editIndex = null;
   let editPage = null;
 
-async function loadTasksFromFirestore() {
-  const pageName = getCurrentPageName();  // now this will work
-  // ... rest of your code to load tasks filtered by pageName
-}
-
-
-  const pageName = getCurrentPageName();
-  const docRef = db.collection('users').doc(currentUser.uid).collection('tasks').doc(pageName);
-  const doc = await docRef.get();
-
-  if (doc.exists) {
-    tasks[activePage] = doc.data().tasks || [];
-    renderTasks(activePage);
+  // Load tasks from Firestore on startup
+  async function loadTasksFromFirestore() {
+    for(let i = 0; i < pageNames.length; i++) {
+      const pageName = pageNames[i];
+      try {
+        const snapshot = await db.collection('tasks').doc(pageName).get();
+        if(snapshot.exists) {
+          tasks[i] = snapshot.data().tasks || [];
+        } else {
+          tasks[i] = [];
+        }
+      } catch(err) {
+        console.error("Error loading tasks for", pageName, err);
+        tasks[i] = [];
+      }
+    }
   }
-}
-
 
   // Save tasks for a page to Firestore
- async function saveTasksToFirestore(page) {
-  if (!currentUser) return; // ✅ Prevent writing if not logged in
-
-  await db.collection('users')
-    .doc(currentUser.uid)
-    .collection('tasks')
-    .doc(pageNames[page])
-    .set({ tasks: tasks[page] });
-}
-
+  async function saveTasksToFirestore(page) {
+    try {
+      await db.collection('tasks').doc(pageNames[page]).set({ tasks: tasks[page] });
+    } catch(err) {
+      console.error("Error saving tasks for", pageNames[page], err);
+    }
+  }
 
   // Override saveTasks function to save to Firestore instead of localStorage
   function saveTasks() {
@@ -360,15 +348,7 @@ window.openAddModal = function() {
     alert('Modal element not found!');
   }
 };
-function getCurrentPageName() {
-  // Example: return the last part of URL path (adjust if your app uses a different logic)
-  const path = window.location.pathname;
-  const page = path.substring(path.lastIndexOf('/') + 1);
-  return page || 'defaultPage';  // fallback if empty
-}
 
-const auth = firebase.auth();
-let currentUser = null;
 
 
 
@@ -784,35 +764,6 @@ exInputsDiv.appendChild(cancelBtn); // Make sure you append it to the form
     else if(e.key === 'ArrowRight') switchPage(1);
   });
 
-  document.getElementById('signInBtn').onclick = () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err => {
-    console.error("Google Sign-In error:", err);
-  });
-};
-
-document.getElementById('signOutBtn').onclick = () => {
-  auth.signOut();
-};
-
-// Monitor auth state
-auth.onAuthStateChanged(user => {
-  if (user) {
-    currentUser = user;
-    document.getElementById('authSection').style.display = 'block';
-    document.getElementById('signInBtn').style.display = 'none';
-    document.getElementById('userInfo').style.display = 'inline';
-    document.getElementById('userName').textContent = `Signed in as: ${user.displayName}`;
-    init(); // Load tasks only after sign-in
-  } else {
-    currentUser = null;
-    document.getElementById('authSection').style.display = 'block';
-    document.getElementById('signInBtn').style.display = 'inline';
-    document.getElementById('userInfo').style.display = 'none';
-    // Optional: clear UI or show guest mode
-  }
-});
-
   // Initialize app after loading tasks from Firestore
   async function init() {
     await loadTasksFromFirestore();
@@ -820,32 +771,22 @@ auth.onAuthStateChanged(user => {
     render();
   }
 
-auth.onAuthStateChanged(user => {
-  if (user) {
-    currentUser = user;
-    init(); // ✅ Only call init now that user is signed in
-  } else {
-    currentUser = null;
-    // Optional: Show login UI or hide tasks
-  }
-});
-
+  init();
 
   // Attach saveEdit to form submit
   document.getElementById('editForm').addEventListener('submit', saveEdit);
 
   // Attach closeEditModal to cancel button
   document.addEventListener('DOMContentLoaded', function() {
-  
-
+  const el = document.getElementById('someElementId');
+  if (el) {
     el.addEventListener('click', function() {
- const el = document.getElementById('someElementId');
-if (el) {
-  el.innerHTML = '...';
-} else {
-  console.warn('Element with id "someElementId" not found!');
-}
-
+      // your code here
+    });
+  } else {
+    console.warn('Element with ID someElementId not found!');
+  }
+});
 
  document.addEventListener('DOMContentLoaded', function() {
   const addTaskBtn = document.getElementById('addTaskBtn');
